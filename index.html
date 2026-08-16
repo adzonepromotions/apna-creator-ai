@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Apna Creator AI</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f7fb;
+      color: #1f2937;
+    }
+
+    header {
+      background: #ffffff;
+      padding: 18px 6%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .logo {
+      font-size: 25px;
+      font-weight: bold;
+      color: #2563eb;
+    }
+
+    .logo span {
+      color: #111827;
+    }
+
+    .login {
+      border: 1px solid #2563eb;
+      padding: 9px 18px;
+      border-radius: 8px;
+      color: #2563eb;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 60px 20px 35px;
+    }
+
+    .hero h1 {
+      font-size: 44px;
+      margin-bottom: 15px;
+    }
+
+    .hero h1 span {
+      color: #2563eb;
+    }
+
+    .hero p {
+      font-size: 19px;
+      color: #6b7280;
+      max-width: 700px;
+      margin: auto;
+      line-height: 1.6;
+    }
+
+    .creator-box {
+      width: 92%;
+      max-width: 850px;
+      margin: 35px auto;
+      background: white;
+      padding: 30px;
+      border-radius: 18px;
+      box-shadow: 0 10px 35px rgba(0,0,0,0.08);
+    }
+
+    label {
+      display: block;
+      text-align: left;
+      font-weight: bold;
+      margin: 18px 0 8px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 180px;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      padding: 15px;
+      font-size: 16px;
+      resize: vertical;
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: #2563eb;
+    }
+
+    .options {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    select {
+      width: 100%;
+      padding: 13px;
+      border: 1px solid #d1d5db;
+      border-radius: 9px;
+      background: white;
+      font-size: 15px;
+    }
+
+    .create-btn {
+      width: 100%;
+      margin-top: 28px;
+      padding: 16px;
+      border: none;
+      border-radius: 10px;
+      background: #2563eb;
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .create-btn:hover {
+      background: #1d4ed8;
+    }
+
+    .info {
+      text-align: center;
+      padding: 20px;
+      color: #6b7280;
+    }
+
+    .features {
+      max-width: 1000px;
+      margin: 40px auto;
+      padding: 20px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .feature {
+      background: white;
+      padding: 25px;
+      text-align: center;
+      border-radius: 14px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    }
+
+    .feature h3 {
+      margin: 12px 0 8px;
+    }
+
+    .feature p {
+      color: #6b7280;
+      line-height: 1.5;
+    }
+
+    footer {
+      text-align: center;
+      padding: 30px;
+      margin-top: 30px;
+      background: #111827;
+      color: white;
+    }
+
+    @media (max-width: 700px) {
+      .hero h1 {
+        font-size: 32px;
+      }
+
+      .options {
+        grid-template-columns: 1fr;
+      }
+
+      .features {
+        grid-template-columns: 1fr;
+      }
+
+      .creator-box {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="logo">Apna <span>Creator AI</span></div>
+    <a href="#" class="login">Login</a>
+  </header>
+
+  <section class="hero">
+    <h1>आपकी कहानी, <span>आपका Video</span></h1>
+
+    <p>
+      अपनी कहानी लिखिए और भविष्य में AI की मदद से
+      आसानी से अपना Hindi, Marathi या English video बनाइए।
+    </p>
+  </section>
+
+  <section class="creator-box">
+
+    <label for="story">✍️ अपनी कहानी लिखें</label>
+
+    <textarea id="story" placeholder="उदाहरण: एक छोटा हाथी जंगल में घूमने गया। वहां उसे एक छोटा बंदर मिला..."></textarea>
+
+    <label>🎬 Video Settings</label>
+
+    <div class="options">
+
+      <select id="duration">
+        <option>1 Minute</option>
+        <option>5 Minutes</option>
+        <option>10 Minutes</option>
+        <option>15 Minutes</option>
+      </select>
+
+      <select id="language">
+        <option>Hindi</option>
+        <option>Marathi</option>
+        <option>English</option>
+      </select>
+
+      <select id="style">
+        <option>3D Cartoon</option>
+        <option>Kids Cartoon</option>
+        <option>Story Video</option>
+      </select>
+
+    </div>
+
+    <button class="create-btn" onclick="createVideo()">
+      🎬 CREATE VIDEO
+    </button>
+
+    <div class="info" id="message">
+      अभी यह हमारा पहला prototype है ❤️
+    </div>
+
+  </section>
+
+  <section class="features">
+
+    <div class="feature">
+      <div style="font-size:35px;">📝</div>
+      <h3>अपनी कहानी</h3>
+      <p>अपनी कहानी आसानी से लिखें।</p>
+    </div>
+
+    <div class="feature">
+      <div style="font-size:35px;">🤖</div>
+      <h3>AI Creator</h3>
+      <p>AI आपकी कहानी को video में बदलने में मदद करेगा।</p>
+    </div>
+
+    <div class="feature">
+      <div style="font-size:35px;">🎬</div>
+      <h3>Video बनाएं</h3>
+      <p>आगे चलकर Hindi voice, music और visuals के साथ video बनाएं।</p>
+    </div>
+
+  </section>
+
+  <footer>
+    <p>© 2026 Apna Creator AI</p>
+    <p style="margin-top:8px;">हर किसी का अपना AI Creator ❤️</p>
+  </footer>
+
+  <script>
+    function createVideo() {
+      const story = document.getElementById("story").value.trim();
+      const message = document.getElementById("message");
+
+      if (story === "") {
+        message.innerHTML = "⚠️ पहले अपनी कहानी लिखिए।";
+        return;
+      }
+
+      message.innerHTML =
+        "🚀 बहुत अच्छा! आपका Video Creator तैयार हो रहा है। AI Video Generation हम अगले चरण में जोड़ेंगे।";
+    }
+  </script>
+
+</body>
+</html>
