@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>Apna Creator AI</title>
 
   <style>
@@ -19,7 +20,7 @@
     }
 
     header {
-      background: white;
+      background: #ffffff;
       padding: 18px 6%;
       display: flex;
       justify-content: space-between;
@@ -133,14 +134,16 @@
     }
 
     .create-btn:disabled {
-      background: #9ca3af;
-      cursor: wait;
+      background: #93c5fd;
+      cursor: not-allowed;
     }
 
     .info {
       text-align: center;
       padding: 20px;
       color: #6b7280;
+      line-height: 1.6;
+      white-space: pre-wrap;
     }
 
     .result {
@@ -149,10 +152,9 @@
       background: #f8fafc;
       border: 1px solid #e5e7eb;
       border-radius: 12px;
-      white-space: pre-wrap;
       text-align: left;
       line-height: 1.7;
-      display: none;
+      white-space: pre-wrap;
     }
 
     .features {
@@ -221,7 +223,7 @@
 
     <p>
       अपनी कहानी लिखिए और AI की मदद से
-      Hindi, Marathi या English story बनाइए।
+      Hindi, Marathi या English कहानी तैयार कीजिए।
     </p>
   </section>
 
@@ -239,27 +241,27 @@
     <div class="options">
 
       <select id="duration">
-        <option>1 Minute</option>
-        <option>5 Minutes</option>
-        <option>10 Minutes</option>
-        <option>15 Minutes</option>
+        <option value="1 Minute">1 Minute</option>
+        <option value="5 Minutes">5 Minutes</option>
+        <option value="10 Minutes">10 Minutes</option>
+        <option value="15 Minutes">15 Minutes</option>
       </select>
 
       <select id="language">
-        <option>Hindi</option>
-        <option>Marathi</option>
-        <option>English</option>
+        <option value="Hindi">Hindi</option>
+        <option value="Marathi">Marathi</option>
+        <option value="English">English</option>
       </select>
 
       <select id="style">
-        <option>3D Cartoon</option>
-        <option>Kids Cartoon</option>
-        <option>Story Video</option>
+        <option value="3D Cartoon">3D Cartoon</option>
+        <option value="Kids Cartoon">Kids Cartoon</option>
+        <option value="Story Video">Story Video</option>
       </select>
 
     </div>
 
-    <button class="create-btn" id="createButton" onclick="createVideo()">
+    <button class="create-btn" id="createBtn" onclick="createVideo()">
       🎬 CREATE VIDEO
     </button>
 
@@ -267,7 +269,7 @@
       अपनी कहानी लिखकर CREATE VIDEO दबाइए ❤️
     </div>
 
-    <div class="result" id="result"></div>
+    <div class="result" id="result" style="display:none;"></div>
 
   </section>
 
@@ -282,13 +284,13 @@
     <div class="feature">
       <div style="font-size:35px;">🤖</div>
       <h3>AI Creator</h3>
-      <p>AI आपकी कहानी को तैयार करेगा।</p>
+      <p>AI आपकी कहानी को बेहतर बनाने में मदद करेगा।</p>
     </div>
 
     <div class="feature">
       <div style="font-size:35px;">🎬</div>
       <h3>Video बनाएं</h3>
-      <p>आगे चलकर voice, music और visuals भी जोड़ेंगे।</p>
+      <p>आगे चलकर Hindi voice, music और visuals के साथ video बनाया जाएगा।</p>
     </div>
 
   </section>
@@ -301,32 +303,121 @@
 
   <script>
 
+    /*
+      ==========================================
+      APNA CREATOR AI - BACKEND
+      ==========================================
+    */
+
+    const AI_BACKEND =
+      "https://apna-creator-ai.apnacreatorai.workers.dev/";
+
+
     async function createVideo() {
 
-      const story = document.getElementById("story").value.trim();
-      const duration = document.getElementById("duration").value;
-      const language = document.getElementById("language").value;
-      const style = document.getElementById("style").value;
+      const story =
+        document.getElementById("story").value.trim();
 
-      const message = document.getElementById("message");
-      const result = document.getElementById("result");
-      const button = document.getElementById("createButton");
+      const duration =
+        document.getElementById("duration").value;
 
-      if (story === "") {
-        message.innerHTML = "⚠️ पहले अपनी कहानी लिखिए।";
+      const language =
+        document.getElementById("language").value;
+
+      const style =
+        document.getElementById("style").value;
+
+      const message =
+        document.getElementById("message");
+
+      const result =
+        document.getElementById("result");
+
+      const button =
+        document.getElementById("createBtn");
+
+
+      /*
+        STORY EMPTY CHECK
+      */
+
+      if (!story) {
+
+        message.innerHTML =
+          "⚠️ पहले अपनी कहानी लिखिए।";
+
+        result.style.display = "none";
+
         return;
       }
 
+
+      /*
+        LOADING
+      */
+
       button.disabled = true;
-      button.innerHTML = "🤖 AI कहानी बना रहा है...";
-      message.innerHTML = "कृपया थोड़ा इंतज़ार करें...";
+
+      button.innerHTML =
+        "🤖 AI कहानी बना रहा है...";
+
+      message.innerHTML =
+        "⏳ कृपया कुछ सेकंड प्रतीक्षा करें...";
+
       result.style.display = "none";
-      result.innerHTML = "";
+
+
+      /*
+        AI PROMPT
+      */
+
+      const prompt = `
+
+आप Apna Creator AI के लिए एक professional children's cartoon story writer हैं।
+
+User की कहानी:
+${story}
+
+Language:
+${language}
+
+Video Duration:
+${duration}
+
+Style:
+${style}
+
+इस कहानी को बच्चों के लिए मजेदार और सुरक्षित बनाइए।
+
+कहानी को 8 scenes में बनाइए।
+
+हर scene में केवल:
+
+SCENE 1
+Visual: ...
+Voice: ...
+
+SCENE 2
+Visual: ...
+Voice: ...
+
+इसी तरह SCENE 8 तक।
+
+केवल 8 scenes दें।
+कहानी के बाहर कोई explanation, ideas, questions या extra text न दें।
+SCENE 8 के बाद तुरंत रुक जाएं।
+
+`;
+
 
       try {
 
+        /*
+          BACKEND REQUEST
+        */
+
         const response = await fetch(
-          "https://apna-creator-ai.apnacreatorai.workers.dev/",
+          AI_BACKEND,
           {
             method: "POST",
 
@@ -335,6 +426,7 @@
             },
 
             body: JSON.stringify({
+              prompt: prompt,
               story: story,
               language: language,
               duration: duration,
@@ -343,35 +435,140 @@
           }
         );
 
-        const data = await response.json();
 
-        if (!response.ok || !data.success) {
-          throw new Error(data.error || "AI response failed");
+        /*
+          HTTP ERROR
+        */
+
+        if (!response.ok) {
+
+          const errorText =
+            await response.text();
+
+          throw new Error(
+            "Backend HTTP " +
+            response.status +
+            ": " +
+            errorText
+          );
         }
 
-        message.innerHTML = "✅ आपकी AI कहानी तैयार है!";
 
-        result.innerHTML = data.story;
-        result.style.display = "block";
+        /*
+          READ RESPONSE
+        */
 
-      } catch (error) {
+        const data =
+          await response.json();
 
-        console.error(error);
+
+        /*
+          DIFFERENT CLOUDFLARE RESPONSE FORMATS
+          HANDLE
+        */
+
+        let aiText = "";
+
+
+        if (
+          data.response &&
+          typeof data.response === "string"
+        ) {
+
+          aiText = data.response;
+
+        }
+
+        else if (
+          data.result &&
+          typeof data.result === "string"
+        ) {
+
+          aiText = data.result;
+
+        }
+
+        else if (
+          data.choices &&
+          data.choices[0] &&
+          data.choices[0].text
+        ) {
+
+          aiText =
+            data.choices[0].text;
+
+        }
+
+        else if (
+          data.result &&
+          data.result.response
+        ) {
+
+          aiText =
+            data.result.response;
+
+        }
+
+        else {
+
+          aiText =
+            JSON.stringify(
+              data,
+              null,
+              2
+            );
+
+        }
+
+
+        /*
+          DISPLAY RESULT
+        */
 
         message.innerHTML =
-          "❌ AI से कहानी बनाने में समस्या आई। कृपया फिर कोशिश करें।";
+          "✅ AI ने आपकी कहानी तैयार कर दी!";
 
-        result.innerHTML =
-          "Error: " + error.message;
+        result.style.display =
+          "block";
 
-        result.style.display = "block";
+        result.innerText =
+          aiText;
 
-      } finally {
-
-        button.disabled = false;
-        button.innerHTML = "🎬 CREATE VIDEO";
 
       }
+
+      catch (error) {
+
+        console.error(
+          "AI ERROR:",
+          error
+        );
+
+
+        message.innerHTML =
+          "❌ AI से कहानी बनाने में समस्या आई।";
+
+
+        result.style.display =
+          "block";
+
+        result.innerText =
+          "Error: " +
+          error.message;
+
+
+      }
+
+      finally {
+
+        button.disabled =
+          false;
+
+        button.innerHTML =
+          "🎬 CREATE VIDEO";
+
+      }
+
     }
 
   </script>
