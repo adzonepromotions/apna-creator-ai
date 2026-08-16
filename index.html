@@ -133,10 +133,36 @@
       background: #1d4ed8;
     }
 
+    .create-btn:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+    }
+
     .info {
       text-align: center;
       padding: 20px;
       color: #6b7280;
+      line-height: 1.6;
+    }
+
+    .result {
+      display: none;
+      margin-top: 25px;
+      padding: 20px;
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      text-align: left;
+    }
+
+    .result h3 {
+      margin-bottom: 15px;
+    }
+
+    .script {
+      white-space: pre-wrap;
+      line-height: 1.7;
+      font-size: 15px;
     }
 
     .features {
@@ -204,8 +230,8 @@
     <h1>आपकी कहानी, <span>आपका Video</span></h1>
 
     <p>
-      अपनी कहानी लिखिए और भविष्य में AI की मदद से
-      आसानी से अपना Hindi, Marathi या English video बनाइए।
+      अपनी कहानी लिखिए और AI की मदद से
+      Hindi, Marathi या English video script तैयार कीजिए।
     </p>
   </section>
 
@@ -213,7 +239,10 @@
 
     <label for="story">✍️ अपनी कहानी लिखें</label>
 
-    <textarea id="story" placeholder="उदाहरण: एक छोटा हाथी जंगल में घूमने गया। वहां उसे एक छोटा बंदर मिला..."></textarea>
+    <textarea
+      id="story"
+      placeholder="उदाहरण: एक छोटा हाथी जंगल में घूमने गया। वहां उसे एक छोटा बंदर मिला..."
+    ></textarea>
 
     <label>🎬 Video Settings</label>
 
@@ -240,12 +269,21 @@
 
     </div>
 
-    <button class="create-btn" onclick="createVideo()">
+    <button
+      class="create-btn"
+      id="createButton"
+      onclick="createVideo()"
+    >
       🎬 CREATE VIDEO
     </button>
 
     <div class="info" id="message">
-      अभी यह हमारा पहला prototype है ❤️
+      अपनी कहानी लिखकर CREATE VIDEO दबाइए ❤️
+    </div>
+
+    <div class="result" id="result">
+      <h3>🤖 AI Script</h3>
+      <div class="script" id="script"></div>
     </div>
 
   </section>
@@ -261,13 +299,13 @@
     <div class="feature">
       <div style="font-size:35px;">🤖</div>
       <h3>AI Creator</h3>
-      <p>AI आपकी कहानी को video में बदलने में मदद करेगा।</p>
+      <p>AI आपकी कहानी को cartoon script में बदलने में मदद करेगा।</p>
     </div>
 
     <div class="feature">
       <div style="font-size:35px;">🎬</div>
       <h3>Video बनाएं</h3>
-      <p>आगे चलकर Hindi voice, music और visuals के साथ video बनाएं।</p>
+      <p>आगे चलकर voice, music और visuals भी जोड़े जाएंगे।</p>
     </div>
 
   </section>
@@ -277,19 +315,122 @@
     <p style="margin-top:8px;">हर किसी का अपना AI Creator ❤️</p>
   </footer>
 
+
   <script>
-    function createVideo() {
-      const story = document.getElementById("story").value.trim();
-      const message = document.getElementById("message");
+
+    // हमारा Cloudflare Worker
+    const WORKER_URL =
+      "https://apna-creator-ai.apnacreatorai.workers.dev/";
+
+    async function createVideo() {
+
+      const story =
+        document.getElementById("story").value.trim();
+
+      const duration =
+        document.getElementById("duration").value;
+
+      const language =
+        document.getElementById("language").value;
+
+      const style =
+        document.getElementById("style").value;
+
+      const message =
+        document.getElementById("message");
+
+      const result =
+        document.getElementById("result");
+
+      const script =
+        document.getElementById("script");
+
+      const button =
+        document.getElementById("createButton");
+
 
       if (story === "") {
-        message.innerHTML = "⚠️ पहले अपनी कहानी लिखिए।";
+
+        message.innerHTML =
+          "⚠️ पहले अपनी कहानी लिखिए।";
+
         return;
       }
 
+
+      button.disabled = true;
+
+      button.innerHTML =
+        "⏳ AI कहानी तैयार कर रहा है...";
+
       message.innerHTML =
-        "🚀 बहुत अच्छा! आपका Video Creator तैयार हो रहा है। AI Video Generation हम अगले चरण में जोड़ेंगे।";
+        "🤖 Apna Creator AI आपकी कहानी को समझ रहा है...";
+
+      result.style.display = "none";
+
+      script.innerHTML = "";
+
+
+      try {
+
+        const response = await fetch(WORKER_URL, {
+
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json"
+          },
+
+          body: JSON.stringify({
+
+            story: story,
+            duration: duration,
+            language: language,
+            style: style
+
+          })
+
+        });
+
+
+        const data = await response.json();
+
+
+        if (!response.ok || !data.success) {
+
+          throw new Error(
+            data.error || "AI response नहीं मिला।"
+          );
+
+        }
+
+
+        script.textContent =
+          data.script || "AI ने कोई script नहीं बनाई।";
+
+        result.style.display = "block";
+
+        message.innerHTML =
+          "✅ आपकी AI cartoon script तैयार है!";
+
+
+      } catch (error) {
+
+        console.error(error);
+
+        message.innerHTML =
+          "❌ Error: " + error.message;
+
+      }
+
+
+      button.disabled = false;
+
+      button.innerHTML =
+        "🎬 CREATE VIDEO";
+
     }
+
   </script>
 
 </body>
