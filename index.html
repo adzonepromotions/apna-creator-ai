@@ -1,12 +1,16 @@
+````html
 <!DOCTYPE html>
-<html lang="en">
+<html lang="mr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Apna Creator AI</title>
 
 <style>
-*{box-sizing:border-box}
+*{
+  box-sizing:border-box;
+}
 
 body{
   margin:0;
@@ -40,8 +44,7 @@ label{
 }
 
 textarea,
-select,
-input{
+select{
   width:100%;
   padding:12px;
   border:1px solid #ccd4df;
@@ -70,11 +73,7 @@ button:disabled{
 .primary{
   background:#2563eb;
   color:white;
-}
-
-.secondary{
-  background:#e8eef8;
-  color:#172033;
+  width:100%;
 }
 
 .image-button{
@@ -97,11 +96,17 @@ button:disabled{
   color:#a40000;
 }
 
+.success{
+  background:#ecfdf5;
+  color:#166534;
+}
+
 .scene{
   border:1px solid #dce3ec;
   border-radius:14px;
   padding:16px;
-  margin:12px 0;
+  margin:14px 0;
+  background:#fff;
 }
 
 .scene h3{
@@ -113,7 +118,7 @@ button:disabled{
 }
 
 .image-box{
-  min-height:180px;
+  min-height:200px;
   background:#f1f4f8;
   border-radius:10px;
   display:flex;
@@ -138,20 +143,17 @@ button:disabled{
   color:#64748b;
 }
 
-.row{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-}
-
-.row button{
-  flex:1;
-  min-width:180px;
-}
-
 pre{
   white-space:pre-wrap;
   word-break:break-word;
+  line-height:1.6;
+}
+
+.loading{
+  padding:20px;
+  text-align:center;
+  font-weight:700;
+  color:#2563eb;
 }
 </style>
 </head>
@@ -160,13 +162,13 @@ pre{
 
 <div class="container">
 
-  <!-- MAIN CARD -->
+  <!-- MAIN -->
   <div class="card">
 
     <h1>🎬 Apna Creator AI</h1>
 
     <p>
-      Story तयार करा → 8 scenes तयार करा → प्रत्येक scene ची Cartoon Image तयार करा.
+      Story तयार करा → 8 Scenes तयार करा → Cartoon Images तयार करा.
     </p>
 
     <label for="story">
@@ -175,7 +177,7 @@ pre{
 
     <textarea
       id="story"
-      placeholder="उदा. एक छोटा मुलगा जंगलात फिरायला जातो..."
+      placeholder="उदा. एक छोटा मुलगा जंगलात जातो आणि त्याला बोलणारा पोपट भेटतो."
     ></textarea>
 
     <label for="language">
@@ -199,7 +201,7 @@ pre{
     </select>
 
     <label for="style">
-      Style
+      Cartoon Style
     </label>
 
     <select id="style">
@@ -208,18 +210,18 @@ pre{
       <option>Kids Cartoon</option>
     </select>
 
-    <div class="row" style="margin-top:16px">
+    <button
+      id="createBtn"
+      class="primary"
+      style="margin-top:16px;"
+    >
+      🎬 CREATE STORY
+    </button>
 
-      <button
-        id="createBtn"
-        class="primary"
-      >
-        CREATE STORY
-      </button>
-
-    </div>
-
-    <div id="status" class="status">
+    <div
+      id="status"
+      class="status"
+    >
       Ready.
     </div>
 
@@ -231,9 +233,7 @@ pre{
 
     <h2>📖 Generated Story</h2>
 
-    <pre id="storyOutput">
-Story येथे दिसेल.
-    </pre>
+    <pre id="storyOutput">Story येथे दिसेल.</pre>
 
   </div>
 
@@ -259,7 +259,7 @@ Story येथे दिसेल.
 <script>
 
 /* =========================================
-   BACKEND
+   BACKEND URL
 ========================================= */
 
 const BACKEND_URL =
@@ -299,20 +299,98 @@ document.getElementById("scenesOutput");
    STATUS
 ========================================= */
 
-function setStatus(text,error=false){
+function setStatus(text, type="normal"){
 
   statusBox.textContent = text;
 
-  statusBox.className =
-    error
-    ? "status error"
-    : "status";
+  statusBox.className = "status";
+
+  if(type === "error"){
+    statusBox.classList.add("error");
+  }
+
+  if(type === "success"){
+    statusBox.classList.add("success");
+  }
 
 }
 
 
 /* =========================================
-   PARSE 8 SCENES
+   CLEAN AI STORY
+========================================= */
+
+function cleanStoryText(text){
+
+  let result =
+    String(text || "").trim();
+
+  result =
+    result
+      .replace(/```json/gi,"")
+      .replace(/```text/gi,"")
+      .replace(/```/g,"")
+      .trim();
+
+  /*
+    Keep only from SCENE 1.
+  */
+
+  const start =
+    result.search(/SCENE\s*1\b/i);
+
+  if(start >= 0){
+
+    result =
+      result.substring(start);
+
+  }
+
+
+  /*
+    Remove unwanted text after Scene 8 Voice.
+  */
+
+  const scene8 =
+    result.match(
+      /([\s\S]*?SCENE\s*8\s*[\r\n]+Visual\s*:[\s\S]*?[\r\n]+Voice\s*:[\s\S]*)/i
+    );
+
+  if(scene8){
+
+    result =
+      scene8[1];
+
+  }
+
+
+  /*
+    Remove repeated garbage after a clear
+    ending sentence.
+  */
+
+  result =
+    result
+      .replace(
+        /\s+(I will make sure[\s\S]*)$/i,
+        ""
+      )
+      .replace(
+        /\s+(Here is the output[\s\S]*)$/i,
+        ""
+      )
+      .replace(
+        /\s+(Please let me know[\s\S]*)$/i,
+        ""
+      )
+      .trim();
+
+  return result;
+}
+
+
+/* =========================================
+   PARSE SCENES
 ========================================= */
 
 function parseScenes(text){
@@ -320,27 +398,92 @@ function parseScenes(text){
   const scenes = [];
 
   const regex =
-  /SCENE\s*([1-8])\s*\nVisual:\s*([\s\S]*?)\nVoice:\s*([\s\S]*?)(?=\n\nSCENE\s*[1-8]\b|$)/gi;
+    /SCENE\s*([1-8])\s*[\r\n]+Visual\s*:\s*([\s\S]*?)[\r\n]+Voice\s*:\s*([\s\S]*?)(?=[\r\n]+SCENE\s*[1-8]\b|$)/gi;
 
   let match;
 
-  while((match = regex.exec(text || "")) !== null){
+  while(
+    (match = regex.exec(text || "")) !== null
+  ){
 
-    scenes.push({
+    const number =
+      Number(match[1]);
 
-      number:Number(match[1]),
+    let visual =
+      String(match[2] || "")
+        .replace(/\s+/g," ")
+        .trim();
 
-      visual:match[2]
-        .trim(),
+    let voice =
+      String(match[3] || "")
+        .replace(/\s+/g," ")
+        .trim();
 
-      voice:match[3]
-        .trim()
+    /*
+      Remove accidental extra instructions.
+    */
 
-    });
+    voice =
+      voice
+        .replace(
+          /\bSTOP\b.*$/i,
+          ""
+        )
+        .replace(
+          /Here is the output.*$/i,
+          ""
+        )
+        .replace(
+          /I will make sure.*$/i,
+          ""
+        )
+        .trim();
+
+    if(
+      number >= 1 &&
+      number <= 8 &&
+      visual &&
+      voice
+    ){
+
+      scenes.push({
+        number,
+        visual,
+        voice
+      });
+
+    }
 
   }
 
-  return scenes;
+  /*
+    Remove duplicate scenes.
+  */
+
+  const unique = [];
+
+  scenes.forEach(scene => {
+
+    if(
+      !unique.some(
+        x => x.number === scene.number
+      )
+    ){
+
+      unique.push(scene);
+
+    }
+
+  });
+
+
+  unique.sort(
+    (a,b) =>
+      a.number - b.number
+  );
+
+
+  return unique;
 }
 
 
@@ -357,7 +500,10 @@ async function generateImage(
   imageButton.disabled = true;
 
   imageButton.textContent =
-    "🎨 IMAGE GENERATING...";
+    "⏳ IMAGE GENERATING...";
+
+  imageBox.innerHTML =
+    '<div class="loading">🎨 Image तयार होत आहे...<br>कृपया थोडा वेळ थांबा.</div>';
 
   setStatus(
     "🎨 Scene " +
@@ -368,72 +514,72 @@ async function generateImage(
   try{
 
     const response =
-    await fetch(
-      BACKEND_URL,
-      {
-        method:"POST",
+      await fetch(
+        BACKEND_URL,
+        {
+          method:"POST",
 
-        headers:{
-          "Content-Type":
-          "application/json"
-        },
+          headers:{
+            "Content-Type":
+              "application/json"
+          },
 
-        body:JSON.stringify({
+          body:JSON.stringify({
 
-          action:"generate-image",
+            action:
+              "generate-image",
 
-          visual:scene.visual,
+            visual:
+              scene.visual,
 
-          language:
-          languageInput.value,
+            language:
+              languageInput.value,
 
-          style:
-          styleInput.value
+            style:
+              styleInput.value
 
-        })
+          })
+        }
+      );
 
-      }
-    );
 
-
-    /* =====================================
-       ERROR RESPONSE
-    ===================================== */
+    /*
+      Read response.
+    */
 
     if(!response.ok){
 
       const errorText =
-      await response.text();
+        await response.text();
 
       let message =
-      "Image generation failed. HTTP " +
-      response.status;
+        "Image generation failed. HTTP " +
+        response.status;
 
       try{
 
         const errorData =
-        JSON.parse(errorText);
+          JSON.parse(errorText);
 
         if(errorData.error){
 
           message =
-          errorData.error;
+            errorData.error;
 
         }
 
       }catch(e){}
 
       throw new Error(message);
-
     }
 
 
-    /* =====================================
-       IMAGE RESPONSE
-    ===================================== */
+    /*
+      Convert response to image.
+    */
 
     const blob =
-    await response.blob();
+      await response.blob();
 
 
     if(
@@ -449,63 +595,65 @@ async function generateImage(
 
 
     const imageURL =
-    URL.createObjectURL(blob);
+      URL.createObjectURL(blob);
 
 
     imageBox.innerHTML = "";
 
 
     const img =
-    document.createElement("img");
+      document.createElement("img");
 
 
     img.src =
-    imageURL;
-
+      imageURL;
 
     img.alt =
-    "Scene " +
-    scene.number +
-    " Cartoon Image";
+      "Scene " +
+      scene.number +
+      " Cartoon Image";
 
 
     imageBox.appendChild(img);
 
 
     imageButton.textContent =
-    "✅ IMAGE GENERATED";
+      "✅ IMAGE GENERATED";
+
+    imageButton.disabled =
+      true;
 
 
     setStatus(
       "✅ Scene " +
       scene.number +
-      " ची image तयार झाली!"
+      " ची image तयार झाली!",
+      "success"
     );
 
   }
-
-
   catch(error){
 
     console.error(error);
 
-
-    imageButton.disabled = false;
-
+    imageButton.disabled =
+      false;
 
     imageButton.textContent =
-    "🎨 GENERATE IMAGE";
+      "🎨 GENERATE IMAGE";
 
+    imageBox.innerHTML =
+      "❌ Image तयार झाली नाही.";
 
     setStatus(
       "❌ Scene " +
       scene.number +
-      " ची image तयार झाली नाही.\n\nError: " +
+      " image error:\n" +
       (
         error.message ||
         error
       ),
-      true
+      "error"
     );
 
   }
@@ -525,39 +673,36 @@ function renderScenes(scenes){
   scenes.forEach(scene => {
 
     const div =
-    document.createElement("div");
+      document.createElement("div");
 
     div.className =
-    "scene";
+      "scene";
 
 
-    /* SCENE TITLE */
+    /* TITLE */
 
     const h =
-    document.createElement("h3");
+      document.createElement("h3");
 
     h.textContent =
-    "SCENE " +
-    scene.number;
+      "🎬 SCENE " +
+      scene.number;
 
 
     /* VISUAL */
 
     const visual =
-    document.createElement("p");
-
+      document.createElement("p");
 
     const visualBold =
-    document.createElement("b");
+      document.createElement("b");
 
     visualBold.textContent =
-    "Visual: ";
-
+      "Visual: ";
 
     visual.appendChild(
       visualBold
     );
-
 
     visual.appendChild(
       document.createTextNode(
@@ -569,20 +714,17 @@ function renderScenes(scenes){
     /* VOICE */
 
     const voice =
-    document.createElement("p");
-
+      document.createElement("p");
 
     const voiceBold =
-    document.createElement("b");
+      document.createElement("b");
 
     voiceBold.textContent =
-    "Voice: ";
-
+      "Voice: ";
 
     voice.appendChild(
       voiceBold
     );
-
 
     voice.appendChild(
       document.createTextNode(
@@ -594,30 +736,30 @@ function renderScenes(scenes){
     /* IMAGE BOX */
 
     const imageBox =
-    document.createElement("div");
+      document.createElement("div");
 
     imageBox.className =
-    "image-box";
+      "image-box";
 
     imageBox.textContent =
-    "🎨 Image येथे दिसेल";
+      "🖼️ Image येथे दिसेल";
 
 
     /* IMAGE BUTTON */
 
     const imageButton =
-    document.createElement("button");
+      document.createElement("button");
 
     imageButton.className =
-    "image-button";
+      "image-button";
 
     imageButton.textContent =
-    "🎨 GENERATE IMAGE";
+      "🎨 GENERATE IMAGE";
 
 
     imageButton.addEventListener(
       "click",
-      function(){
+      () => {
 
         generateImage(
           scene,
@@ -629,7 +771,9 @@ function renderScenes(scenes){
     );
 
 
-    /* ADD EVERYTHING */
+    /*
+      Add elements.
+    */
 
     div.appendChild(h);
 
@@ -666,80 +810,84 @@ function renderScenes(scenes){
 async function createStory(){
 
   const story =
-  storyInput.value.trim();
+    storyInput.value.trim();
 
 
   if(!story){
 
     setStatus(
       "कृपया Story लिहा.",
-      true
+      "error"
     );
 
     return;
-
   }
 
 
   createBtn.disabled =
-  true;
+    true;
 
   createBtn.textContent =
-  "CREATING...";
+    "⏳ CREATING STORY...";
 
 
   setStatus(
-    "AI कहानी तयार करत आहे..."
+    "🤖 AI कहानी तयार करत आहे..."
   );
+
+
+  storyOutput.textContent =
+    "कृपया थोडा वेळ थांबा...";
+
+
+  scenesOutput.innerHTML =
+    '<div class="loading">🤖 8 scenes तयार होत आहेत...</div>';
 
 
   try{
 
     const response =
-    await fetch(
-      BACKEND_URL,
-      {
+      await fetch(
+        BACKEND_URL,
+        {
+          method:"POST",
 
-        method:"POST",
+          headers:{
+            "Content-Type":
+              "application/json"
+          },
 
-        headers:{
-          "Content-Type":
-          "application/json"
-        },
+          body:JSON.stringify({
 
-        body:JSON.stringify({
+            story:
+              story,
 
-          story:story,
+            language:
+              languageInput.value,
 
-          language:
-          languageInput.value,
+            duration:
+              durationInput.value,
 
-          duration:
-          durationInput.value,
+            style:
+              styleInput.value
 
-          style:
-          styleInput.value
-
-        })
-
-      }
-    );
+          })
+        }
+      );
 
 
     const raw =
-    await response.text();
+      await response.text();
 
 
     let data;
 
-
     try{
 
       data =
-      JSON.parse(raw);
+        JSON.parse(raw);
 
     }
-
     catch(e){
 
       throw new Error(
@@ -756,64 +904,35 @@ async function createStory(){
 
       throw new Error(
         data.error ||
-        (
-          "Backend HTTP " +
-          response.status
-        )
+        "Backend HTTP " +
+        response.status
       );
 
     }
 
 
-    /* =====================================
-       CLEAN STORY
-    ===================================== */
+    /*
+      Clean story.
+    */
 
-    let cleanStory =
-    String(
-      data.story || ""
-    ).trim();
-
-
-    const scene8Match =
-    cleanStory.match(
-      /([\s\S]*?SCENE\s*8\s*\nVisual:[\s\S]*?\nVoice:[^\n]*)/i
-    );
-
-
-    if(scene8Match){
-
-      cleanStory =
-      scene8Match[1].trim();
-
-    }
-
-
-    cleanStory =
-    cleanStory
-      .replace(
-        /```(?:text|json)?/gi,
-        ""
-      )
-      .replace(
-        /```/g,
-        ""
-      )
-      .trim();
+    const cleanStory =
+      cleanStoryText(
+        data.story || ""
+      );
 
 
     storyOutput.textContent =
-    cleanStory;
+      cleanStory;
 
 
-    /* =====================================
-       PARSE SCENES
-    ===================================== */
+    /*
+      Parse scenes.
+    */
 
     const scenes =
-    parseScenes(
-      cleanStory
-    );
+      parseScenes(
+        cleanStory
+      );
 
 
     if(
@@ -827,9 +946,9 @@ async function createStory(){
     }
 
 
-    /* =====================================
-       SHOW SCENES
-    ===================================== */
+    /*
+      Render scenes.
+    */
 
     renderScenes(
       scenes
@@ -837,17 +956,24 @@ async function createStory(){
 
 
     setStatus(
-      "✅ AI ने आपकी कहानी तैयार कर दी!\n\n" +
+      "✅ AI ने कहानी तयार केली!\n\n" +
       "8 scenes तयार आहेत.\n" +
-      "आता कोणत्याही Scene खाली GENERATE IMAGE दाबा."
+      "आता प्रत्येक Scene खाली 🎨 GENERATE IMAGE दाब.",
+      "success"
     );
 
   }
-
-
   catch(error){
 
     console.error(error);
+
+
+    storyOutput.textContent =
+      "Story तयार झाली नाही.";
+
+
+    scenesOutput.innerHTML =
+      '<p class="small">❌ Scenes तयार झाले नाहीत.</p>';
 
 
     setStatus(
@@ -857,19 +983,17 @@ async function createStory(){
         error.message ||
         error
       ),
-      true
+      "error"
     );
 
   }
-
-
   finally{
 
     createBtn.disabled =
-    false;
+      false;
 
     createBtn.textContent =
-    "CREATE STORY";
+      "🎬 CREATE STORY";
 
   }
 
@@ -877,7 +1001,7 @@ async function createStory(){
 
 
 /* =========================================
-   CREATE STORY BUTTON
+   BUTTON
 ========================================= */
 
 createBtn.addEventListener(
@@ -889,3 +1013,4 @@ createBtn.addEventListener(
 
 </body>
 </html>
+````
