@@ -1,577 +1,210 @@
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>Apna Creator AI</title>
-
-  <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f7fb;
-      color: #1f2937;
-    }
-
-    header {
-      background: #ffffff;
-      padding: 18px 6%;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #e5e7eb;
-    }
-
-    .logo {
-      font-size: 25px;
-      font-weight: bold;
-      color: #2563eb;
-    }
-
-    .logo span {
-      color: #111827;
-    }
-
-    .login {
-      border: 1px solid #2563eb;
-      padding: 9px 18px;
-      border-radius: 8px;
-      color: #2563eb;
-      text-decoration: none;
-      font-weight: bold;
-    }
-
-    .hero {
-      text-align: center;
-      padding: 60px 20px 35px;
-    }
-
-    .hero h1 {
-      font-size: 44px;
-      margin-bottom: 15px;
-    }
-
-    .hero h1 span {
-      color: #2563eb;
-    }
-
-    .hero p {
-      font-size: 19px;
-      color: #6b7280;
-      max-width: 700px;
-      margin: auto;
-      line-height: 1.6;
-    }
-
-    .creator-box {
-      width: 92%;
-      max-width: 850px;
-      margin: 35px auto;
-      background: white;
-      padding: 30px;
-      border-radius: 18px;
-      box-shadow: 0 10px 35px rgba(0,0,0,0.08);
-    }
-
-    label {
-      display: block;
-      text-align: left;
-      font-weight: bold;
-      margin: 18px 0 8px;
-    }
-
-    textarea {
-      width: 100%;
-      height: 180px;
-      border: 1px solid #d1d5db;
-      border-radius: 10px;
-      padding: 15px;
-      font-size: 16px;
-      resize: vertical;
-      outline: none;
-    }
-
-    textarea:focus {
-      border-color: #2563eb;
-    }
-
-    .options {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-    }
-
-    select {
-      width: 100%;
-      padding: 13px;
-      border: 1px solid #d1d5db;
-      border-radius: 9px;
-      background: white;
-      font-size: 15px;
-    }
-
-    .create-btn {
-      width: 100%;
-      margin-top: 28px;
-      padding: 16px;
-      border: none;
-      border-radius: 10px;
-      background: #2563eb;
-      color: white;
-      font-size: 18px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .create-btn:hover {
-      background: #1d4ed8;
-    }
-
-    .create-btn:disabled {
-      background: #93c5fd;
-      cursor: not-allowed;
-    }
-
-    .info {
-      text-align: center;
-      padding: 20px;
-      color: #6b7280;
-      line-height: 1.6;
-      white-space: pre-wrap;
-    }
-
-    .result {
-      margin-top: 20px;
-      padding: 20px;
-      background: #f8fafc;
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      text-align: left;
-      line-height: 1.7;
-      white-space: pre-wrap;
-    }
-
-    .features {
-      max-width: 1000px;
-      margin: 40px auto;
-      padding: 20px;
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-    }
-
-    .feature {
-      background: white;
-      padding: 25px;
-      text-align: center;
-      border-radius: 14px;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.05);
-    }
-
-    .feature h3 {
-      margin: 12px 0 8px;
-    }
-
-    .feature p {
-      color: #6b7280;
-      line-height: 1.5;
-    }
-
-    footer {
-      text-align: center;
-      padding: 30px;
-      margin-top: 30px;
-      background: #111827;
-      color: white;
-    }
-
-    @media (max-width: 700px) {
-      .hero h1 {
-        font-size: 32px;
-      }
-
-      .options {
-        grid-template-columns: 1fr;
-      }
-
-      .features {
-        grid-template-columns: 1fr;
-      }
-
-      .creator-box {
-        padding: 20px;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apna Creator AI</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f4f7fb;color:#172033}
+.container{max-width:1000px;margin:0 auto;padding:24px}
+.card{background:#fff;border-radius:16px;padding:22px;margin-bottom:18px;box-shadow:0 4px 18px rgba(0,0,0,.08)}
+h1{margin-top:0}
+label{display:block;font-weight:700;margin:14px 0 7px}
+textarea,select,input{width:100%;padding:12px;border:1px solid #ccd4df;border-radius:10px;font-size:15px}
+textarea{min-height:150px;resize:vertical}
+button{border:0;border-radius:10px;padding:12px 18px;font-weight:700;cursor:pointer}
+.primary{background:#2563eb;color:white}
+.secondary{background:#e8eef8;color:#172033}
+button:disabled{opacity:.6;cursor:not-allowed}
+.status{padding:12px;border-radius:10px;background:#eef4ff;margin-top:15px;white-space:pre-wrap}
+.error{background:#fff0f0;color:#a40000}
+.scene{border:1px solid #dce3ec;border-radius:14px;padding:16px;margin:12px 0}
+.scene h3{margin:0 0 12px}
+.scene p{line-height:1.5}
+.image-box{min-height:120px;background:#f1f4f8;border-radius:10px;display:flex;align-items:center;justify-content:center;overflow:hidden;margin-top:10px}
+.image-box img{width:100%;display:block}
+.small{font-size:13px;color:#64748b}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row button{flex:1;min-width:180px}
+pre{white-space:pre-wrap;word-break:break-word}
+</style>
 </head>
-
 <body>
+<div class="container">
+  <div class="card">
+    <h1>🎬 Apna Creator AI</h1>
+    <p>Story तयार करा आणि 8 scenes तयार करा.</p>
 
-  <header>
-    <div class="logo">Apna <span>Creator AI</span></div>
-    <a href="#" class="login">Login</a>
-  </header>
+    <label for="story">तुमची Story</label>
+    <textarea id="story" placeholder="उदा. एक छोटा मुलगा जंगलात फिरायला जातो..."></textarea>
 
-  <section class="hero">
-    <h1>आपकी कहानी, <span>आपका Video</span></h1>
+    <label for="language">Language</label>
+    <select id="language">
+      <option value="Hindi">Hindi</option>
+      <option value="Marathi" selected>Marathi</option>
+      <option value="English">English</option>
+    </select>
 
-    <p>
-      अपनी कहानी लिखिए और AI की मदद से
-      Hindi, Marathi या English कहानी तैयार कीजिए।
-    </p>
-  </section>
+    <label for="duration">Duration</label>
+    <select id="duration">
+      <option>1 Minute</option>
+      <option>2 Minutes</option>
+      <option>3 Minutes</option>
+    </select>
 
-  <section class="creator-box">
+    <label for="style">Style</label>
+    <select id="style">
+      <option>3D Cartoon</option>
+      <option>2D Cartoon</option>
+      <option>Kids Cartoon</option>
+    </select>
 
-    <label for="story">✍️ अपनी कहानी लिखें</label>
-
-    <textarea
-      id="story"
-      placeholder="उदाहरण: एक छोटा हाथी जंगल में घूमने गया। वहां उसे एक छोटा बंदर मिला..."
-    ></textarea>
-
-    <label>🎬 Video Settings</label>
-
-    <div class="options">
-
-      <select id="duration">
-        <option value="1 Minute">1 Minute</option>
-        <option value="5 Minutes">5 Minutes</option>
-        <option value="10 Minutes">10 Minutes</option>
-        <option value="15 Minutes">15 Minutes</option>
-      </select>
-
-      <select id="language">
-        <option value="Hindi">Hindi</option>
-        <option value="Marathi">Marathi</option>
-        <option value="English">English</option>
-      </select>
-
-      <select id="style">
-        <option value="3D Cartoon">3D Cartoon</option>
-        <option value="Kids Cartoon">Kids Cartoon</option>
-        <option value="Story Video">Story Video</option>
-      </select>
-
+    <div class="row" style="margin-top:16px">
+      <button id="createBtn" class="primary">CREATE STORY</button>
     </div>
 
-    <button class="create-btn" id="createBtn" onclick="createVideo()">
-      🎬 CREATE VIDEO
-    </button>
+    <div id="status" class="status">Ready.</div>
+  </div>
 
-    <div class="info" id="message">
-      अपनी कहानी लिखकर CREATE VIDEO दबाइए ❤️
+  <div class="card">
+    <h2>📖 Generated Story</h2>
+    <pre id="storyOutput">Story येथे दिसेल.</pre>
+  </div>
+
+  <div class="card">
+    <h2>🎨 Scenes</h2>
+    <div id="scenesOutput">
+      <p class="small">Story तयार झाल्यावर 8 scenes येथे दिसतील.</p>
     </div>
-
-    <div class="result" id="result" style="display:none;"></div>
-
-  </section>
-
-  <section class="features">
-
-    <div class="feature">
-      <div style="font-size:35px;">📝</div>
-      <h3>अपनी कहानी</h3>
-      <p>अपनी कहानी आसानी से लिखें।</p>
-    </div>
-
-    <div class="feature">
-      <div style="font-size:35px;">🤖</div>
-      <h3>AI Creator</h3>
-      <p>AI आपकी कहानी को बेहतर बनाने में मदद करेगा।</p>
-    </div>
-
-    <div class="feature">
-      <div style="font-size:35px;">🎬</div>
-      <h3>Video बनाएं</h3>
-      <p>आगे चलकर Hindi voice, music और visuals के साथ video बनाया जाएगा।</p>
-    </div>
-
-  </section>
-
-  <footer>
-    <p>© 2026 Apna Creator AI</p>
-    <p style="margin-top:8px;">हर किसी का अपना AI Creator ❤️</p>
-  </footer>
-
-
-  <script>
-
-    /*
-      ==========================================
-      APNA CREATOR AI - BACKEND
-      ==========================================
-    */
-
-    const AI_BACKEND =
-      "https://apna-creator-ai.apnacreatorai.workers.dev/";
-
-
-    async function createVideo() {
-
-      const story =
-        document.getElementById("story").value.trim();
-
-      const duration =
-        document.getElementById("duration").value;
-
-      const language =
-        document.getElementById("language").value;
-
-      const style =
-        document.getElementById("style").value;
-
-      const message =
-        document.getElementById("message");
-
-      const result =
-        document.getElementById("result");
-
-      const button =
-        document.getElementById("createBtn");
-
-
-      /*
-        STORY EMPTY CHECK
-      */
-
-      if (!story) {
-
-        message.innerHTML =
-          "⚠️ पहले अपनी कहानी लिखिए।";
-
-        result.style.display = "none";
-
-        return;
-      }
-
-
-      /*
-        LOADING
-      */
-
-      button.disabled = true;
-
-      button.innerHTML =
-        "🤖 AI कहानी बना रहा है...";
-
-      message.innerHTML =
-        "⏳ कृपया कुछ सेकंड प्रतीक्षा करें...";
-
-      result.style.display = "none";
-
-
-      /*
-        AI PROMPT
-      */
-
-      const prompt = `
-
-आप Apna Creator AI के लिए एक professional children's cartoon story writer हैं।
-
-User की कहानी:
-${story}
-
-Language:
-${language}
-
-Video Duration:
-${duration}
-
-Style:
-${style}
-
-इस कहानी को बच्चों के लिए मजेदार और सुरक्षित बनाइए।
-
-कहानी को 8 scenes में बनाइए।
-
-हर scene में केवल:
-
-SCENE 1
-Visual: ...
-Voice: ...
-
-SCENE 2
-Visual: ...
-Voice: ...
-
-इसी तरह SCENE 8 तक।
-
-केवल 8 scenes दें।
-कहानी के बाहर कोई explanation, ideas, questions या extra text न दें।
-SCENE 8 के बाद तुरंत रुक जाएं।
-
-`;
-
-
-      try {
-
-        /*
-          BACKEND REQUEST
-        */
-
-        const response = await fetch(
-          AI_BACKEND,
-          {
-            method: "POST",
-
-            headers: {
-              "Content-Type": "application/json"
-            },
-
-            body: JSON.stringify({
-              prompt: prompt,
-              story: story,
-              language: language,
-              duration: duration,
-              style: style
-            })
-          }
-        );
-
-
-        /*
-          HTTP ERROR
-        */
-
-        if (!response.ok) {
-
-          const errorText =
-            await response.text();
-
-          throw new Error(
-            "Backend HTTP " +
-            response.status +
-            ": " +
-            errorText
-          );
-        }
-
-
-        /*
-          READ RESPONSE
-        */
-
-        const data =
-          await response.json();
-
-
-        /*
-          DIFFERENT CLOUDFLARE RESPONSE FORMATS
-          HANDLE
-        */
-
-        let aiText = "";
-
-
-        if (
-          data.response &&
-          typeof data.response === "string"
-        ) {
-
-          aiText = data.response;
-
-        }
-
-        else if (
-          data.result &&
-          typeof data.result === "string"
-        ) {
-
-          aiText = data.result;
-
-        }
-
-        else if (
-          data.choices &&
-          data.choices[0] &&
-          data.choices[0].text
-        ) {
-
-          aiText =
-            data.choices[0].text;
-
-        }
-
-        else if (
-          data.result &&
-          data.result.response
-        ) {
-
-          aiText =
-            data.result.response;
-
-        }
-
-        else {
-
-          aiText =
-            JSON.stringify(
-              data,
-              null,
-              2
-            );
-
-        }
-
-
-        /*
-          DISPLAY RESULT
-        */
-
-        message.innerHTML =
-          "✅ AI ने आपकी कहानी तैयार कर दी!";
-
-        result.style.display =
-          "block";
-
-        result.innerText =
-          aiText;
-
-
-      }
-
-      catch (error) {
-
-        console.error(
-          "AI ERROR:",
-          error
-        );
-
-
-        message.innerHTML =
-          "❌ AI से कहानी बनाने में समस्या आई।";
-
-
-        result.style.display =
-          "block";
-
-        result.innerText =
-          "Error: " +
-          error.message;
-
-
-      }
-
-      finally {
-
-        button.disabled =
-          false;
-
-        button.innerHTML =
-          "🎬 CREATE VIDEO";
-
-      }
-
+  </div>
+</div>
+
+<script>
+const BACKEND_URL = "https://apna-creator-ai.apnacreatorai.workers.dev/";
+
+const storyInput = document.getElementById("story");
+const languageInput = document.getElementById("language");
+const durationInput = document.getElementById("duration");
+const styleInput = document.getElementById("style");
+const createBtn = document.getElementById("createBtn");
+const statusBox = document.getElementById("status");
+const storyOutput = document.getElementById("storyOutput");
+const scenesOutput = document.getElementById("scenesOutput");
+
+function setStatus(text, error=false){
+  statusBox.textContent = text;
+  statusBox.className = error ? "status error" : "status";
+}
+
+function parseScenes(text){
+  const scenes = [];
+  const regex = /SCENE\s*([1-8])\s*\nVisual:\s*([\s\S]*?)\nVoice:\s*([\s\S]*?)(?=\n\nSCENE\s*[1-8]\b|$)/gi;
+  let m;
+  while((m = regex.exec(text || "")) !== null){
+    scenes.push({
+      number:Number(m[1]),
+      visual:m[2].trim(),
+      voice:m[3].trim()
+    });
+  }
+  return scenes;
+}
+
+function renderScenes(scenes){
+  scenesOutput.innerHTML = "";
+
+  scenes.forEach(scene=>{
+    const div = document.createElement("div");
+    div.className = "scene";
+
+    const h = document.createElement("h3");
+    h.textContent = "SCENE " + scene.number;
+
+    const visual = document.createElement("p");
+    const vb = document.createElement("b");
+    vb.textContent = "Visual: ";
+    visual.appendChild(vb);
+    visual.appendChild(document.createTextNode(scene.visual));
+
+    const voice = document.createElement("p");
+    const vob = document.createElement("b");
+    vob.textContent = "Voice: ";
+    voice.appendChild(vob);
+    voice.appendChild(document.createTextNode(scene.voice));
+
+    const imageBox = document.createElement("div");
+    imageBox.className = "image-box";
+    imageBox.textContent = "🎨 Image generation पुढच्या step मध्ये जोडता येईल.";
+
+    div.appendChild(h);
+    div.appendChild(visual);
+    div.appendChild(voice);
+    div.appendChild(imageBox);
+    scenesOutput.appendChild(div);
+  });
+}
+
+async function createStory(){
+  const story = storyInput.value.trim();
+
+  if(!story){
+    setStatus("कृपया Story लिहा.", true);
+    return;
+  }
+
+  createBtn.disabled = true;
+  createBtn.textContent = "CREATING...";
+  setStatus("AI कहानी तयार करत आहे...");
+
+  try{
+    const response = await fetch(BACKEND_URL,{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({
+        story:story,
+        language:languageInput.value,
+        duration:durationInput.value,
+        style:styleInput.value
+      })
+    });
+
+    const raw = await response.text();
+
+    let data;
+    try{
+      data = JSON.parse(raw);
+    }catch(e){
+      throw new Error("Backend ने valid JSON दिले नाही: " + raw.slice(0,300));
     }
 
-  </script>
+    if(!response.ok || !data.success){
+      throw new Error(data.error || ("Backend HTTP " + response.status));
+    }
 
+    storyOutput.textContent = data.story || "";
+
+    const scenes = parseScenes(data.story || "");
+
+    if(scenes.length !== 8){
+      throw new Error("Story मिळाली, पण 8 scenes पूर्ण मिळाले नाहीत.");
+    }
+
+    renderScenes(scenes);
+    setStatus("✅ AI ने आपकी कहानी तैयार कर दी! 8 scenes मिळाले.");
+
+  }catch(error){
+    console.error(error);
+    setStatus("❌ AI से कहानी बनाने में समस्या आई.\nError: " + (error.message || error), true);
+  }finally{
+    createBtn.disabled = false;
+    createBtn.textContent = "CREATE STORY";
+  }
+}
+
+createBtn.addEventListener("click", createStory);
+</script>
 </body>
 </html>
