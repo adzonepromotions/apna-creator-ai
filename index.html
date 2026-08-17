@@ -184,16 +184,34 @@ async function createStory(){
       throw new Error(data.error || ("Backend HTTP " + response.status));
     }
 
-    storyOutput.textContent = data.story || "";
+    // Clean AI output before displaying it.
+    let cleanStory = String(data.story || "").trim();
 
-    const scenes = parseScenes(data.story || "");
+    // Keep only SCENE 1 through SCENE 8 and remove anything after SCENE 8 Voice.
+    const scene8Match = cleanStory.match(
+      /([\\s\\S]*?SCENE\\s*8\\s*\\nVisual:[\\s\\S]*?\\nVoice:[^\\n]*)/i
+    );
+
+    if(scene8Match){
+      cleanStory = scene8Match[1].trim();
+    }
+
+    // Remove accidental markdown/code fences.
+    cleanStory = cleanStory
+      .replace(/```(?:text|json)?/gi, "")
+      .replace(/```/g, "")
+      .trim();
+
+    storyOutput.textContent = cleanStory;
+
+    const scenes = parseScenes(cleanStory);
 
     if(scenes.length !== 8){
       throw new Error("Story मिळाली, पण 8 scenes पूर्ण मिळाले नाहीत.");
     }
 
     renderScenes(scenes);
-    setStatus("✅ AI ने आपकी कहानी तैयार कर दी! 8 scenes मिळाले.");
+    setStatus("✅ AI ने आपकी कहानी तैयार कर दी! 8 scenes clean झाले.");
 
   }catch(error){
     console.error(error);
