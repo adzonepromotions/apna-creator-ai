@@ -44,21 +44,16 @@ function cleanVoice(text) {
     if (unique.length >= 2) break;
   }
 
-  if (unique.length > 0) {
-    voice = unique.join(" ");
-  }
-
+  if (unique.length > 0) voice = unique.join(" ");
   if (voice.length > 220) {
     const shortParts = voice.split(/(?<=[.!?।])\s+/).slice(0, 2);
     voice = shortParts.join(" ").slice(0, 220).trim();
   }
-
   return voice;
 }
 
 function cleanVisual(text) {
-  let visual = String(text || "").replace(/\s+/g, " ").trim();
-  return visual.replace(/^["“”]+|["“”]+$/g, "").trim();
+  return String(text || "").replace(/\s+/g, " ").replace(/^["“”]+|["“”]+$/g, "").trim();
 }
 
 function extractScenes(text) {
@@ -72,16 +67,12 @@ function extractScenes(text) {
     if (number < 1 || number > 8) continue;
     const visual = cleanVisual(match[2]);
     const voice = cleanVoice(match[3]);
-    if (visual && voice) {
-      scenes.push({ number, visual, voice });
-    }
+    if (visual && voice) scenes.push({ number, visual, voice });
   }
 
   const unique = [];
   for (const scene of scenes) {
-    if (!unique.some(x => x.number === scene.number)) {
-      unique.push(scene);
-    }
+    if (!unique.some(x => x.number === scene.number)) unique.push(scene);
   }
   unique.sort((a, b) => a.number - b.number);
   return unique;
@@ -90,9 +81,7 @@ function extractScenes(text) {
 function validateScenes(scenes) {
   if (!Array.isArray(scenes) || scenes.length !== 8) return false;
   for (let i = 0; i < 8; i++) {
-    if (!scenes[i] || scenes[i].number !== i + 1 || !scenes[i].visual || !scenes[i].voice) {
-      return false;
-    }
+    if (!scenes[i] || scenes[i].number !== i + 1 || !scenes[i].visual || !scenes[i].voice) return false;
   }
   return true;
 }
@@ -105,10 +94,10 @@ function buildStory(scenes) {
 
 function languageInstruction(language) {
   if (language === "Marathi") {
-    return "OUTPUT LANGUAGE: MARATHI\nWrite everything in natural, simple Marathi.\nUse Marathi for Visual and Voice.\nDo not use Hindi.\nDo not use English except unavoidable proper names.\nUse language suitable for children.";
+    return "OUTPUT LANGUAGE: MARATHI\nWrite everything in natural, simple Marathi.\nUse Marathi for Visual and Voice.\nDo not use English except unavoidable proper names.\nUse language suitable for children.";
   }
   if (language === "Hindi") {
-    return "OUTPUT LANGUAGE: HINDI\nWrite everything in natural, simple Hindi.\nUse Hindi for Visual and Voice.\nDo not use Marathi.\nUse language suitable for children.";
+    return "OUTPUT LANGUAGE: HINDI\nWrite everything in natural, simple Hindi.\nUse Hindi for Visual and Voice.\nUse language suitable for children.";
   }
   return "OUTPUT LANGUAGE: ENGLISH\nWrite everything in natural, simple English.\nUse English for Visual and Voice.\nUse language suitable for children.";
 }
@@ -135,10 +124,10 @@ Create exactly 8 connected scenes.
 VERY IMPORTANT RULES:
 1. Return EXACTLY 8 scenes (1 to 8).
 2. Every scene must contain exactly ONE Visual and ONE Voice.
-3. Visual must be short.
+3. Visual must be short description.
 4. Voice must contain only 1 or 2 natural sentences.
 5. NEVER repeat sentences.
-6. Do not add title, explanation, or markdown.
+6. Do not add title, markdown, or commentary.
 
 Use EXACTLY this format:
 SCENE 1
@@ -185,18 +174,39 @@ async function generateStory(env, prompt) {
 }
 
 function createImagePrompt(visual, style) {
-  return `Create a high-quality children's cartoon image.
-SCENE: ${visual}
-STYLE: ${style}
-Requirements: colorful children's cartoon, child friendly, bright lighting, expressive characters, detailed background, cinematic composition, consistent cartoon appearance, no text, no subtitles, no speech bubbles, no watermark. Create only the image.`;
+  return `masterpiece, 3d pixar disney style animated cartoon, ${visual}, 8k resolution, vibrant colors, cinematic lighting, cute expressive character, high quality 3d render, detailed environment, no text, no watermark`;
 }
 
+/* ========================================================
+   स्मार्ट इमेज जनरेटर (Automatic Model Fallback)
+   १. आधी Dreamshaper LCM ट्राय करेल (अतिशय वेगवान व नो-एरर)
+   २. लोड असेल तर SDXL Lightning ट्राय करेल
+   ३. शेवटी Flux ट्राय करेल
+======================================================== */
 async function generateImage(env, visual, style) {
   const prompt = createImagePrompt(visual, style);
-  return await env.AI.run("@cf/black-forest-labs/flux-1-schnell", {
-    prompt: prompt,
-    steps: 4
-  });
+
+  // Model 1: Dreamshaper LCM (सुपरफास्ट आणि क्षमतेची समस्या येत नाही)
+  try {
+    return await env.AI.run("@cf/lykon/dreamshaper-8-lcm", {
+      prompt: prompt,
+      num_steps: 6
+    });
+  } catch (err1) {
+    // Model 2: SDXL Lightning
+    try {
+      return await env.AI.run("@cf/bytedance/stable-diffusion-xl-lightning", {
+        prompt: prompt,
+        num_steps: 4
+      });
+    } catch (err2) {
+      // Model 3: Flux Schnell
+      return await env.AI.run("@cf/black-forest-labs/flux-1-schnell", {
+        prompt: prompt,
+        steps: 4
+      });
+    }
+  }
 }
 
 export default {
@@ -209,9 +219,7 @@ export default {
       return jsonResponse({
         success: true,
         status: "ok",
-        message: "Apna Creator AI Backend is running!",
-        storyModel: "@cf/meta/llama-3.1-8b-instruct-fast",
-        imageModel: "@cf/black-forest-labs/flux-1-schnell"
+        message: "Apna Creator AI Backend is running with Multi-Model Image Support!"
       });
     }
 
@@ -243,7 +251,7 @@ export default {
         } catch (error) {
           return jsonResponse({
             success: false,
-            error: "Image generation failed: " + (error && error.message ? error.message : "Unknown image error")
+            error: "Image generation failed: " + (error && error.message ? error.message : "Unknown error")
           }, 500);
         }
       }
@@ -281,8 +289,7 @@ export default {
         return jsonResponse({
           success: true,
           language: language,
-          story: buildStory(scenes),
-          note: "Story generated with automatic cleanup."
+          story: buildStory(scenes)
         });
       }
 
