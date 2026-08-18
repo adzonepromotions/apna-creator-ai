@@ -51,23 +51,33 @@ function buildStory(scenes) {
 }
 
 function createStoryPrompt(story, language) {
-  return `You are a children's 3D cartoon movie director.
-Create an 8-scene connected cartoon story from this idea: "${story}"
+  let langInstruction = "";
+  if (language === "Marathi") {
+    langInstruction = "Voice must be in pure, natural MARATHI (मराठी शुद्ध वाक्यरचना). No Hindi or English words in Voice.";
+  } else if (language === "Hindi") {
+    langInstruction = "Voice must be in natural, conversational HINDI. No Marathi or English words in Voice.";
+  } else {
+    langInstruction = "Voice must be in fluent, child-friendly ENGLISH.";
+  }
 
-LANGUAGE RULES:
-- Output language for Voice must be: ${language === "Marathi" ? "Natural MARATHI (मराठी वाक्यरचना)" : (language === "Hindi" ? "HINDI" : "ENGLISH")}.
-- Visual description MUST BE IN SIMPLE ENGLISH (so image generator understands it perfectly).
-- Voice must be a single, meaningful sentence that connects logically with the next scene.
-- No repeated sentences.
+  return `You are an expert children's 3D animated cartoon director and scriptwriter.
+Write an engaging 8-scene cartoon story based on the user's idea: "${story}"
 
-OUTPUT FORMAT EXACTLY:
+RULES:
+1. Provide exactly 8 sequentially connected scenes (SCENE 1 to SCENE 8) with a clear storyline and moral ending.
+2. ${langInstruction}
+3. Visual description MUST ALWAYS be in ENGLISH (so the 3D image generator understands it perfectly).
+4. Each scene Voice must be 1 single, clear, expressive sentence. Do not repeat dialogue.
+5. No titles, markdown headers, or explanations.
+
+OUTPUT FORMAT:
 SCENE 1
-Visual: English description of cute 3d scene
-Voice: Dialogue in chosen language
+Visual: English description of 3D scene
+Voice: Single dialogue line in target language
 
 SCENE 2
-Visual: English description of cute 3d scene
-Voice: Dialogue in chosen language
+Visual: English description of 3D scene
+Voice: Single dialogue line in target language
 
 SCENE 3
 Visual: ...
@@ -95,7 +105,7 @@ Voice: ...`;
 }
 
 async function generateImage(env, visual) {
-  const prompt = `cute 3D Pixar animated cartoon character, bright daylight, vibrant vivid colors, cinematic 3D render, highly detailed background, disney pixar style, ${visual}, no text, masterpiece`;
+  const prompt = `masterpiece, cute 3D Disney Pixar animated cartoon, vibrant lighting, expressive character, detailed 3D environment, 8k resolution, cinematic composition, ${visual}, no text, no watermark`;
   
   try {
     return await env.AI.run("@cf/bytedance/stable-diffusion-xl-lightning", {
@@ -117,7 +127,7 @@ export default {
     }
 
     if (request.method === "GET") {
-      return jsonResponse({ success: true, status: "ok" });
+      return jsonResponse({ success: true, message: "Apna Creator AI Backend is Active!" });
     }
 
     try {
@@ -139,7 +149,7 @@ export default {
       const res = await env.AI.run("@cf/meta/llama-3.1-8b-instruct-fast", {
         prompt: prompt,
         max_tokens: 1200,
-        temperature: 0.2
+        temperature: 0.25
       });
 
       const scenes = extractScenes(res && res.response ? res.response : "");
