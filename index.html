@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Apna Creator AI - Free 3D Cartoon Video Studio</title>
+  <title>Apna Creator AI - Free 3D Talking Cartoon Video Studio</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     body { background: #f1f5f9; color: #1e293b; padding: 20px; }
@@ -29,9 +29,9 @@
 <body>
 
 <div class="container">
-  <h1>🎬 Apna Creator AI: 3D Cartoon Video Studio (100% Free)</h1>
+  <h1>🎬 Apna Creator AI: 3D Talking Cartoon Video Studio</h1>
 
-  <label>कथा / स्टोरी कल्पना लिहा:</label>
+  <label>कथा / कथेची कल्पना लिहा:</label>
   <textarea id="storyInput" rows="3" placeholder="उदा. एक छोटा मुलगा जंगलात फिरायला जातो आणि त्याला एक बोलणारा पोपट भेटतो..."></textarea>
 
   <label>भाषा निवडा (Select Language):</label>
@@ -41,16 +41,16 @@
     <option value="English">English</option>
   </select>
 
-  <button id="createBtn" onclick="startGeneration()">🚀 3D कथा, आवाज आणि व्हिडिओ तयार करा</button>
+  <button id="createBtn" onclick="startGeneration()">🚀 3D बोलणारा कार्टून व्हिडिओ तयार करा</button>
 
-  <div id="status">येथे प्रोसेस दिसेल...</div>
+  <div id="status">येथे प्रोसेस स्टेटस दिसेल...</div>
 
   <!-- तयार झालेला पूर्ण व्हिडिओ -->
   <div id="videoContainer" class="video-section">
-    <h2 style="color:#38bdf8;">🎥 तयार झालेला 3D कार्टून व्हिडिओ</h2>
+    <h2 style="color:#38bdf8;">🎥 तयार झालेला 3D बोलणारा कार्टून व्हिडिओ</h2>
     <video id="finalVideo" controls></video>
     <br>
-    <a id="downloadLink" class="download-btn" href="#" download="cartoon_video.webm">⬇️ व्हिडिओ डाउनलोड करा (Download Video)</a>
+    <a id="downloadLink" class="download-btn" href="#" download="talking_cartoon_video.webm">⬇️ व्हिडिओ डाउनलोड करा (Download Video)</a>
   </div>
 
   <div id="scenesContainer" class="scenes-grid"></div>
@@ -59,7 +59,6 @@
 <canvas id="renderCanvas" width="1280" height="720" style="display:none;"></canvas>
 
 <script>
-  // अचूक Cloudflare Worker URL
   const BACKEND_URL = "https://apna-creator-ai.apnacreatorai.workers.dev";
   let loadedScenes = [];
 
@@ -78,7 +77,7 @@
     }
   }
 
-  function playVoice(text, lang) {
+  function speakText(text, lang) {
     return new Promise((resolve) => {
       if (!('speechSynthesis' in window)) { resolve(); return; }
       window.speechSynthesis.cancel();
@@ -87,8 +86,8 @@
       const voice = getVoiceForLanguage(lang);
       if (voice) utterance.voice = voice;
       utterance.lang = lang === 'Marathi' ? 'mr-IN' : (lang === 'Hindi' ? 'hi-IN' : 'en-US');
-      utterance.rate = 0.9;
-      utterance.pitch = 1.1;
+      utterance.rate = 0.88;
+      utterance.pitch = 1.15;
 
       utterance.onend = () => resolve();
       utterance.onerror = () => resolve();
@@ -152,7 +151,7 @@
           <h4>🎬 SCENE ${sc.number}</h4>
           <p><strong>Visual:</strong> ${sc.visual}</p>
           <p><strong>Voice:</strong> "${sc.voice}"</p>
-          <button class="voice-btn" onclick="playVoice('${sc.voice.replace(/'/g, "\\'")}', '${language}')">🔊 आवाज ऐका</button>
+          <button class="voice-btn" onclick="speakText('${sc.voice.replace(/'/g, "\\'")}', '${language}')">🔊 संवाद ऐका</button>
         `;
         container.appendChild(card);
 
@@ -162,8 +161,8 @@
         loadedScenes.push({ img: imgEl, voice: sc.voice });
       }
 
-      setStatus("⏳ ३/३: 3D मोशन व्हिडिओ तयार होत आहे, कृपया थोडा वेळ थांबा...");
-      await buildMotionVideo(language);
+      setStatus("⏳ ३/३: कॅरेक्टर ॲनिमेशन आणि बोलणारा व्हिडिओ तयार होत आहे, कृपया थांबा...");
+      await renderTalkingAnimation(language);
 
     } catch (err) {
       setStatus("❌ त्रुटी आली: " + err.message);
@@ -172,7 +171,8 @@
     }
   }
 
-  async function buildMotionVideo(language) {
+  // 3D Talking Character & Motion Engine
+  async function renderTalkingAnimation(language) {
     const canvas = document.getElementById("renderCanvas");
     const ctx = canvas.getContext("2d");
     const stream = canvas.captureStream(30);
@@ -186,48 +186,75 @@
       document.getElementById("finalVideo").src = url;
       document.getElementById("downloadLink").href = url;
       document.getElementById("videoContainer").style.display = "block";
-      setStatus("🎉 अभिनंदन! तुमचा 3D कार्टून व्हिडिओ पूर्णपणे तयार झाला आहे. खाली बघा आणि डाउनलोड करा.");
+      setStatus("🎉 अभिनंदन! तुमचा 3D बोलणारा कार्टून व्हिडिओ पूर्णपणे तयार झाला आहे. खाली बघा आणि डाउनलोड करा.");
     };
 
     mediaRecorder.start();
 
     for (let i = 0; i < loadedScenes.length; i++) {
       const item = loadedScenes[i];
-      playVoice(item.voice, language);
+      speakText(item.voice, language);
 
-      const duration = 4500;
+      const duration = 5000; // ५ सेकंद प्रति सीन
       const startTime = performance.now();
 
       await new Promise(resolve => {
-        function renderFrame(now) {
+        function renderLoop(now) {
           const elapsed = now - startTime;
           const progress = Math.min(elapsed / duration, 1);
-          
-          const scale = 1.0 + (progress * 0.15);
-          const panX = (canvas.width * (scale - 1)) / 2;
-          const panY = (canvas.height * (scale - 1)) / 2;
+
+          // १. बॉडी मोशन (Breathing & Floating Animation)
+          const breath = Math.sin(elapsed / 300) * 4;
+          const zoom = 1.0 + (progress * 0.08);
 
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           ctx.save();
-          ctx.translate(-panX * progress, -panY * progress);
-          ctx.scale(scale, scale);
-          ctx.drawImage(item.img, 0, 0, canvas.width, canvas.height);
+          
+          // झूम आणि हालचाल ॲनिमेशन
+          ctx.translate(canvas.width / 2, canvas.height / 2 + breath);
+          ctx.scale(zoom, zoom);
+          ctx.drawImage(item.img, -canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
+
+          // २. बोलण्याचे ॲनिमेशन (Lip-sync Simulation)
+          // आवाज चालू असताना ओठ नैसर्गिकरीत्या उघडझाप करणे
+          if (progress < 0.85) {
+            const mouthCycle = Math.abs(Math.sin(elapsed / 120));
+            const mouthWidth = 22 + (mouthCycle * 10);
+            const mouthHeight = 8 + (mouthCycle * 14);
+
+            // चेहऱ्याच्या मध्यभागी हलकी ओठांची हालचाल
+            ctx.fillStyle = "rgba(45, 10, 15, 0.75)";
+            ctx.beginPath();
+            ctx.ellipse(0, 45, mouthWidth / 2, mouthHeight / 2, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // दात / आतील भाग
+            if (mouthCycle > 0.4) {
+              ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+              ctx.fillRect(-mouthWidth / 4, 45 - mouthHeight / 4, mouthWidth / 2, 4);
+            }
+          }
+
           ctx.restore();
 
-          ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
-          ctx.fillRect(50, canvas.height - 120, canvas.width - 100, 80);
-          ctx.fillStyle = "#ffffff";
-          ctx.font = "bold 28px sans-serif";
+          // ३. सिनेमॅटिक सबटायटल्स पट्टी
+          ctx.fillStyle = "rgba(15, 23, 42, 0.8)";
+          ctx.fillRect(40, canvas.height - 115, canvas.width - 80, 80);
+          ctx.fillStyle = "#38bdf8";
+          ctx.font = "bold 22px sans-serif";
           ctx.textAlign = "center";
-          ctx.fillText(item.voice, canvas.width / 2, canvas.height - 70);
+          ctx.fillText(`SCENE ${i + 1}`, canvas.width / 2, canvas.height - 85);
+          ctx.fillStyle = "#ffffff";
+          ctx.font = "24px sans-serif";
+          ctx.fillText(item.voice, canvas.width / 2, canvas.height - 52);
 
           if (progress < 1) {
-            requestAnimationFrame(renderFrame);
+            requestAnimationFrame(renderLoop);
           } else {
             resolve();
           }
         }
-        requestAnimationFrame(renderFrame);
+        requestAnimationFrame(renderLoop);
       });
     }
 
