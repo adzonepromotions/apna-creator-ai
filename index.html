@@ -32,7 +32,7 @@
   <h1>🎬 Apna Creator AI: 3D Talking Cartoon Studio</h1>
 
   <label>Enter Story Idea (कहानी का विचार लिखें):</label>
-  <textarea id="storyInput" rows="3" placeholder="उदा. एक चालाक खरगोश और एक दयालु भालू जंगल में एक साथ फल खोजते हैं..."></textarea>
+  <textarea id="storyInput" rows="3" placeholder="उदा. एक शेर और एक नन्हा चूहा जंगल में पक्के दोस्त बन जाते हैं..."></textarea>
 
   <label>Select Language (भाषा चुनें):</label>
   <select id="languageSelect">
@@ -57,7 +57,7 @@
 <canvas id="renderCanvas" width="1280" height="720" style="display:none;"></canvas>
 
 <script>
-  const BACKEND_URL = "https://apna-creator-ai.apnacreatorai.workers.dev";
+  const BACKEND_URL = "[https://apna-creator-ai.apnacreatorai.workers.dev](https://apna-creator-ai.apnacreatorai.workers.dev)";
   let loadedScenes = [];
 
   function setStatus(text) {
@@ -97,7 +97,7 @@
     const container = document.getElementById("scenesContainer");
     const videoCard = document.getElementById("videoContainer");
 
-    if (!story) { alert("Please enter story idea!"); return; }
+    if (!story) { alert("Please enter a story idea!"); return; }
 
     btn.disabled = true;
     container.innerHTML = "";
@@ -120,7 +120,7 @@
 
       if (scenes.length === 0) throw new Error("Could not parse scenes");
 
-      setStatus(`✅ ${scenes.length} Scenes Created!\n⏳ 2/3: Generating 3D Pixar Images...`);
+      setStatus(`✅ ${scenes.length} Scenes Ready!\n⏳ 2/3: Generating 3D Pixar Images...`);
 
       for (let i = 0; i < scenes.length; i++) {
         const sc = scenes[i];
@@ -205,7 +205,7 @@
           ctx.drawImage(item.img, -canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
           ctx.restore();
 
-          // Subtitle box
+          // Subtitle Bar
           ctx.fillStyle = "rgba(11, 17, 32, 0.85)";
           ctx.fillRect(50, canvas.height - 110, canvas.width - 100, 75);
           ctx.strokeStyle = "#38bdf8";
