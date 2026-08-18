@@ -3,146 +3,195 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Apna Creator AI - Full Video Generator</title>
+  <title>Apna Creator AI - 3D Cartoon Story Studio</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { background: #0f172a; color: #f8fafc; padding: 20px; }
-    .container { max-width: 900px; margin: auto; background: #1e293b; padding: 25px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-    h1 { text-align: center; color: #38bdf8; margin-bottom: 20px; font-size: 26px; }
-    .form-group { margin-bottom: 15px; }
-    label { display: block; font-weight: bold; margin-bottom: 6px; color: #94a3b8; }
-    textarea, select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #fff; font-size: 15px; }
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-    button { width: 100%; padding: 14px; background: #0284c7; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
-    button:hover { background: #0369a1; }
-    button:disabled { background: #475569; cursor: not-allowed; }
-    .status-box { margin-top: 20px; padding: 15px; border-radius: 8px; background: #0f172a; border-left: 4px solid #38bdf8; font-size: 14px; white-space: pre-wrap; }
-    .scenes-container { margin-top: 25px; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
-    .scene-card { background: #0f172a; border: 1px solid #334155; border-radius: 8px; overflow: hidden; padding: 10px; }
-    .scene-card img { width: 100%; height: 180px; object-fit: cover; border-radius: 6px; background: #1e293b; }
-    .scene-card p { font-size: 13px; margin-top: 8px; color: #cbd5e1; }
-    .video-section { margin-top: 30px; text-align: center; background: #0f172a; padding: 20px; border-radius: 10px; border: 1px dashed #38bdf8; display: none; }
-    video { max-width: 100%; border-radius: 8px; margin-top: 15px; }
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 900px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #f4f7f6;
+      color: #333;
+    }
+    .box {
+      background: #fff;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 20px;
+    }
+    label {
+      font-weight: bold;
+      margin-top: 10px;
+      display: block;
+    }
+    textarea, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
+      font-size: 15px;
+    }
+    button {
+      background: #27ae60;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 100%;
+    }
+    button:hover {
+      background: #219150;
+    }
+    button:disabled {
+      background: #95a5a6;
+      cursor: not-allowed;
+    }
+    #status {
+      margin-top: 20px;
+      padding: 12px;
+      background: #e8f8f5;
+      border-left: 5px solid #2ecc71;
+      font-weight: bold;
+      white-space: pre-line;
+    }
+    .scenes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+    .scene-card {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 12px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .scene-card img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      border-radius: 5px;
+      background: #eee;
+    }
+    .scene-card h4 {
+      margin: 8px 0 4px 0;
+      color: #2980b9;
+    }
+    .scene-card p {
+      font-size: 13px;
+      line-height: 1.4;
+      margin: 4px 0;
+    }
+    .voice-btn {
+      background: #3498db;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      font-size: 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 8px;
+      width: auto;
+    }
+    .voice-btn:hover {
+      background: #2980b9;
+    }
   </style>
 </head>
 <body>
 
-<div class="container">
-  <h1>🎬 Apna Creator AI: Video Studio</h1>
+<div class="box">
+  <h1>🎨 Apna Creator AI - 3D Cartoon Story</h1>
 
-  <div class="form-group">
-    <label>कथा / स्टोरी कल्पना टाका:</label>
-    <textarea id="storyInput" rows="3" placeholder="उदा. एक छोटा मुलगा जंगलात फिरायला जातो आणि त्याला एक बोलणारा पक्षी भेटतो..."></textarea>
-  </div>
+  <label>तुमची कथा / कल्पना लिहा:</label>
+  <textarea id="storyInput" rows="4" placeholder="उदा. एक छोटा मुलगा जंगलात फिरायला जातो आणि त्याला एक बोलणारा सुंदर पोपट भेटतो..."></textarea>
 
-  <div class="grid-2">
-    <div class="form-group">
-      <label>भाषा (Language):</label>
-      <select id="languageSelect">
-        <option value="Marathi">Marathi</option>
-        <option value="Hindi">Hindi</option>
-        <option value="English">English</option>
-      </select>
-    </div>
-    <div class="form-group">
-      <label>व्हिडिओ स्टाईल (Style):</label>
-      <select id="styleSelect">
-        <option value="3D Disney Pixar Cartoon Animation">3D Pixar Cartoon</option>
-        <option value="3D Anime Style">3D Anime</option>
-        <option value="3D Cinematic Unreal Engine">3D Cinematic</option>
-      </select>
-    </div>
-  </div>
+  <label>भाषा निवडा:</label>
+  <select id="languageSelect">
+    <option value="Marathi">मराठी (Marathi)</option>
+    <option value="Hindi">हिंदी (Hindi)</option>
+    <option value="English">English</option>
+  </select>
 
-  <button id="generateBtn" onclick="startGeneration()">🚀 पूर्ण कथा आणि व्हिडिओ बनवा</button>
+  <button id="createBtn" onclick="generateFullStory()">🎬 CREATE STORY & 3D SCENES</button>
 
-  <div id="statusBox" class="status-box">तयार आहे...</div>
+  <div id="status">येथे स्टोरीची स्थिती दिसेल...</div>
 
-  <!-- व्हिडिओ सेक्शन -->
-  <div id="videoSection" class="video-section">
-    <h2 style="color:#38bdf8;">🎥 तुमचा तयार झालेला 3D व्हिडिओ</h2>
-    <video id="finalVideo" controls></video>
-    <a id="downloadLink" href="#" download="cartoon_story.webm"><button style="background:#16a34a; margin-top:10px;">⬇️ व्हिडिओ डाउनलोड करा (Download Video)</button></a>
-  </div>
-
-  <div id="scenesContainer" class="scenes-container"></div>
+  <div id="scenesContainer" class="scenes-grid"></div>
 </div>
-
-<canvas id="renderCanvas" width="1280" height="720" style="display:none;"></canvas>
 
 <script>
   const BACKEND_URL = "https://floral-sky-73bd.apnacreatorai.workers.dev";
-  let generatedScenes = [];
-  let loadedImages = [];
 
-  function setStatus(msg) {
-    document.getElementById("statusBox").innerText = msg;
+  function setStatus(text) {
+    document.getElementById("status").innerText = text;
   }
 
-  // 1. बोलण्यासाठी व्हॉईस फंक्शन
-  function speakText(text, lang) {
-    return new Promise((resolve) => {
-      if (!('speechSynthesis' in window)) {
-        resolve();
-        return;
-      }
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = lang === 'Marathi' ? 'mr-IN' : (lang === 'Hindi' ? 'hi-IN' : 'en-US');
-      utterance.rate = 0.9;
-      utterance.onend = () => resolve();
-      utterance.onerror = () => resolve();
-      window.speechSynthesis.speak(utterance);
-    });
+  function playVoice(text, lang) {
+    if (!('speechSynthesis' in window)) {
+      alert("तुमचा ब्राउझर व्हॉईस सपोर्ट करत नाही.");
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = lang === 'Marathi' ? 'mr-IN' : (lang === 'Hindi' ? 'hi-IN' : 'en-US');
+    utterance.rate = 0.9;
+    window.speechSynthesis.speak(utterance);
   }
 
-  // 2. मुख्य प्रोसेस
-  async function startGeneration() {
+  async function generateFullStory() {
     const story = document.getElementById("storyInput").value.trim();
     const language = document.getElementById("languageSelect").value;
-    const style = document.getElementById("styleSelect").value;
-    const btn = document.getElementById("generateBtn");
+    const btn = document.getElementById("createBtn");
     const container = document.getElementById("scenesContainer");
-    const videoSection = document.getElementById("videoSection");
 
     if (!story) {
-      alert("कृपया आधी स्टोरी टाका!");
+      alert("कृपया आधी कथा लिहा!");
       return;
     }
 
     btn.disabled = true;
     container.innerHTML = "";
-    videoSection.style.display = "none";
-    loadedImages = [];
+    setStatus("⏳ १/२: AI सुंदर ३D कथा आणि ८ सीन्स लिहीत आहे...");
 
     try {
-      setStatus("⏳ १/३: AI कथा आणि ८ सीन्स लिहीत आहे...");
       const res = await fetch(BACKEND_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ story, language, style, duration: "1 Minute" })
+        body: JSON.stringify({ story, language, style: "3D Disney Pixar Cute Animation", duration: "1 Minute" })
       });
 
       const data = await res.json();
-      if (!data.success) throw new Error(data.error || "Story generation failed");
+      if (!data.success) throw new Error(data.error || "कथा तयार करता आली नाही.");
 
       // सीन्स पार्स करणे
       const sceneMatches = [...data.story.matchAll(/SCENE\s*([1-8])[\r\n]+Visual:\s*([\s\S]*?)[\r\n]+Voice:\s*([\s\S]*?)(?=SCENE\s*[1-8]|$)/gi)];
-      generatedScenes = sceneMatches.map(m => ({ number: m[1], visual: m[2].trim(), voice: m[3].trim() }));
+      const scenes = sceneMatches.map(m => ({ number: m[1], visual: m[2].trim(), voice: m[3].trim() }));
 
-      if (generatedScenes.length === 0) throw new Error("सीन्स वाचता आले नाहीत.");
+      if (scenes.length === 0) throw new Error("सीन्स फॉरमॅट योग्य नाही.");
 
-      setStatus(`✅ ८ सीन्स तयार झाले!\n⏳ २/३: आता प्रत्येक सीनसाठी 3D इमेज जनरेट होत आहे...`);
+      setStatus(`✅ ८ सीन्स तयार झाले!\n⏳ २/२: आता प्रत्येक सीनसाठी 3D इमेज जनरेट होत आहे...`);
 
-      // इमेजेस जनरेट करणे
-      for (let i = 0; i < generatedScenes.length; i++) {
-        const sc = generatedScenes[i];
-        setStatus(`⏳ इमेज ${i+1}/8 तयार होत आहे...`);
+      for (let i = 0; i < scenes.length; i++) {
+        const sc = scenes[i];
+        setStatus(`⏳ 3D इमेज ${i + 1}/8 तयार होत आहे...`);
 
         const imgRes = await fetch(BACKEND_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action: "generate-image", visual: sc.visual, style: style })
+          body: JSON.stringify({ action: "generate-image", visual: sc.visual, style: "3D Disney Pixar Cute Animation" })
         });
 
         const blob = await imgRes.blob();
@@ -151,74 +200,22 @@
         const card = document.createElement("div");
         card.className = "scene-card";
         card.innerHTML = `
-          <img src="${imgUrl}" id="img_${i}">
-          <p><strong>Scene ${sc.number}</strong></p>
-          <p style="color:#38bdf8;">🔊 "${sc.voice}"</p>
-          <button onclick="speakText('${sc.voice.replace(/'/g, "\\'")}', '${language}')" style="padding:6px; font-size:12px; margin-top:5px; background:#334155;">🔊 आवाज ऐका</button>
+          <img src="${imgUrl}" alt="Scene ${sc.number}">
+          <h4>🎬 SCENE ${sc.number}</h4>
+          <p><strong>Visual:</strong> ${sc.visual}</p>
+          <p><strong>Voice:</strong> "${sc.voice}"</p>
+          <button class="voice-btn" onclick="playVoice('${sc.voice.replace(/'/g, "\\'")}', '${language}')">🔊 आवाज ऐका</button>
         `;
         container.appendChild(card);
-
-        // इमेज कॅनव्हाससाठी सेव्ह करणे
-        const imgEl = new Image();
-        imgEl.src = imgUrl;
-        await new Promise(r => imgEl.onload = r);
-        loadedImages.push({ img: imgEl, voice: sc.voice });
       }
 
-      setStatus("⏳ ३/३: इमेज आणि व्हॉईस एकत्र करून व्हिडिओ बनवला जात आहे...");
-      await createVideoFromScenes(language);
+      setStatus("🎉 पूर्ण झाले! सर्व ८ सीन्स आणि ३D इमेजेस तयार झाल्या आहेत.");
 
     } catch (err) {
-      setStatus("❌ एरर आला: " + err.message);
+      setStatus("❌ त्रुटी आली: " + err.message);
     } finally {
       btn.disabled = false;
     }
-  }
-
-  // 3. व्हिडिओ बनवणे (Canvas + MediaRecorder)
-  async function createVideoFromScenes(language) {
-    const canvas = document.getElementById("renderCanvas");
-    const ctx = canvas.getContext("2d");
-    const stream = canvas.captureStream(30);
-    const mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
-    const chunks = [];
-
-    mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
-    mediaRecorder.onstop = () => {
-      const blob = new Blob(chunks, { type: 'video/webm' });
-      const videoUrl = URL.createObjectURL(blob);
-      const finalVideo = document.getElementById("finalVideo");
-      const downloadLink = document.getElementById("downloadLink");
-      
-      finalVideo.src = videoUrl;
-      downloadLink.href = videoUrl;
-      document.getElementById("videoSection").style.display = "block";
-      setStatus("🎉 अभिनंदन! तुमचा 3D व्हिडिओ पूर्णपणे तयार झाला आहे!");
-    };
-
-    mediaRecorder.start();
-
-    // प्रत्येक सीन कॅनव्हासवर ५ सेकंद दाखवणे आणि आवाज देणे
-    for (let i = 0; i < loadedImages.length; i++) {
-      const item = loadedImages[i];
-      
-      // इमेज कॅनव्हासवर ड्रॉ करणे
-      ctx.drawImage(item.img, 0, 0, canvas.width, canvas.height);
-      
-      // सबटायटल टेक्स्ट जोडणे
-      ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
-      ctx.fillRect(50, canvas.height - 120, canvas.width - 100, 80);
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 28px sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText(item.voice, canvas.width / 2, canvas.height - 70);
-
-      // व्हॉईस प्ले करणे व ४ सेकंद थांबणे
-      speakText(item.voice, language);
-      await new Promise(r => setTimeout(r, 4500));
-    }
-
-    mediaRecorder.stop();
   }
 </script>
 </body>
