@@ -41,7 +41,7 @@
     <option value="English">English</option>
   </select>
 
-  <button id="createBtn" onclick="startGeneration()">🚀 15 सीन्सचा 3D कार्टून व्हिडिओ तयार करा</button>
+  <button id="createBtn" onclick="startGeneration()">🚀 3D बोलणारा कार्टून व्हिडिओ तयार करा</button>
 
   <div id="status">येथे प्रोसेस स्टेटस दिसेल...</div>
 
@@ -49,7 +49,7 @@
     <h2 style="color:#38bdf8;">🎥 तयार झालेला 3D व्हिडिओ (सह-आवाज)</h2>
     <video id="finalVideo" controls></video>
     <br>
-    <a id="downloadLink" class="download-btn" href="#" download="cartoon_story_full.webm">⬇️ व्हिडिओ डाउनलोड करा</a>
+    <a id="downloadLink" class="download-btn" href="#" download="cartoon_story.webm">⬇️ व्हिडिओ डाउनलोड करा</a>
   </div>
 
   <div id="scenesContainer" class="scenes-grid"></div>
@@ -58,7 +58,7 @@
 <canvas id="renderCanvas" width="1280" height="720" style="display:none;"></canvas>
 
 <script>
-  const BACKEND_URL = "[https://apna-creator-ai.apnacreatorai.workers.dev](https://apna-creator-ai.apnacreatorai.workers.dev)";
+  const BACKEND_URL = "https://apna-creator-ai.apnacreatorai.workers.dev";
   let loadedScenes = [];
 
   function setStatus(text) {
@@ -107,7 +107,7 @@
     loadedScenes = [];
 
     try {
-      setStatus("⏳ १/३: AI संपूर्ण १५ सीन्सची सुंदर गोष्ट तयार करत आहे...");
+      setStatus("⏳ १/३: AI कथा तयार करत आहे...");
       const res = await fetch(BACKEND_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -122,7 +122,7 @@
 
       if (scenes.length === 0) throw new Error("सीन्स वाचता आले नाहीत.");
 
-      setStatus(`✅ ${scenes.length} सीन्स तयार झाले!\n⏳ २/३: कलर-लॉक 3D इमेजेस तयार होत आहेत...`);
+      setStatus(`✅ ${scenes.length} सीन्स तयार झाले!\n⏳ २/३: 3D इमेजेस तयार होत आहेत...`);
 
       for (let i = 0; i < scenes.length; i++) {
         const sc = scenes[i];
@@ -154,7 +154,7 @@
         loadedScenes.push({ img: imgEl, voice: sc.voice });
       }
 
-      setStatus("⏳ ३/३: संपूर्ण व्हिडिओ रेंडर होत आहे, कृपया थोडा वेळ थांबा...");
+      setStatus("⏳ ३/३: व्हिडिओ रेंडर होत आहे, कृपया थांबा...");
       await renderTalkingVideo(language);
 
     } catch (err) {
@@ -180,7 +180,7 @@
       v.onplay = () => playFullStory(language);
       document.getElementById("downloadLink").href = url;
       document.getElementById("videoContainer").style.display = "block";
-      setStatus("🎉 अभिनंदन! तुमचा १.५ मिनिटांचा १५ सीन्सचा 3D कार्टून व्हिडिओ तयार झाला आहे!");
+      setStatus("🎉 अभिनंदन! तुमचा 3D कार्टून व्हिडिओ तयार झाला आहे!");
     };
 
     mediaRecorder.start();
@@ -189,7 +189,7 @@
       const item = loadedScenes[i];
       playVoice(item.voice, language);
 
-      const duration = 5000; // ५ सेकंद प्रति सीन
+      const duration = 4800; // ४.८ सेकंद प्रति सीन
       const startTime = performance.now();
 
       await new Promise(resolve => {
@@ -207,7 +207,7 @@
           ctx.drawImage(item.img, -canvas.width / 2, -canvas.height / 2, canvas.width, canvas.height);
           ctx.restore();
 
-          // संवाद पट्टी
+          // सबटायटल्स पट्टी
           ctx.fillStyle = "rgba(11, 17, 32, 0.85)";
           ctx.fillRect(50, canvas.height - 110, canvas.width - 100, 75);
           ctx.strokeStyle = "#38bdf8";
