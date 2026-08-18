@@ -59,14 +59,14 @@
 <canvas id="renderCanvas" width="1280" height="720" style="display:none;"></canvas>
 
 <script>
-  const BACKEND_URL = "[https://floral-sky-73bd.apnacreatorai.workers.dev](https://floral-sky-73bd.apnacreatorai.workers.dev)";
+  // अचूक Cloudflare Worker URL
+  const BACKEND_URL = "https://apna-creator-ai.apnacreatorai.workers.dev";
   let loadedScenes = [];
 
   function setStatus(text) {
     document.getElementById("status").innerText = text;
   }
 
-  // भाषा आणि अचूक व्हॉईस निवड
   function getVoiceForLanguage(lang) {
     const voices = window.speechSynthesis.getVoices();
     if (lang === "Marathi") {
@@ -88,7 +88,7 @@
       if (voice) utterance.voice = voice;
       utterance.lang = lang === 'Marathi' ? 'mr-IN' : (lang === 'Hindi' ? 'hi-IN' : 'en-US');
       utterance.rate = 0.9;
-      utterance.pitch = 1.1; // कार्टूनसाठी हलका आणि स्पष्ट टोन
+      utterance.pitch = 1.1;
 
       utterance.onend = () => resolve();
       utterance.onerror = () => resolve();
@@ -172,7 +172,6 @@
     }
   }
 
-  // 3D Cinematic Motion Render Engine
   async function buildMotionVideo(language) {
     const canvas = document.getElementById("renderCanvas");
     const ctx = canvas.getContext("2d");
@@ -196,8 +195,7 @@
       const item = loadedScenes[i];
       playVoice(item.voice, language);
 
-      // 3D कॅमेरा मोशन (Smooth Zoom & Pan Animation)
-      const duration = 4500; // ४.५ सेकंद प्रति सीन
+      const duration = 4500;
       const startTime = performance.now();
 
       await new Promise(resolve => {
@@ -205,7 +203,6 @@
           const elapsed = now - startTime;
           const progress = Math.min(elapsed / duration, 1);
           
-          // मोशन कॅलक्युलेशन (Smooth Zoom 1.0x to 1.15x)
           const scale = 1.0 + (progress * 0.15);
           const panX = (canvas.width * (scale - 1)) / 2;
           const panY = (canvas.height * (scale - 1)) / 2;
@@ -217,7 +214,6 @@
           ctx.drawImage(item.img, 0, 0, canvas.width, canvas.height);
           ctx.restore();
 
-          // सबटायटल बार
           ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
           ctx.fillRect(50, canvas.height - 120, canvas.width - 100, 80);
           ctx.fillStyle = "#ffffff";
