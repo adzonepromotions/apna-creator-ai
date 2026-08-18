@@ -1,3 +1,4 @@
+````javascript
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -37,19 +38,12 @@ function cleanVoice(text) {
     .replace(/\s+/g, " ")
     .trim();
 
-  /* Remove accidental AI instructions */
   voice = voice
     .replace(/Here is the output.*$/i, "")
     .replace(/I will make sure.*$/i, "")
     .replace(/Please let me know.*$/i, "")
     .replace(/\bSTOP\b.*$/i, "")
     .trim();
-
-  /*
-    Split into sentences.
-    Supports:
-    .  !  ?  ।
-  */
 
   const parts = voice
     .split(/(?<=[.!?।])\s+/)
@@ -59,10 +53,6 @@ function cleanVoice(text) {
   const unique = [];
 
   for (const part of parts) {
-
-    /*
-      Remove exact duplicate sentences
-    */
 
     const normalized =
       part
@@ -81,10 +71,6 @@ function cleanVoice(text) {
       unique.push(normalized);
     }
 
-    /*
-      Maximum 2 sentences
-    */
-
     if (unique.length >= 2) {
       break;
     }
@@ -93,11 +79,6 @@ function cleanVoice(text) {
   if (unique.length > 0) {
     voice = unique.join(" ");
   }
-
-  /*
-    Final length protection.
-    Prevents huge repeated AI output.
-  */
 
   if (voice.length > 220) {
 
@@ -108,7 +89,6 @@ function cleanVoice(text) {
 
     voice =
       shortParts.join(" ").slice(0, 220).trim();
-
   }
 
   return voice;
@@ -171,10 +151,6 @@ function extractScenes(text) {
 
     }
   }
-
-  /*
-    Remove duplicate scene numbers
-  */
 
   const unique = [];
 
@@ -399,14 +375,7 @@ async function generateStory(
     "@cf/meta/llama-3.1-8b-instruct-fast",
     {
       prompt: prompt,
-
-      /*
-        Smaller output prevents
-        endless repetition.
-      */
-
       max_tokens: 1000,
-
       temperature: 0.15
     }
   );
@@ -469,7 +438,7 @@ async function generateImage(
     "@cf/black-forest-labs/flux-1-schnell",
     {
       prompt: prompt,
-      num_steps: 4
+      steps: 4
     }
   );
 
@@ -927,3 +896,4 @@ OUTPUT ONLY THESE 8 SCENES.
   }
 
 };
+````
