@@ -3,23 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Apna Creator AI - 3D Cartoon Video Studio</title>
+  <title>Apna Creator AI - Free 3D Cartoon Video Studio</title>
   <style>
-    body { font-family: Arial, sans-serif; max-width: 950px; margin: 20px auto; padding: 20px; background: #f8fafc; color: #1e293b; }
-    .box { background: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background: #f1f5f9; color: #1e293b; padding: 20px; }
+    .container { max-width: 950px; margin: auto; background: #ffffff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
     h1 { text-align: center; color: #0284c7; margin-bottom: 20px; }
-    label { font-weight: bold; margin-top: 12px; display: block; color: #334155; }
-    textarea, select { width: 100%; padding: 12px; margin-top: 6px; margin-bottom: 15px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; font-size: 15px; }
+    label { font-weight: bold; margin-top: 10px; display: block; color: #334155; }
+    textarea, select { width: 100%; padding: 12px; margin-top: 6px; margin-bottom: 15px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 15px; }
     button { background: #0284c7; color: white; border: none; padding: 14px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; transition: 0.2s; }
     button:hover { background: #0369a1; }
     button:disabled { background: #94a3b8; cursor: not-allowed; }
     #status { margin-top: 20px; padding: 14px; background: #e0f2fe; border-left: 5px solid #0284c7; font-weight: bold; border-radius: 4px; white-space: pre-line; color: #0369a1; }
-    .video-card { margin-top: 25px; background: #0f172a; padding: 20px; border-radius: 12px; text-align: center; color: white; display: none; }
+    .video-section { margin-top: 25px; background: #0f172a; padding: 20px; border-radius: 12px; text-align: center; color: white; display: none; }
     video { width: 100%; max-width: 720px; border-radius: 8px; margin-top: 15px; background: #000; }
     .download-btn { background: #16a34a; color: white; padding: 12px 24px; text-decoration: none; display: inline-block; font-weight: bold; border-radius: 6px; margin-top: 15px; }
     .scenes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 15px; margin-top: 25px; }
     .scene-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
-    .scene-card img { width: 100%; height: 180px; object-fit: cover; border-radius: 6px; background: #f1f5f9; }
+    .scene-card img { width: 100%; height: 180px; object-fit: cover; border-radius: 6px; background: #f8fafc; }
     .scene-card h4 { margin: 10px 0 5px 0; color: #0284c7; }
     .scene-card p { font-size: 13px; line-height: 1.4; margin: 4px 0; }
     .voice-btn { background: #475569; color: white; border: none; padding: 6px 12px; font-size: 12px; border-radius: 4px; cursor: pointer; margin-top: 8px; width: auto; }
@@ -27,13 +28,13 @@
 </head>
 <body>
 
-<div class="box">
-  <h1>🎬 Apna Creator AI: 3D Cartoon Story & Video</h1>
+<div class="container">
+  <h1>🎬 Apna Creator AI: 3D Cartoon Video Studio (100% Free)</h1>
 
-  <label>कथा / कथेची कल्पना लिहा:</label>
+  <label>कथा / स्टोरी कल्पना लिहा:</label>
   <textarea id="storyInput" rows="3" placeholder="उदा. एक छोटा मुलगा जंगलात फिरायला जातो आणि त्याला एक बोलणारा पोपट भेटतो..."></textarea>
 
-  <label>भाषा (Language):</label>
+  <label>भाषा निवडा (Select Language):</label>
   <select id="languageSelect">
     <option value="Marathi">मराठी (Marathi)</option>
     <option value="Hindi">हिंदी (Hindi)</option>
@@ -42,14 +43,14 @@
 
   <button id="createBtn" onclick="startGeneration()">🚀 3D कथा, आवाज आणि व्हिडिओ तयार करा</button>
 
-  <div id="status">येथे प्रोसेस स्टेटस दिसेल...</div>
+  <div id="status">येथे प्रोसेस दिसेल...</div>
 
   <!-- तयार झालेला पूर्ण व्हिडिओ -->
-  <div id="videoContainer" class="video-card">
-    <h2 style="color:#38bdf8;">🎥 तयार झालेला 3D व्हिडिओ</h2>
+  <div id="videoContainer" class="video-section">
+    <h2 style="color:#38bdf8;">🎥 तयार झालेला 3D कार्टून व्हिडिओ</h2>
     <video id="finalVideo" controls></video>
     <br>
-    <a id="downloadLink" class="download-btn" href="#" download="cartoon_video.webm">⬇️ व्हिडिओ डाउनलोड करा</a>
+    <a id="downloadLink" class="download-btn" href="#" download="cartoon_video.webm">⬇️ व्हिडिओ डाउनलोड करा (Download Video)</a>
   </div>
 
   <div id="scenesContainer" class="scenes-grid"></div>
@@ -58,11 +59,23 @@
 <canvas id="renderCanvas" width="1280" height="720" style="display:none;"></canvas>
 
 <script>
-  const BACKEND_URL = "https://floral-sky-73bd.apnacreatorai.workers.dev";
+  const BACKEND_URL = "[https://floral-sky-73bd.apnacreatorai.workers.dev](https://floral-sky-73bd.apnacreatorai.workers.dev)";
   let loadedScenes = [];
 
   function setStatus(text) {
     document.getElementById("status").innerText = text;
+  }
+
+  // भाषा आणि अचूक व्हॉईस निवड
+  function getVoiceForLanguage(lang) {
+    const voices = window.speechSynthesis.getVoices();
+    if (lang === "Marathi") {
+      return voices.find(v => v.lang.includes("mr") || v.lang.includes("MR")) || voices.find(v => v.lang.includes("hi")) || null;
+    } else if (lang === "Hindi") {
+      return voices.find(v => v.lang.includes("hi") || v.lang.includes("HI")) || null;
+    } else {
+      return voices.find(v => v.lang.includes("en-IN") || v.lang.includes("en-US")) || null;
+    }
   }
 
   function playVoice(text, lang) {
@@ -70,12 +83,21 @@
       if (!('speechSynthesis' in window)) { resolve(); return; }
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
+      
+      const voice = getVoiceForLanguage(lang);
+      if (voice) utterance.voice = voice;
       utterance.lang = lang === 'Marathi' ? 'mr-IN' : (lang === 'Hindi' ? 'hi-IN' : 'en-US');
       utterance.rate = 0.9;
+      utterance.pitch = 1.1; // कार्टूनसाठी हलका आणि स्पष्ट टोन
+
       utterance.onend = () => resolve();
       utterance.onerror = () => resolve();
       window.speechSynthesis.speak(utterance);
     });
+  }
+
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
   }
 
   async function startGeneration() {
@@ -140,8 +162,8 @@
         loadedScenes.push({ img: imgEl, voice: sc.voice });
       }
 
-      setStatus("⏳ ३/३: व्हिडिओ रेंडर होत आहे, कृपया ५ सेकंद थांबा...");
-      await buildFinalVideo(language);
+      setStatus("⏳ ३/३: 3D मोशन व्हिडिओ तयार होत आहे, कृपया थोडा वेळ थांबा...");
+      await buildMotionVideo(language);
 
     } catch (err) {
       setStatus("❌ त्रुटी आली: " + err.message);
@@ -150,10 +172,11 @@
     }
   }
 
-  async function buildFinalVideo(language) {
+  // 3D Cinematic Motion Render Engine
+  async function buildMotionVideo(language) {
     const canvas = document.getElementById("renderCanvas");
     const ctx = canvas.getContext("2d");
-    const stream = canvas.captureStream(25);
+    const stream = canvas.captureStream(30);
     const mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp8' });
     const chunks = [];
 
@@ -164,28 +187,52 @@
       document.getElementById("finalVideo").src = url;
       document.getElementById("downloadLink").href = url;
       document.getElementById("videoContainer").style.display = "block";
-      setStatus("🎉 अभिनंदन! तुमचा 3D व्हिडिओ पूर्णपणे तयार झाला आहे. खाली बघा आणि डाउनलोड करा.");
+      setStatus("🎉 अभिनंदन! तुमचा 3D कार्टून व्हिडिओ पूर्णपणे तयार झाला आहे. खाली बघा आणि डाउनलोड करा.");
     };
 
     mediaRecorder.start();
 
     for (let i = 0; i < loadedScenes.length; i++) {
       const item = loadedScenes[i];
-      
-      // कॅनव्हासवर इमेज ड्रॉ करणे
-      ctx.drawImage(item.img, 0, 0, canvas.width, canvas.height);
-      
-      // सबटायटल
-      ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
-      ctx.fillRect(40, canvas.height - 110, canvas.width - 80, 75);
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 26px sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText(item.voice, canvas.width / 2, canvas.height - 65);
-
-      // आवाज प्ले करणे
       playVoice(item.voice, language);
-      await new Promise(r => setTimeout(r, 4000));
+
+      // 3D कॅमेरा मोशन (Smooth Zoom & Pan Animation)
+      const duration = 4500; // ४.५ सेकंद प्रति सीन
+      const startTime = performance.now();
+
+      await new Promise(resolve => {
+        function renderFrame(now) {
+          const elapsed = now - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          
+          // मोशन कॅलक्युलेशन (Smooth Zoom 1.0x to 1.15x)
+          const scale = 1.0 + (progress * 0.15);
+          const panX = (canvas.width * (scale - 1)) / 2;
+          const panY = (canvas.height * (scale - 1)) / 2;
+
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.save();
+          ctx.translate(-panX * progress, -panY * progress);
+          ctx.scale(scale, scale);
+          ctx.drawImage(item.img, 0, 0, canvas.width, canvas.height);
+          ctx.restore();
+
+          // सबटायटल बार
+          ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
+          ctx.fillRect(50, canvas.height - 120, canvas.width - 100, 80);
+          ctx.fillStyle = "#ffffff";
+          ctx.font = "bold 28px sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText(item.voice, canvas.width / 2, canvas.height - 70);
+
+          if (progress < 1) {
+            requestAnimationFrame(renderFrame);
+          } else {
+            resolve();
+          }
+        }
+        requestAnimationFrame(renderFrame);
+      });
     }
 
     mediaRecorder.stop();
