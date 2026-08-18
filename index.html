@@ -76,13 +76,6 @@ button:disabled{
   width:100%;
 }
 
-.image-button{
-  background:#16a34a;
-  color:white;
-  width:100%;
-  margin-top:12px;
-}
-
 .status{
   padding:12px;
   border-radius:10px;
@@ -118,7 +111,7 @@ button:disabled{
 }
 
 .image-box{
-  min-height:200px;
+  min-height:220px;
   background:#f1f4f8;
   border-radius:10px;
   display:flex;
@@ -155,6 +148,25 @@ pre{
   font-weight:700;
   color:#2563eb;
 }
+
+.image-status{
+  margin-top:10px;
+  padding:10px;
+  border-radius:8px;
+  background:#f8fafc;
+  font-size:14px;
+  color:#475569;
+}
+
+.image-success{
+  background:#ecfdf5;
+  color:#166534;
+}
+
+.image-error{
+  background:#fff0f0;
+  color:#a40000;
+}
 </style>
 </head>
 
@@ -168,7 +180,7 @@ pre{
     <h1>🎬 Apna Creator AI</h1>
 
     <p>
-      Story तयार करा → 8 Scenes तयार करा → Cartoon Images तयार करा.
+      Story तयार करा → 8 Scenes तयार करा → 8 Cartoon Images आपोआप तयार करा.
     </p>
 
     <label for="story">
@@ -246,7 +258,7 @@ pre{
     <div id="scenesOutput">
 
       <p class="small">
-        Story तयार झाल्यावर 8 scenes येथे दिसतील.
+        CREATE STORY दाबल्यानंतर 8 scenes आणि images येथे दिसतील.
       </p>
 
     </div>
@@ -329,12 +341,10 @@ function cleanStoryText(text){
     result
       .replace(/```json/gi,"")
       .replace(/```text/gi,"")
+      .replace(/```javascript/gi,"")
       .replace(/```/g,"")
       .trim();
 
-  /*
-    Keep only from SCENE 1.
-  */
 
   const start =
     result.search(/SCENE\s*1\b/i);
@@ -348,44 +358,53 @@ function cleanStoryText(text){
 
 
   /*
-    Remove unwanted text after Scene 8 Voice.
+    Keep only until the end of Scene 8 Voice.
   */
 
-  const scene8 =
-    result.match(
-      /([\s\S]*?SCENE\s*8\s*[\r\n]+Visual\s*:[\s\S]*?[\r\n]+Voice\s*:[\s\S]*)/i
+  const scene8Start =
+    result.search(
+      /SCENE\s*8\b/i
     );
 
-  if(scene8){
+  if(scene8Start >= 0){
+
+    const before =
+      result.substring(
+        0,
+        scene8Start
+      );
+
+    const scene8 =
+      result.substring(
+        scene8Start
+      );
+
+    /*
+      Remove accidental extra AI text.
+    */
+
+    const cleanedScene8 =
+      scene8
+        .replace(
+          /\s+(Here is the output[\s\S]*)$/i,
+          ""
+        )
+        .replace(
+          /\s+(I will make sure[\s\S]*)$/i,
+          ""
+        )
+        .replace(
+          /\s+(Please let me know[\s\S]*)$/i,
+          ""
+        )
+        .trim();
 
     result =
-      scene8[1];
+      before + cleanedScene8;
 
   }
 
-
-  /*
-    Remove repeated garbage after a clear
-    ending sentence.
-  */
-
-  result =
-    result
-      .replace(
-        /\s+(I will make sure[\s\S]*)$/i,
-        ""
-      )
-      .replace(
-        /\s+(Here is the output[\s\S]*)$/i,
-        ""
-      )
-      .replace(
-        /\s+(Please let me know[\s\S]*)$/i,
-        ""
-      )
-      .trim();
-
-  return result;
+  return result.trim();
 }
 
 
@@ -419,9 +438,6 @@ function parseScenes(text){
         .replace(/\s+/g," ")
         .trim();
 
-    /*
-      Remove accidental extra instructions.
-    */
 
     voice =
       voice
@@ -437,7 +453,12 @@ function parseScenes(text){
           /I will make sure.*$/i,
           ""
         )
+        .replace(
+          /Please let me know.*$/i,
+          ""
+        )
         .trim();
+
 
     if(
       number >= 1 &&
@@ -456,8 +477,9 @@ function parseScenes(text){
 
   }
 
+
   /*
-    Remove duplicate scenes.
+    Remove duplicate scene numbers.
   */
 
   const unique = [];
@@ -488,28 +510,27 @@ function parseScenes(text){
 
 
 /* =========================================
-   GENERATE IMAGE
+   GENERATE ONE IMAGE
 ========================================= */
 
 async function generateImage(
   scene,
   imageBox,
-  imageButton
+  imageStatus
 ){
 
-  imageButton.disabled = true;
+  imageStatus.className =
+    "image-status";
 
-  imageButton.textContent =
-    "⏳ IMAGE GENERATING...";
-
-  imageBox.innerHTML =
-    '<div class="loading">🎨 Image तयार होत आहे...<br>कृपया थोडा वेळ थांबा.</div>';
-
-  setStatus(
+  imageStatus.textContent =
     "🎨 Scene " +
     scene.number +
-    " ची image तयार होत आहे..."
-  );
+    " ची image तयार होत आहे...";
+
+
+  imageBox.innerHTML =
+    '<div class="loading">🎨 Image generating...<br>कृपया थांबा.</div>';
+
 
   try{
 
@@ -543,10 +564,6 @@ async function generateImage(
       );
 
 
-    /*
-      Read response.
-    */
-
     if(!response.ok){
 
       const errorText =
@@ -568,15 +585,13 @@ async function generateImage(
 
         }
 
-      }catch(e){}
+      }
+      catch(e){}
 
       throw new Error(message);
+
     }
 
-
-    /*
-      Convert response to image.
-    */
 
     const blob =
       await response.blob();
@@ -598,7 +613,8 @@ async function generateImage(
       URL.createObjectURL(blob);
 
 
-    imageBox.innerHTML = "";
+    imageBox.innerHTML =
+      "";
 
 
     const img =
@@ -617,43 +633,143 @@ async function generateImage(
     imageBox.appendChild(img);
 
 
-    imageButton.textContent =
-      "✅ IMAGE GENERATED";
+    imageStatus.className =
+      "image-status image-success";
 
-    imageButton.disabled =
-      true;
-
-
-    setStatus(
+    imageStatus.textContent =
       "✅ Scene " +
       scene.number +
-      " ची image तयार झाली!",
-      "success"
-    );
+      " image तयार झाली.";
+
+
+    return true;
 
   }
   catch(error){
 
-    console.error(error);
+    console.error(
+      "Scene " +
+      scene.number +
+      " image error:",
+      error
+    );
 
-    imageButton.disabled =
-      false;
-
-    imageButton.textContent =
-      "🎨 GENERATE IMAGE";
 
     imageBox.innerHTML =
       "❌ Image तयार झाली नाही.";
 
-    setStatus(
+
+    imageStatus.className =
+      "image-status image-error";
+
+    imageStatus.textContent =
       "❌ Scene " +
       scene.number +
-      " image error:\n" +
+      " image error: " +
       (
         error.message ||
         error
-      ),
-      "error"
+      );
+
+
+    return false;
+
+  }
+
+}
+
+
+/* =========================================
+   GENERATE ALL 8 IMAGES
+========================================= */
+
+async function generateAllImages(
+  scenes,
+  sceneElements
+){
+
+  let successCount =
+    0;
+
+  let failedCount =
+    0;
+
+
+  /*
+    Generate one by one.
+    This prevents sending 8 AI requests
+    at exactly the same time.
+  */
+
+  for(
+    let i = 0;
+    i < scenes.length;
+    i++
+  ){
+
+    const scene =
+      scenes[i];
+
+    const elements =
+      sceneElements[i];
+
+
+    setStatus(
+      "🎨 Images तयार होत आहेत...\n\n" +
+      "Scene " +
+      scene.number +
+      " / 8\n" +
+      "आत्तापर्यंत तयार: " +
+      successCount
+    );
+
+
+    const success =
+      await generateImage(
+        scene,
+        elements.imageBox,
+        elements.imageStatus
+      );
+
+
+    if(success){
+
+      successCount++;
+
+    }
+    else{
+
+      failedCount++;
+
+    }
+
+  }
+
+
+  if(
+    failedCount === 0
+  ){
+
+    setStatus(
+      "🎉 पूर्ण झाले!\n\n" +
+      "8 पैकी 8 images तयार झाल्या.",
+      "success"
+    );
+
+  }
+  else{
+
+    setStatus(
+      "⚠️ Image generation पूर्ण झाली.\n\n" +
+      "तयार: " +
+      successCount +
+      " / 8\n" +
+      "Failed: " +
+      failedCount +
+      " / 8",
+      failedCount < 8
+        ? "normal"
+        : "error"
     );
 
   }
@@ -668,6 +784,9 @@ async function generateImage(
 function renderScenes(scenes){
 
   scenesOutput.innerHTML = "";
+
+
+  const sceneElements = [];
 
 
   scenes.forEach(scene => {
@@ -741,34 +860,20 @@ function renderScenes(scenes){
     imageBox.className =
       "image-box";
 
-    imageBox.textContent =
-      "🖼️ Image येथे दिसेल";
+    imageBox.innerHTML =
+      "⏳ Image तयार होण्याची वाट पाहत आहे...";
 
 
-    /* IMAGE BUTTON */
+    /* IMAGE STATUS */
 
-    const imageButton =
-      document.createElement("button");
+    const imageStatus =
+      document.createElement("div");
 
-    imageButton.className =
-      "image-button";
+    imageStatus.className =
+      "image-status";
 
-    imageButton.textContent =
-      "🎨 GENERATE IMAGE";
-
-
-    imageButton.addEventListener(
-      "click",
-      () => {
-
-        generateImage(
-          scene,
-          imageBox,
-          imageButton
-        );
-
-      }
-    );
+    imageStatus.textContent =
+      "⏳ Waiting...";
 
 
     /*
@@ -786,11 +891,11 @@ function renderScenes(scenes){
     );
 
     div.appendChild(
-      imageButton
+      imageBox
     );
 
     div.appendChild(
-      imageBox
+      imageStatus
     );
 
 
@@ -798,8 +903,16 @@ function renderScenes(scenes){
       div
     );
 
+
+    sceneElements.push({
+      imageBox,
+      imageStatus
+    });
+
   });
 
+
+  return sceneElements;
 }
 
 
@@ -821,6 +934,7 @@ async function createStory(){
     );
 
     return;
+
   }
 
 
@@ -828,11 +942,12 @@ async function createStory(){
     true;
 
   createBtn.textContent =
-    "⏳ CREATING STORY...";
+    "⏳ CREATING STORY + IMAGES...";
 
 
   setStatus(
-    "🤖 AI कहानी तयार करत आहे..."
+    "🤖 AI कहानी तयार करत आहे...\n\n" +
+    "पहिले 8 scenes तयार होतील."
   );
 
 
@@ -845,6 +960,10 @@ async function createStory(){
 
 
   try{
+
+    /* =====================================
+       STORY REQUEST
+    ===================================== */
 
     const response =
       await fetch(
@@ -911,9 +1030,9 @@ async function createStory(){
     }
 
 
-    /*
-      Clean story.
-    */
+    /* =====================================
+       STORY CLEAN
+    ===================================== */
 
     const cleanStory =
       cleanStoryText(
@@ -925,9 +1044,9 @@ async function createStory(){
       cleanStory;
 
 
-    /*
-      Parse scenes.
-    */
+    /* =====================================
+       PARSE 8 SCENES
+    ===================================== */
 
     const scenes =
       parseScenes(
@@ -946,20 +1065,30 @@ async function createStory(){
     }
 
 
-    /*
-      Render scenes.
-    */
+    /* =====================================
+       RENDER 8 SCENES
+    ===================================== */
 
-    renderScenes(
-      scenes
+    const sceneElements =
+      renderScenes(
+        scenes
+      );
+
+
+    /* =====================================
+       START AUTOMATIC IMAGES
+    ===================================== */
+
+    setStatus(
+      "✅ 8 scenes तयार झाले!\n\n" +
+      "🎨 आता 8 images आपोआप तयार होत आहेत...\n\n" +
+      "कृपया browser बंद करू नका."
     );
 
 
-    setStatus(
-      "✅ AI ने कहानी तयार केली!\n\n" +
-      "8 scenes तयार आहेत.\n" +
-      "आता प्रत्येक Scene खाली 🎨 GENERATE IMAGE दाब.",
-      "success"
+    await generateAllImages(
+      scenes,
+      sceneElements
     );
 
   }
