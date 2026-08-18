@@ -107,7 +107,7 @@
     loadedScenes = [];
 
     try {
-      setStatus("⏳ १/३: AI कथा तयार करत आहे...");
+      setStatus("⏳ १/३: AI जलद गतीने कथा तयार करत आहे...");
       const res = await fetch(BACKEND_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -119,7 +119,7 @@
       try {
         data = JSON.parse(textResponse);
       } catch (e) {
-        throw new Error("सर्व्हरकडून चुकीचा रिस्पॉन्स आला आहे. कृपया २ सेकंद थांबून पुन्हा 'तयार करा' दाबा.");
+        throw new Error("सर्व्हर व्यस्त आहे. कृपया पुन्हा 'तयार करा' बटण दाबा.");
       }
 
       if (!data.success) throw new Error(data.error || "कथा तयार करता आली नाही.");
@@ -196,7 +196,7 @@
       const item = loadedScenes[i];
       playVoice(item.voice, language);
 
-      const duration = 4800; // ४.८ सेकंद प्रति सीन
+      const duration = 4800;
       const startTime = performance.now();
 
       await new Promise(resolve => {
