@@ -25,31 +25,7 @@ function cleanText(text) {
 
 function cleanVoice(text) {
   let voice = String(text || "").replace(/\s+/g, " ").trim();
-  voice = voice
-    .replace(/Here is the output.*$/i, "")
-    .replace(/I will make sure.*$/i, "")
-    .replace(/Please let me know.*$/i, "")
-    .replace(/\bSTOP\b.*$/i, "")
-    .trim();
-
-  const parts = voice.split(/(?<=[.!?।])\s+/).map(x => x.trim()).filter(Boolean);
-  const unique = [];
-
-  for (const part of parts) {
-    const normalized = part.replace(/^["“”]+|["“”]+$/g, "").trim();
-    if (!normalized) continue;
-    if (!unique.some(x => x.toLowerCase() === normalized.toLowerCase())) {
-      unique.push(normalized);
-    }
-    if (unique.length >= 2) break;
-  }
-
-  if (unique.length > 0) voice = unique.join(" ");
-  if (voice.length > 220) {
-    const shortParts = voice.split(/(?<=[.!?।])\s+/).slice(0, 2);
-    voice = shortParts.join(" ").slice(0, 220).trim();
-  }
-  return voice;
+  return voice.replace(/^["“”]+|["“”]+$/g, "").trim();
 }
 
 function cleanVisual(text) {
@@ -92,44 +68,24 @@ function buildStory(scenes) {
     .join("\n\n");
 }
 
-function languageInstruction(language) {
-  if (language === "Marathi") {
-    return "OUTPUT LANGUAGE: MARATHI\nWrite everything in natural, simple Marathi.\nUse Marathi for Visual and Voice.\nDo not use English except unavoidable proper names.\nUse language suitable for children.";
-  }
-  if (language === "Hindi") {
-    return "OUTPUT LANGUAGE: HINDI\nWrite everything in natural, simple Hindi.\nUse Hindi for Visual and Voice.\nUse language suitable for children.";
-  }
-  return "OUTPUT LANGUAGE: ENGLISH\nWrite everything in natural, simple English.\nUse English for Visual and Voice.\nUse language suitable for children.";
-}
+function createPrompt(story, language) {
+  return `You are a professional children's 3D cartoon writer.
+Write a continuous, logically progressing 8-scene cartoon story based on the user's idea.
 
-function createPrompt(story, language, duration, style) {
-  return `You are an expert children's cartoon story writer.
-
-USER STORY:
+USER STORY IDEA:
 ${story}
 
-LANGUAGE:
-${language}
+OUTPUT LANGUAGE:
+${language === "Marathi" ? "Strictly MARATHI (मराठी शुद्ध वाक्यरचना)" : (language === "Hindi" ? "Strictly HINDI" : "ENGLISH")}
 
-VIDEO DURATION:
-${duration}
+CRITICAL STORY RULES:
+1. Create exactly 8 sequential scenes (SCENE 1 to SCENE 8) with a beginning, middle, and meaningful moral conclusion.
+2. Every scene must have ONE short Visual description and ONE meaningful Voice line.
+3. DO NOT repeat sentences or dialogue across scenes. Every dialogue must advance the plot.
+4. Visual must describe cute 3D cartoon action.
+5. Do NOT add titles, introduction, notes, or markdown.
 
-STYLE:
-${style}
-
-${languageInstruction(language)}
-
-Create exactly 8 connected scenes.
-
-VERY IMPORTANT RULES:
-1. Return EXACTLY 8 scenes (1 to 8).
-2. Every scene must contain exactly ONE Visual and ONE Voice.
-3. Visual must be short description.
-4. Voice must contain only 1 or 2 natural sentences.
-5. NEVER repeat sentences.
-6. Do not add title, markdown, or commentary.
-
-Use EXACTLY this format:
+Format MUST be exactly:
 SCENE 1
 Visual: ...
 Voice: ...
@@ -160,52 +116,33 @@ Voice: ...
 
 SCENE 8
 Visual: ...
-Voice: ...
-
-OUTPUT ONLY THE 8 SCENES.`;
+Voice: ...`;
 }
 
 async function generateStory(env, prompt) {
   return await env.AI.run("@cf/meta/llama-3.1-8b-instruct-fast", {
     prompt: prompt,
-    max_tokens: 1000,
-    temperature: 0.15
+    max_tokens: 1200,
+    temperature: 0.25
   });
 }
 
-function createImagePrompt(visual, style) {
-  return `masterpiece, 3d pixar disney style animated cartoon, ${visual}, 8k resolution, vibrant colors, cinematic lighting, cute expressive character, high quality 3d render, detailed environment, no text, no watermark`;
+function createImagePrompt(visual) {
+  return `masterpiece, cute 3d pixar disney animation style, vibrant lighting, expressive character, detailed cartoon background, 8k resolution, ${visual}, cinematic composition, no text, no watermark`;
 }
 
-/* ========================================================
-   स्मार्ट इमेज जनरेटर (Automatic Model Fallback)
-   १. आधी Dreamshaper LCM ट्राय करेल (अतिशय वेगवान व नो-एरर)
-   २. लोड असेल तर SDXL Lightning ट्राय करेल
-   ३. शेवटी Flux ट्राय करेल
-======================================================== */
-async function generateImage(env, visual, style) {
-  const prompt = createImagePrompt(visual, style);
-
-  // Model 1: Dreamshaper LCM (सुपरफास्ट आणि क्षमतेची समस्या येत नाही)
+async function generateImage(env, visual) {
+  const prompt = createImagePrompt(visual);
   try {
     return await env.AI.run("@cf/lykon/dreamshaper-8-lcm", {
       prompt: prompt,
       num_steps: 6
     });
-  } catch (err1) {
-    // Model 2: SDXL Lightning
-    try {
-      return await env.AI.run("@cf/bytedance/stable-diffusion-xl-lightning", {
-        prompt: prompt,
-        num_steps: 4
-      });
-    } catch (err2) {
-      // Model 3: Flux Schnell
-      return await env.AI.run("@cf/black-forest-labs/flux-1-schnell", {
-        prompt: prompt,
-        steps: 4
-      });
-    }
+  } catch (err) {
+    return await env.AI.run("@cf/bytedance/stable-diffusion-xl-lightning", {
+      prompt: prompt,
+      num_steps: 4
+    });
   }
 }
 
@@ -216,11 +153,7 @@ export default {
     }
 
     if (request.method === "GET") {
-      return jsonResponse({
-        success: true,
-        status: "ok",
-        message: "Apna Creator AI Backend is running with Multi-Model Image Support!"
-      });
+      return jsonResponse({ success: true, message: "Backend is Active!" });
     }
 
     if (request.method !== "POST") {
@@ -232,14 +165,10 @@ export default {
 
       if (data.action === "generate-image") {
         const visual = String(data.visual || "").trim();
-        const style = String(data.style || "3D Cartoon").trim();
-
-        if (!visual) {
-          return jsonResponse({ success: false, error: "Visual is required" }, 400);
-        }
+        if (!visual) return jsonResponse({ success: false, error: "Visual required" }, 400);
 
         try {
-          const image = await generateImage(env, visual, style);
+          const image = await generateImage(env, visual);
           return new Response(image, {
             status: 200,
             headers: {
@@ -249,23 +178,16 @@ export default {
             }
           });
         } catch (error) {
-          return jsonResponse({
-            success: false,
-            error: "Image generation failed: " + (error && error.message ? error.message : "Unknown error")
-          }, 500);
+          return jsonResponse({ success: false, error: error.message }, 500);
         }
       }
 
       const story = String(data.story || "").trim();
-      const language = String(data.language || "Hindi").trim();
-      const duration = String(data.duration || "1 Minute").trim();
-      const style = String(data.style || "3D Cartoon").trim();
+      const language = String(data.language || "Marathi").trim();
 
-      if (!story) {
-        return jsonResponse({ success: false, error: "Story is required" }, 400);
-      }
+      if (!story) return jsonResponse({ success: false, error: "Story required" }, 400);
 
-      const prompt = createPrompt(story, language, duration, style);
+      const prompt = createPrompt(story, language);
       let result = await generateStory(env, prompt);
       let scenes = extractScenes(result && result.response ? result.response : "");
 
@@ -273,29 +195,18 @@ export default {
         return jsonResponse({ success: true, language: language, story: buildStory(scenes) });
       }
 
-      result = await generateStory(env, prompt + "\n\nIMPORTANT: Generate exactly 8 scenes again. Each Voice must contain ONLY ONE short sentence.");
+      // Retry
+      result = await generateStory(env, prompt + "\n\nCRITICAL: Ensure exactly 8 distinct scenes with no repeated lines.");
       scenes = extractScenes(result && result.response ? result.response : "");
 
-      if (validateScenes(scenes)) {
+      if (scenes.length === 8) {
         return jsonResponse({ success: true, language: language, story: buildStory(scenes) });
       }
 
-      if (scenes.length === 8) {
-        scenes = scenes.map(scene => ({
-          number: scene.number,
-          visual: cleanVisual(scene.visual),
-          voice: cleanVoice(scene.voice)
-        }));
-        return jsonResponse({
-          success: true,
-          language: language,
-          story: buildStory(scenes)
-        });
-      }
+      return jsonResponse({ success: false, error: "AI could not generate 8 structured scenes. Please try again." }, 500);
 
-      return jsonResponse({ success: false, error: "AI did not return 8 usable scenes. Please try again." }, 500);
     } catch (error) {
-      return jsonResponse({ success: false, error: error && error.message ? error.message : "Server error" }, 500);
+      return jsonResponse({ success: false, error: error.message }, 500);
     }
   }
 };
