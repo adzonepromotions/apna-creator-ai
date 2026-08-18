@@ -58,7 +58,7 @@
 <canvas id="renderCanvas" width="1280" height="720" style="display:none;"></canvas>
 
 <script>
-  const BACKEND_URL = "[https://apna-creator-ai.apnacreatorai.workers.dev](https://apna-creator-ai.apnacreatorai.workers.dev)";
+  const BACKEND_URL = "https://apna-creator-ai.apnacreatorai.workers.dev";
   let loadedScenes = [];
 
   function setStatus(text) {
@@ -107,22 +107,18 @@
     loadedScenes = [];
 
     try {
-      setStatus("⏳ १/३: AI जलद गतीने कथा तयार करत आहे...");
+      setStatus("⏳ १/३: AI कथा तयार करत आहे...");
+      
       const res = await fetch(BACKEND_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ story, language })
       });
 
-      const textResponse = await res.text();
-      let data;
-      try {
-        data = JSON.parse(textResponse);
-      } catch (e) {
-        throw new Error("सर्व्हर व्यस्त आहे. कृपया पुन्हा 'तयार करा' बटण दाबा.");
+      const data = await res.json();
+      if (!data || !data.success) {
+        throw new Error(data && data.error ? data.error : "कथा तयार करता आली नाही.");
       }
-
-      if (!data.success) throw new Error(data.error || "कथा तयार करता आली नाही.");
 
       const matches = [...data.story.matchAll(/SCENE\s*([0-9]+)[\r\n]+Visual:\s*([\s\S]*?)[\r\n]+Voice:\s*([\s\S]*?)(?=SCENE\s*[0-9]+|$)/gi)];
       const scenes = matches.map(m => ({ number: m[1], visual: m[2].trim(), voice: m[3].trim() }));
