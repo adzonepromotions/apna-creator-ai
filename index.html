@@ -114,7 +114,14 @@
         body: JSON.stringify({ story, language })
       });
 
-      const data = await res.json();
+      const textResponse = await res.text();
+      let data;
+      try {
+        data = JSON.parse(textResponse);
+      } catch (e) {
+        throw new Error("सर्व्हरकडून चुकीचा रिस्पॉन्स आला आहे. कृपया २ सेकंद थांबून पुन्हा 'तयार करा' दाबा.");
+      }
+
       if (!data.success) throw new Error(data.error || "कथा तयार करता आली नाही.");
 
       const matches = [...data.story.matchAll(/SCENE\s*([0-9]+)[\r\n]+Visual:\s*([\s\S]*?)[\r\n]+Voice:\s*([\s\S]*?)(?=SCENE\s*[0-9]+|$)/gi)];
