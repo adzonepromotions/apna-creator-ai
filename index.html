@@ -1,1143 +1,225 @@
 <!DOCTYPE html>
 <html lang="mr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Apna Creator AI</title>
-
-<style>
-*{
-  box-sizing:border-box;
-}
-
-body{
-  margin:0;
-  font-family:Arial,sans-serif;
-  background:#f4f7fb;
-  color:#172033;
-}
-
-.container{
-  max-width:1000px;
-  margin:0 auto;
-  padding:24px;
-}
-
-.card{
-  background:#fff;
-  border-radius:16px;
-  padding:22px;
-  margin-bottom:18px;
-  box-shadow:0 4px 18px rgba(0,0,0,.08);
-}
-
-h1{
-  margin-top:0;
-}
-
-label{
-  display:block;
-  font-weight:700;
-  margin:14px 0 7px;
-}
-
-textarea,
-select{
-  width:100%;
-  padding:12px;
-  border:1px solid #ccd4df;
-  border-radius:10px;
-  font-size:15px;
-}
-
-textarea{
-  min-height:150px;
-  resize:vertical;
-}
-
-button{
-  border:0;
-  border-radius:10px;
-  padding:12px 18px;
-  font-weight:700;
-  cursor:pointer;
-}
-
-button:disabled{
-  opacity:.6;
-  cursor:not-allowed;
-}
-
-.primary{
-  background:#2563eb;
-  color:white;
-  width:100%;
-}
-
-.status{
-  padding:12px;
-  border-radius:10px;
-  background:#eef4ff;
-  margin-top:15px;
-  white-space:pre-wrap;
-}
-
-.error{
-  background:#fff0f0;
-  color:#a40000;
-}
-
-.success{
-  background:#ecfdf5;
-  color:#166534;
-}
-
-.scene{
-  border:1px solid #dce3ec;
-  border-radius:14px;
-  padding:16px;
-  margin:14px 0;
-  background:#fff;
-}
-
-.scene h3{
-  margin:0 0 12px;
-}
-
-.scene p{
-  line-height:1.5;
-}
-
-.image-box{
-  min-height:220px;
-  background:#f1f4f8;
-  border-radius:10px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  overflow:hidden;
-  margin-top:12px;
-  color:#64748b;
-  text-align:center;
-  padding:10px;
-}
-
-.image-box img{
-  width:100%;
-  height:auto;
-  display:block;
-  border-radius:10px;
-}
-
-.small{
-  font-size:13px;
-  color:#64748b;
-}
-
-pre{
-  white-space:pre-wrap;
-  word-break:break-word;
-  line-height:1.6;
-}
-
-.loading{
-  padding:20px;
-  text-align:center;
-  font-weight:700;
-  color:#2563eb;
-}
-
-.image-status{
-  margin-top:10px;
-  padding:10px;
-  border-radius:8px;
-  background:#f8fafc;
-  font-size:14px;
-  color:#475569;
-}
-
-.image-success{
-  background:#ecfdf5;
-  color:#166534;
-}
-
-.image-error{
-  background:#fff0f0;
-  color:#a40000;
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apna Creator AI - Full Video Generator</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background: #0f172a; color: #f8fafc; padding: 20px; }
+    .container { max-width: 900px; margin: auto; background: #1e293b; padding: 25px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+    h1 { text-align: center; color: #38bdf8; margin-bottom: 20px; font-size: 26px; }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; font-weight: bold; margin-bottom: 6px; color: #94a3b8; }
+    textarea, select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: #fff; font-size: 15px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    button { width: 100%; padding: 14px; background: #0284c7; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+    button:hover { background: #0369a1; }
+    button:disabled { background: #475569; cursor: not-allowed; }
+    .status-box { margin-top: 20px; padding: 15px; border-radius: 8px; background: #0f172a; border-left: 4px solid #38bdf8; font-size: 14px; white-space: pre-wrap; }
+    .scenes-container { margin-top: 25px; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; }
+    .scene-card { background: #0f172a; border: 1px solid #334155; border-radius: 8px; overflow: hidden; padding: 10px; }
+    .scene-card img { width: 100%; height: 180px; object-fit: cover; border-radius: 6px; background: #1e293b; }
+    .scene-card p { font-size: 13px; margin-top: 8px; color: #cbd5e1; }
+    .video-section { margin-top: 30px; text-align: center; background: #0f172a; padding: 20px; border-radius: 10px; border: 1px dashed #38bdf8; display: none; }
+    video { max-width: 100%; border-radius: 8px; margin-top: 15px; }
+  </style>
 </head>
-
 <body>
 
 <div class="container">
+  <h1>🎬 Apna Creator AI: Video Studio</h1>
 
-  <!-- MAIN -->
-  <div class="card">
+  <div class="form-group">
+    <label>कथा / स्टोरी कल्पना टाका:</label>
+    <textarea id="storyInput" rows="3" placeholder="उदा. एक छोटा मुलगा जंगलात फिरायला जातो आणि त्याला एक बोलणारा पक्षी भेटतो..."></textarea>
+  </div>
 
-    <h1>🎬 Apna Creator AI</h1>
-
-    <p>
-      Story तयार करा → 8 Scenes तयार करा → 8 Cartoon Images आपोआप तयार करा.
-    </p>
-
-    <label for="story">
-      तुमची Story
-    </label>
-
-    <textarea
-      id="story"
-      placeholder="उदा. एक छोटा मुलगा जंगलात जातो आणि त्याला बोलणारा पोपट भेटतो."
-    ></textarea>
-
-    <label for="language">
-      Language
-    </label>
-
-    <select id="language">
-      <option value="Hindi">Hindi</option>
-      <option value="Marathi" selected>Marathi</option>
-      <option value="English">English</option>
-    </select>
-
-    <label for="duration">
-      Duration
-    </label>
-
-    <select id="duration">
-      <option>1 Minute</option>
-      <option>2 Minutes</option>
-      <option>3 Minutes</option>
-    </select>
-
-    <label for="style">
-      Cartoon Style
-    </label>
-
-    <select id="style">
-      <option>3D Cartoon</option>
-      <option>2D Cartoon</option>
-      <option>Kids Cartoon</option>
-    </select>
-
-    <button
-      id="createBtn"
-      class="primary"
-      style="margin-top:16px;"
-    >
-      🎬 CREATE STORY
-    </button>
-
-    <div
-      id="status"
-      class="status"
-    >
-      Ready.
+  <div class="grid-2">
+    <div class="form-group">
+      <label>भाषा (Language):</label>
+      <select id="languageSelect">
+        <option value="Marathi">Marathi</option>
+        <option value="Hindi">Hindi</option>
+        <option value="English">English</option>
+      </select>
     </div>
-
-  </div>
-
-
-  <!-- STORY -->
-  <div class="card">
-
-    <h2>📖 Generated Story</h2>
-
-    <pre id="storyOutput">Story येथे दिसेल.</pre>
-
-  </div>
-
-
-  <!-- SCENES -->
-  <div class="card">
-
-    <h2>🎨 Scenes & Images</h2>
-
-    <div id="scenesOutput">
-
-      <p class="small">
-        CREATE STORY दाबल्यानंतर 8 scenes आणि images येथे दिसतील.
-      </p>
-
+    <div class="form-group">
+      <label>व्हिडिओ स्टाईल (Style):</label>
+      <select id="styleSelect">
+        <option value="3D Disney Pixar Cartoon Animation">3D Pixar Cartoon</option>
+        <option value="3D Anime Style">3D Anime</option>
+        <option value="3D Cinematic Unreal Engine">3D Cinematic</option>
+      </select>
     </div>
-
   </div>
 
+  <button id="generateBtn" onclick="startGeneration()">🚀 पूर्ण कथा आणि व्हिडिओ बनवा</button>
+
+  <div id="statusBox" class="status-box">तयार आहे...</div>
+
+  <!-- व्हिडिओ सेक्शन -->
+  <div id="videoSection" class="video-section">
+    <h2 style="color:#38bdf8;">🎥 तुमचा तयार झालेला 3D व्हिडिओ</h2>
+    <video id="finalVideo" controls></video>
+    <a id="downloadLink" href="#" download="cartoon_story.webm"><button style="background:#16a34a; margin-top:10px;">⬇️ व्हिडिओ डाउनलोड करा (Download Video)</button></a>
+  </div>
+
+  <div id="scenesContainer" class="scenes-container"></div>
 </div>
 
+<canvas id="renderCanvas" width="1280" height="720" style="display:none;"></canvas>
 
 <script>
+  const BACKEND_URL = "https://floral-sky-73bd.apnacreatorai.workers.dev";
+  let generatedScenes = [];
+  let loadedImages = [];
 
-/* =========================================
-   BACKEND URL
-========================================= */
-
-const BACKEND_URL =
-"https://floral-sky-73bd.apnacreatorai.workers.dev/";
-
-
-/* =========================================
-   ELEMENTS
-========================================= */
-
-const storyInput =
-document.getElementById("story");
-
-const languageInput =
-document.getElementById("language");
-
-const durationInput =
-document.getElementById("duration");
-
-const styleInput =
-document.getElementById("style");
-
-const createBtn =
-document.getElementById("createBtn");
-
-const statusBox =
-document.getElementById("status");
-
-const storyOutput =
-document.getElementById("storyOutput");
-
-const scenesOutput =
-document.getElementById("scenesOutput");
-
-
-/* =========================================
-   STATUS
-========================================= */
-
-function setStatus(text, type="normal"){
-
-  statusBox.textContent = text;
-
-  statusBox.className = "status";
-
-  if(type === "error"){
-    statusBox.classList.add("error");
+  function setStatus(msg) {
+    document.getElementById("statusBox").innerText = msg;
   }
 
-  if(type === "success"){
-    statusBox.classList.add("success");
+  // 1. बोलण्यासाठी व्हॉईस फंक्शन
+  function speakText(text, lang) {
+    return new Promise((resolve) => {
+      if (!('speechSynthesis' in window)) {
+        resolve();
+        return;
+      }
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = lang === 'Marathi' ? 'mr-IN' : (lang === 'Hindi' ? 'hi-IN' : 'en-US');
+      utterance.rate = 0.9;
+      utterance.onend = () => resolve();
+      utterance.onerror = () => resolve();
+      window.speechSynthesis.speak(utterance);
+    });
   }
 
-}
+  // 2. मुख्य प्रोसेस
+  async function startGeneration() {
+    const story = document.getElementById("storyInput").value.trim();
+    const language = document.getElementById("languageSelect").value;
+    const style = document.getElementById("styleSelect").value;
+    const btn = document.getElementById("generateBtn");
+    const container = document.getElementById("scenesContainer");
+    const videoSection = document.getElementById("videoSection");
 
+    if (!story) {
+      alert("कृपया आधी स्टोरी टाका!");
+      return;
+    }
 
-/* =========================================
-   CLEAN AI STORY
-========================================= */
+    btn.disabled = true;
+    container.innerHTML = "";
+    videoSection.style.display = "none";
+    loadedImages = [];
 
-function cleanStoryText(text){
-
-  let result =
-    String(text || "").trim();
-
-  result =
-    result
-      .replace(/```json/gi,"")
-      .replace(/```text/gi,"")
-      .replace(/```javascript/gi,"")
-      .replace(/```/g,"")
-      .trim();
-
-
-  const start =
-    result.search(/SCENE\s*1\b/i);
-
-  if(start >= 0){
-
-    result =
-      result.substring(start);
-
-  }
-
-
-  /*
-    Keep only until the end of Scene 8 Voice.
-  */
-
-  const scene8Start =
-    result.search(
-      /SCENE\s*8\b/i
-    );
-
-  if(scene8Start >= 0){
-
-    const before =
-      result.substring(
-        0,
-        scene8Start
-      );
-
-    const scene8 =
-      result.substring(
-        scene8Start
-      );
-
-    /*
-      Remove accidental extra AI text.
-    */
-
-    const cleanedScene8 =
-      scene8
-        .replace(
-          /\s+(Here is the output[\s\S]*)$/i,
-          ""
-        )
-        .replace(
-          /\s+(I will make sure[\s\S]*)$/i,
-          ""
-        )
-        .replace(
-          /\s+(Please let me know[\s\S]*)$/i,
-          ""
-        )
-        .trim();
-
-    result =
-      before + cleanedScene8;
-
-  }
-
-  return result.trim();
-}
-
-
-/* =========================================
-   PARSE SCENES
-========================================= */
-
-function parseScenes(text){
-
-  const scenes = [];
-
-  const regex =
-    /SCENE\s*([1-8])\s*[\r\n]+Visual\s*:\s*([\s\S]*?)[\r\n]+Voice\s*:\s*([\s\S]*?)(?=[\r\n]+SCENE\s*[1-8]\b|$)/gi;
-
-  let match;
-
-  while(
-    (match = regex.exec(text || "")) !== null
-  ){
-
-    const number =
-      Number(match[1]);
-
-    let visual =
-      String(match[2] || "")
-        .replace(/\s+/g," ")
-        .trim();
-
-    let voice =
-      String(match[3] || "")
-        .replace(/\s+/g," ")
-        .trim();
-
-
-    voice =
-      voice
-        .replace(
-          /\bSTOP\b.*$/i,
-          ""
-        )
-        .replace(
-          /Here is the output.*$/i,
-          ""
-        )
-        .replace(
-          /I will make sure.*$/i,
-          ""
-        )
-        .replace(
-          /Please let me know.*$/i,
-          ""
-        )
-        .trim();
-
-
-    if(
-      number >= 1 &&
-      number <= 8 &&
-      visual &&
-      voice
-    ){
-
-      scenes.push({
-        number,
-        visual,
-        voice
+    try {
+      setStatus("⏳ १/३: AI कथा आणि ८ सीन्स लिहीत आहे...");
+      const res = await fetch(BACKEND_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ story, language, style, duration: "1 Minute" })
       });
 
-    }
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || "Story generation failed");
 
-  }
+      // सीन्स पार्स करणे
+      const sceneMatches = [...data.story.matchAll(/SCENE\s*([1-8])[\r\n]+Visual:\s*([\s\S]*?)[\r\n]+Voice:\s*([\s\S]*?)(?=SCENE\s*[1-8]|$)/gi)];
+      generatedScenes = sceneMatches.map(m => ({ number: m[1], visual: m[2].trim(), voice: m[3].trim() }));
 
+      if (generatedScenes.length === 0) throw new Error("सीन्स वाचता आले नाहीत.");
 
-  /*
-    Remove duplicate scene numbers.
-  */
+      setStatus(`✅ ८ सीन्स तयार झाले!\n⏳ २/३: आता प्रत्येक सीनसाठी 3D इमेज जनरेट होत आहे...`);
 
-  const unique = [];
+      // इमेजेस जनरेट करणे
+      for (let i = 0; i < generatedScenes.length; i++) {
+        const sc = generatedScenes[i];
+        setStatus(`⏳ इमेज ${i+1}/8 तयार होत आहे...`);
 
-  scenes.forEach(scene => {
+        const imgRes = await fetch(BACKEND_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "generate-image", visual: sc.visual, style: style })
+        });
 
-    if(
-      !unique.some(
-        x => x.number === scene.number
-      )
-    ){
+        const blob = await imgRes.blob();
+        const imgUrl = URL.createObjectURL(blob);
 
-      unique.push(scene);
+        const card = document.createElement("div");
+        card.className = "scene-card";
+        card.innerHTML = `
+          <img src="${imgUrl}" id="img_${i}">
+          <p><strong>Scene ${sc.number}</strong></p>
+          <p style="color:#38bdf8;">🔊 "${sc.voice}"</p>
+          <button onclick="speakText('${sc.voice.replace(/'/g, "\\'")}', '${language}')" style="padding:6px; font-size:12px; margin-top:5px; background:#334155;">🔊 आवाज ऐका</button>
+        `;
+        container.appendChild(card);
 
-    }
-
-  });
-
-
-  unique.sort(
-    (a,b) =>
-      a.number - b.number
-  );
-
-
-  return unique;
-}
-
-
-/* =========================================
-   GENERATE ONE IMAGE
-========================================= */
-
-async function generateImage(
-  scene,
-  imageBox,
-  imageStatus
-){
-
-  imageStatus.className =
-    "image-status";
-
-  imageStatus.textContent =
-    "🎨 Scene " +
-    scene.number +
-    " ची image तयार होत आहे...";
-
-
-  imageBox.innerHTML =
-    '<div class="loading">🎨 Image generating...<br>कृपया थांबा.</div>';
-
-
-  try{
-
-    const response =
-      await fetch(
-        BACKEND_URL,
-        {
-          method:"POST",
-
-          headers:{
-            "Content-Type":
-              "application/json"
-          },
-
-          body:JSON.stringify({
-
-            action:
-              "generate-image",
-
-            visual:
-              scene.visual,
-
-            language:
-              languageInput.value,
-
-            style:
-              styleInput.value
-
-          })
-        }
-      );
-
-
-    if(!response.ok){
-
-      const errorText =
-        await response.text();
-
-      let message =
-        "Image generation failed. HTTP " +
-        response.status;
-
-      try{
-
-        const errorData =
-          JSON.parse(errorText);
-
-        if(errorData.error){
-
-          message =
-            errorData.error;
-
-        }
-
+        // इमेज कॅनव्हाससाठी सेव्ह करणे
+        const imgEl = new Image();
+        imgEl.src = imgUrl;
+        await new Promise(r => imgEl.onload = r);
+        loadedImages.push({ img: imgEl, voice: sc.voice });
       }
-      catch(e){}
 
-      throw new Error(message);
+      setStatus("⏳ ३/३: इमेज आणि व्हॉईस एकत्र करून व्हिडिओ बनवला जात आहे...");
+      await createVideoFromScenes(language);
 
+    } catch (err) {
+      setStatus("❌ एरर आला: " + err.message);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  // 3. व्हिडिओ बनवणे (Canvas + MediaRecorder)
+  async function createVideoFromScenes(language) {
+    const canvas = document.getElementById("renderCanvas");
+    const ctx = canvas.getContext("2d");
+    const stream = canvas.captureStream(30);
+    const mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
+    const chunks = [];
+
+    mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(chunks, { type: 'video/webm' });
+      const videoUrl = URL.createObjectURL(blob);
+      const finalVideo = document.getElementById("finalVideo");
+      const downloadLink = document.getElementById("downloadLink");
+      
+      finalVideo.src = videoUrl;
+      downloadLink.href = videoUrl;
+      document.getElementById("videoSection").style.display = "block";
+      setStatus("🎉 अभिनंदन! तुमचा 3D व्हिडिओ पूर्णपणे तयार झाला आहे!");
+    };
+
+    mediaRecorder.start();
+
+    // प्रत्येक सीन कॅनव्हासवर ५ सेकंद दाखवणे आणि आवाज देणे
+    for (let i = 0; i < loadedImages.length; i++) {
+      const item = loadedImages[i];
+      
+      // इमेज कॅनव्हासवर ड्रॉ करणे
+      ctx.drawImage(item.img, 0, 0, canvas.width, canvas.height);
+      
+      // सबटायटल टेक्स्ट जोडणे
+      ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+      ctx.fillRect(50, canvas.height - 120, canvas.width - 100, 80);
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 28px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(item.voice, canvas.width / 2, canvas.height - 70);
+
+      // व्हॉईस प्ले करणे व ४ सेकंद थांबणे
+      speakText(item.voice, language);
+      await new Promise(r => setTimeout(r, 4500));
     }
 
-
-    const blob =
-      await response.blob();
-
-
-    if(
-      !blob.type ||
-      !blob.type.startsWith("image/")
-    ){
-
-      throw new Error(
-        "Backend ने image ऐवजी दुसरा response दिला."
-      );
-
-    }
-
-
-    const imageURL =
-      URL.createObjectURL(blob);
-
-
-    imageBox.innerHTML =
-      "";
-
-
-    const img =
-      document.createElement("img");
-
-
-    img.src =
-      imageURL;
-
-    img.alt =
-      "Scene " +
-      scene.number +
-      " Cartoon Image";
-
-
-    imageBox.appendChild(img);
-
-
-    imageStatus.className =
-      "image-status image-success";
-
-    imageStatus.textContent =
-      "✅ Scene " +
-      scene.number +
-      " image तयार झाली.";
-
-
-    return true;
-
+    mediaRecorder.stop();
   }
-  catch(error){
-
-    console.error(
-      "Scene " +
-      scene.number +
-      " image error:",
-      error
-    );
-
-
-    imageBox.innerHTML =
-      "❌ Image तयार झाली नाही.";
-
-
-    imageStatus.className =
-      "image-status image-error";
-
-    imageStatus.textContent =
-      "❌ Scene " +
-      scene.number +
-      " image error: " +
-      (
-        error.message ||
-        error
-      );
-
-
-    return false;
-
-  }
-
-}
-
-
-/* =========================================
-   GENERATE ALL 8 IMAGES
-========================================= */
-
-async function generateAllImages(
-  scenes,
-  sceneElements
-){
-
-  let successCount =
-    0;
-
-  let failedCount =
-    0;
-
-
-  /*
-    Generate one by one.
-    This prevents sending 8 AI requests
-    at exactly the same time.
-  */
-
-  for(
-    let i = 0;
-    i < scenes.length;
-    i++
-  ){
-
-    const scene =
-      scenes[i];
-
-    const elements =
-      sceneElements[i];
-
-
-    setStatus(
-      "🎨 Images तयार होत आहेत...\n\n" +
-      "Scene " +
-      scene.number +
-      " / 8\n" +
-      "आत्तापर्यंत तयार: " +
-      successCount
-    );
-
-
-    const success =
-      await generateImage(
-        scene,
-        elements.imageBox,
-        elements.imageStatus
-      );
-
-
-    if(success){
-
-      successCount++;
-
-    }
-    else{
-
-      failedCount++;
-
-    }
-
-  }
-
-
-  if(
-    failedCount === 0
-  ){
-
-    setStatus(
-      "🎉 पूर्ण झाले!\n\n" +
-      "8 पैकी 8 images तयार झाल्या.",
-      "success"
-    );
-
-  }
-  else{
-
-    setStatus(
-      "⚠️ Image generation पूर्ण झाली.\n\n" +
-      "तयार: " +
-      successCount +
-      " / 8\n" +
-      "Failed: " +
-      failedCount +
-      " / 8",
-      failedCount < 8
-        ? "normal"
-        : "error"
-    );
-
-  }
-
-}
-
-
-/* =========================================
-   RENDER SCENES
-========================================= */
-
-function renderScenes(scenes){
-
-  scenesOutput.innerHTML = "";
-
-
-  const sceneElements = [];
-
-
-  scenes.forEach(scene => {
-
-    const div =
-      document.createElement("div");
-
-    div.className =
-      "scene";
-
-
-    /* TITLE */
-
-    const h =
-      document.createElement("h3");
-
-    h.textContent =
-      "🎬 SCENE " +
-      scene.number;
-
-
-    /* VISUAL */
-
-    const visual =
-      document.createElement("p");
-
-    const visualBold =
-      document.createElement("b");
-
-    visualBold.textContent =
-      "Visual: ";
-
-    visual.appendChild(
-      visualBold
-    );
-
-    visual.appendChild(
-      document.createTextNode(
-        scene.visual
-      )
-    );
-
-
-    /* VOICE */
-
-    const voice =
-      document.createElement("p");
-
-    const voiceBold =
-      document.createElement("b");
-
-    voiceBold.textContent =
-      "Voice: ";
-
-    voice.appendChild(
-      voiceBold
-    );
-
-    voice.appendChild(
-      document.createTextNode(
-        scene.voice
-      )
-    );
-
-
-    /* IMAGE BOX */
-
-    const imageBox =
-      document.createElement("div");
-
-    imageBox.className =
-      "image-box";
-
-    imageBox.innerHTML =
-      "⏳ Image तयार होण्याची वाट पाहत आहे...";
-
-
-    /* IMAGE STATUS */
-
-    const imageStatus =
-      document.createElement("div");
-
-    imageStatus.className =
-      "image-status";
-
-    imageStatus.textContent =
-      "⏳ Waiting...";
-
-
-    /*
-      Add elements.
-    */
-
-    div.appendChild(h);
-
-    div.appendChild(
-      visual
-    );
-
-    div.appendChild(
-      voice
-    );
-
-    div.appendChild(
-      imageBox
-    );
-
-    div.appendChild(
-      imageStatus
-    );
-
-
-    scenesOutput.appendChild(
-      div
-    );
-
-
-    sceneElements.push({
-      imageBox,
-      imageStatus
-    });
-
-  });
-
-
-  return sceneElements;
-}
-
-
-/* =========================================
-   CREATE STORY
-========================================= */
-
-async function createStory(){
-
-  const story =
-    storyInput.value.trim();
-
-
-  if(!story){
-
-    setStatus(
-      "कृपया Story लिहा.",
-      "error"
-    );
-
-    return;
-
-  }
-
-
-  createBtn.disabled =
-    true;
-
-  createBtn.textContent =
-    "⏳ CREATING STORY + IMAGES...";
-
-
-  setStatus(
-    "🤖 AI कहानी तयार करत आहे...\n\n" +
-    "पहिले 8 scenes तयार होतील."
-  );
-
-
-  storyOutput.textContent =
-    "कृपया थोडा वेळ थांबा...";
-
-
-  scenesOutput.innerHTML =
-    '<div class="loading">🤖 8 scenes तयार होत आहेत...</div>';
-
-
-  try{
-
-    /* =====================================
-       STORY REQUEST
-    ===================================== */
-
-    const response =
-      await fetch(
-        BACKEND_URL,
-        {
-          method:"POST",
-
-          headers:{
-            "Content-Type":
-              "application/json"
-          },
-
-          body:JSON.stringify({
-
-            story:
-              story,
-
-            language:
-              languageInput.value,
-
-            duration:
-              durationInput.value,
-
-            style:
-              styleInput.value
-
-          })
-        }
-      );
-
-
-    const raw =
-      await response.text();
-
-
-    let data;
-
-    try{
-
-      data =
-        JSON.parse(raw);
-
-    }
-    catch(e){
-
-      throw new Error(
-        "Backend ने valid JSON दिले नाही."
-      );
-
-    }
-
-
-    if(
-      !response.ok ||
-      !data.success
-    ){
-
-      throw new Error(
-        data.error ||
-        "Backend HTTP " +
-        response.status
-      );
-
-    }
-
-
-    /* =====================================
-       STORY CLEAN
-    ===================================== */
-
-    const cleanStory =
-      cleanStoryText(
-        data.story || ""
-      );
-
-
-    storyOutput.textContent =
-      cleanStory;
-
-
-    /* =====================================
-       PARSE 8 SCENES
-    ===================================== */
-
-    const scenes =
-      parseScenes(
-        cleanStory
-      );
-
-
-    if(
-      scenes.length !== 8
-    ){
-
-      throw new Error(
-        "Story मिळाली, पण 8 scenes पूर्ण मिळाले नाहीत."
-      );
-
-    }
-
-
-    /* =====================================
-       RENDER 8 SCENES
-    ===================================== */
-
-    const sceneElements =
-      renderScenes(
-        scenes
-      );
-
-
-    /* =====================================
-       START AUTOMATIC IMAGES
-    ===================================== */
-
-    setStatus(
-      "✅ 8 scenes तयार झाले!\n\n" +
-      "🎨 आता 8 images आपोआप तयार होत आहेत...\n\n" +
-      "कृपया browser बंद करू नका."
-    );
-
-
-    await generateAllImages(
-      scenes,
-      sceneElements
-    );
-
-  }
-  catch(error){
-
-    console.error(error);
-
-
-    storyOutput.textContent =
-      "Story तयार झाली नाही.";
-
-
-    scenesOutput.innerHTML =
-      '<p class="small">❌ Scenes तयार झाले नाहीत.</p>';
-
-
-    setStatus(
-      "❌ AI से कहानी बनाने में समस्या आई.\n\n" +
-      "Error: " +
-      (
-        error.message ||
-        error
-      ),
-      "error"
-    );
-
-  }
-  finally{
-
-    createBtn.disabled =
-      false;
-
-    createBtn.textContent =
-      "🎬 CREATE STORY";
-
-  }
-
-}
-
-
-/* =========================================
-   BUTTON
-========================================= */
-
-createBtn.addEventListener(
-  "click",
-  createStory
-);
-
 </script>
-
 </body>
 </html>
