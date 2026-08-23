@@ -1,4 +1,3 @@
-````html
 <!DOCTYPE html>
 <html lang="mr">
 <head>
@@ -192,7 +191,6 @@ pre{
 
 <div class="container">
 
-  <!-- MAIN -->
   <div class="card">
 
     <h1>🎬 Apna Creator AI</h1>
@@ -247,24 +245,17 @@ pre{
       🎬 CREATE STORY
     </button>
 
-    <div
-      id="status"
-      class="status"
-    >
+    <div id="status" class="status">
       Ready.
     </div>
 
     <div class="progress">
-      <div
-        id="progressBar"
-        class="progress-bar"
-      ></div>
+      <div id="progressBar" class="progress-bar"></div>
     </div>
 
   </div>
 
 
-  <!-- STORY -->
   <div class="card">
 
     <h2>📖 Generated Story</h2>
@@ -274,7 +265,6 @@ pre{
   </div>
 
 
-  <!-- SCENES -->
   <div class="card">
 
     <h2>🎨 Scenes & Images</h2>
@@ -294,17 +284,17 @@ pre{
 
 <script>
 
-/* =========================================
-   BACKEND URL
-========================================= */
+/* =====================================================
+   BACKEND
+===================================================== */
 
 const BACKEND_URL =
 "https://apna-creator-ai.apnacreatorai.workers.dev/";
 
 
-/* =========================================
+/* =====================================================
    ELEMENTS
-========================================= */
+===================================================== */
 
 const storyInput =
 document.getElementById("story");
@@ -334,20 +324,15 @@ const progressBar =
 document.getElementById("progressBar");
 
 
-/* =========================================
+/* =====================================================
    STATUS
-========================================= */
+===================================================== */
 
-function setStatus(
-  text,
-  type="normal"
-){
+function setStatus(text,type="normal"){
 
-  statusBox.textContent =
-    text;
+  statusBox.textContent = text;
 
-  statusBox.className =
-    "status";
+  statusBox.className = "status";
 
   if(type === "error"){
     statusBox.classList.add("error");
@@ -356,121 +341,193 @@ function setStatus(
   if(type === "success"){
     statusBox.classList.add("success");
   }
-
 }
 
 
-/* =========================================
+/* =====================================================
    PROGRESS
-========================================= */
+===================================================== */
 
-function setProgress(
-  completed,
-  total=8
-){
+function setProgress(completed,total=8){
 
   const percent =
-    Math.round(
-      (completed / total) * 100
-    );
+    total > 0
+      ? Math.round((completed / total) * 100)
+      : 0;
 
   progressBar.style.width =
     percent + "%";
-
 }
 
 
-/* =========================================
-   CLEAN STORY
-========================================= */
+/* =====================================================
+   EXTRACT STORY FROM ANY BACKEND RESPONSE
+===================================================== */
+
+function extractStory(data){
+
+  if(!data){
+    return "";
+  }
+
+  if(typeof data === "string"){
+    return data.trim();
+  }
+
+  const possibleFields = [
+    data.story,
+    data.text,
+    data.output,
+    data.response,
+    data.result,
+    data.content
+  ];
+
+  for(const value of possibleFields){
+
+    if(typeof value === "string" && value.trim()){
+      return value.trim();
+    }
+  }
+
+  /*
+    Some AI APIs return:
+    { response: { response: "..." } }
+  */
+
+  if(data.response && typeof data.response === "object"){
+
+    const nested =
+      extractStory(data.response);
+
+    if(nested){
+      return nested;
+    }
+  }
+
+  /*
+    Some APIs return an array.
+  */
+
+  if(Array.isArray(data)){
+
+    for(const item of data){
+
+      const nested =
+        extractStory(item);
+
+      if(nested){
+        return nested;
+      }
+    }
+  }
+
+  return "";
+}
+
+
+/* =====================================================
+   CLEAN AI STORY
+===================================================== */
 
 function cleanStoryText(text){
 
   let result =
-    String(text || "")
-      .trim();
+    String(text || "").trim();
+
+
+  /*
+    Remove markdown code fences.
+  */
 
   result =
     result
       .replace(/```json/gi,"")
       .replace(/```text/gi,"")
+      .replace(/```markdown/gi,"")
       .replace(/```/g,"")
       .trim();
 
 
-  const start =
-    result.search(
-      /SCENE\s*1\b/i
+  /*
+    Remove leading explanation before SCENE 1.
+  */
+
+  const scene1 =
+    result.match(
+      /(?:^|\n)\s*SCENE\s*1\b/i
     );
 
-  if(start >= 0){
+  if(scene1){
 
     result =
-      result.substring(start);
+      result.substring(
+        scene1.index + (
+          scene1[0].startsWith("\n")
+            ? 1
+            : 0
+        )
+      ).trim();
 
   }
 
 
   /*
-    Remove unwanted text after Scene 8.
+    Remove unwanted closing text.
   */
 
-  const scene8Match =
-    result.match(
-      /SCENE\s*8\b[\s\S]*/i
-    );
+  result =
+    result
+      .replace(
+        /\n+\s*(Here is the output|I will make sure|Please let me know|Hope this helps)[\s\S]*$/i,
+        ""
+      )
+      .trim();
 
-  if(scene8Match){
 
-    let scene8 =
-      scene8Match[0];
-
-    scene8 =
-      scene8
-        .replace(
-          /\s+(Here is the output[\s\S]*)$/i,
-          ""
-        )
-        .replace(
-          /\s+(I will make sure[\s\S]*)$/i,
-          ""
-        )
-        .replace(
-          /\s+(Please let me know[\s\S]*)$/i,
-          ""
-        )
-        .trim();
-
-    const before =
-      result.substring(
-        0,
-        scene8Match.index
-      );
-
-    result =
-      before + scene8;
-
-  }
-
-  return result.trim();
+  return result;
 }
 
 
-/* =========================================
-   PARSE SCENES
-========================================= */
+/* =====================================================
+   PARSE 8 SCENES
+   VERY FLEXIBLE PARSER
+===================================================== */
 
 function parseScenes(text){
 
   const scenes = [];
 
-  const regex =
-    /SCENE\s*([1-8])\s*[\r\n]+Visual\s*:\s*([\s\S]*?)[\r\n]+Voice\s*:\s*([\s\S]*?)(?=[\r\n]+SCENE\s*[1-8]\b|$)/gi;
+  const source =
+    String(text || "")
+      .replace(/\r/g,"")
+      .trim();
+
+
+  /*
+    This parser supports:
+
+    SCENE 1
+    Visual:
+    Voice:
+
+    SCENE 1:
+    Visual:
+    Voice:
+
+    Scene 1
+    Visual:
+    Voice:
+  */
+
+  const sceneRegex =
+    /(?:^|\n)\s*SCENE\s*([1-8])\s*:?\s*\n\s*Visual\s*:\s*([\s\S]*?)\n\s*Voice\s*:\s*([\s\S]*?)(?=\n\s*SCENE\s*[1-8]\s*:?\s*\n|$)/gi;
+
 
   let match;
 
   while(
-    (match = regex.exec(text || "")) !== null
+    (match = sceneRegex.exec(source)) !== null
   ){
 
     const number =
@@ -478,31 +535,45 @@ function parseScenes(text){
 
     let visual =
       String(match[2] || "")
-        .replace(/\s+/g," ")
         .trim();
 
     let voice =
       String(match[3] || "")
+        .trim();
+
+
+    /*
+      Clean visual.
+    */
+
+    visual =
+      visual
+        .replace(/\*\*/g,"")
+        .replace(/```/g,"")
         .replace(/\s+/g," ")
         .trim();
 
 
+    /*
+      Clean voice.
+    */
+
+    voice =
+      voice
+        .replace(/\*\*/g,"")
+        .replace(/```/g,"")
+        .replace(/\s+/g," ")
+        .trim();
+
+
+    /*
+      Remove accidental extra AI text.
+    */
+
     voice =
       voice
         .replace(
-          /Here is the output.*$/i,
-          ""
-        )
-        .replace(
-          /I will make sure.*$/i,
-          ""
-        )
-        .replace(
-          /Please let me know.*$/i,
-          ""
-        )
-        .replace(
-          /\bSTOP\b.*$/i,
+          /(?:Here is the output|I will make sure|Please let me know|STOP)[\s\S]*$/i,
           ""
         )
         .trim();
@@ -527,16 +598,17 @@ function parseScenes(text){
 
 
   /*
-    Remove duplicate scenes.
+    Remove duplicates.
   */
 
   const unique = [];
 
-  scenes.forEach(scene => {
+  for(const scene of scenes){
 
     if(
       !unique.some(
-        x => x.number === scene.number
+        item =>
+          item.number === scene.number
       )
     ){
 
@@ -544,7 +616,7 @@ function parseScenes(text){
 
     }
 
-  });
+  }
 
 
   unique.sort(
@@ -557,35 +629,30 @@ function parseScenes(text){
 }
 
 
-/* =========================================
+/* =====================================================
    RENDER SCENES
-========================================= */
+===================================================== */
 
-function renderScenes(
-  scenes
-){
+function renderScenes(scenes){
 
-  scenesOutput.innerHTML =
-    "";
+  scenesOutput.innerHTML = "";
 
   const elements = [];
 
 
-  scenes.forEach(scene => {
+  for(const scene of scenes){
 
     const div =
       document.createElement("div");
 
-    div.className =
-      "scene";
+    div.className = "scene";
 
 
     const h =
       document.createElement("h3");
 
     h.textContent =
-      "🎬 SCENE " +
-      scene.number;
+      "🎬 SCENE " + scene.number;
 
 
     const visual =
@@ -649,27 +716,12 @@ function renderScenes(
 
 
     div.appendChild(h);
+    div.appendChild(visual);
+    div.appendChild(voice);
+    div.appendChild(imageBox);
+    div.appendChild(imageStatus);
 
-    div.appendChild(
-      visual
-    );
-
-    div.appendChild(
-      voice
-    );
-
-    div.appendChild(
-      imageBox
-    );
-
-    div.appendChild(
-      imageStatus
-    );
-
-
-    scenesOutput.appendChild(
-      div
-    );
+    scenesOutput.appendChild(div);
 
 
     elements.push({
@@ -677,21 +729,18 @@ function renderScenes(
       imageStatus
     });
 
-  });
+  }
 
 
   return elements;
 }
 
 
-/* =========================================
+/* =====================================================
    GENERATE ONE IMAGE
-========================================= */
+===================================================== */
 
-async function generateImage(
-  scene,
-  elements
-){
+async function generateImage(scene,elements){
 
   elements.imageStatus.className =
     "image-status";
@@ -708,12 +757,6 @@ async function generateImage(
 
   try{
 
-    /*
-      IMPORTANT:
-      The exact Visual from the generated
-      scene is sent to Cloudflare Worker.
-    */
-
     const response =
       await fetch(
         BACKEND_URL,
@@ -727,21 +770,23 @@ async function generateImage(
 
           body:JSON.stringify({
 
-            action:
-              "generate-image",
+            action:"generate-image",
 
-            visual:
-              scene.visual,
+            visual:scene.visual,
 
-            language:
-              languageInput.value,
+            language:languageInput.value,
 
-            style:
-              styleInput.value
+            style:styleInput.value
 
           })
         }
       );
+
+
+    const contentType =
+      response.headers.get(
+        "content-type"
+      ) || "";
 
 
     if(!response.ok){
@@ -759,17 +804,31 @@ async function generateImage(
           JSON.parse(errorText);
 
         if(errorData.error){
-
           message =
             errorData.error;
-
         }
 
       }
       catch(e){}
 
+      throw new Error(message);
+    }
+
+
+    /*
+      Backend must return an image.
+    */
+
+    if(
+      !contentType.includes("image/")
+    ){
+
+      const errorText =
+        await response.text();
+
       throw new Error(
-        message
+        "Backend ने image ऐवजी response दिला: " +
+        errorText.substring(0,300)
       );
 
     }
@@ -779,22 +838,8 @@ async function generateImage(
       await response.blob();
 
 
-    if(
-      !blob.type ||
-      !blob.type.startsWith("image/")
-    ){
-
-      throw new Error(
-        "Backend ने image ऐवजी दुसरा response दिला."
-      );
-
-    }
-
-
     const imageURL =
-      URL.createObjectURL(
-        blob
-      );
+      URL.createObjectURL(blob);
 
 
     elements.imageBox.innerHTML =
@@ -813,9 +858,7 @@ async function generateImage(
       " Cartoon Image";
 
 
-    elements.imageBox.appendChild(
-      img
-    );
+    elements.imageBox.appendChild(img);
 
 
     elements.imageStatus.className =
@@ -833,7 +876,7 @@ async function generateImage(
   catch(error){
 
     console.error(
-      "Image error:",
+      "IMAGE ERROR:",
       error
     );
 
@@ -856,47 +899,36 @@ async function generateImage(
 
 
     return false;
-
   }
-
 }
 
 
-/* =========================================
+/* =====================================================
    GENERATE ALL IMAGES
-========================================= */
+===================================================== */
 
 async function generateAllImages(
   scenes,
   elements
 ){
 
-  let successCount =
-    0;
-
-  let failedCount =
-    0;
+  let successCount = 0;
+  let failedCount = 0;
 
 
-  /*
-    Generate sequentially.
-    One image at a time.
-  */
-
-  for(
-    let i = 0;
-    i < scenes.length;
-    i++
-  ){
+  for(let i=0;i<scenes.length;i++){
 
     const scene =
       scenes[i];
 
+
     setStatus(
-      "🎨 8 images तयार होत आहेत...\n\n" +
+      "🎨 Images तयार होत आहेत...\n\n" +
       "आत्ता Scene " +
       scene.number +
-      " / 8 तयार होत आहे.\n\n" +
+      " / " +
+      scenes.length +
+      " तयार होत आहे.\n\n" +
       "तयार: " +
       successCount +
       " / " +
@@ -912,14 +944,10 @@ async function generateAllImages(
 
 
     if(success){
-
       successCount++;
-
     }
     else{
-
       failedCount++;
-
     }
 
 
@@ -931,13 +959,14 @@ async function generateAllImages(
   }
 
 
-  if(
-    failedCount === 0
-  ){
+  if(failedCount === 0){
 
     setStatus(
       "🎉 पूर्ण झाले!\n\n" +
-      "8 scenes आणि 8 images तयार झाल्या.",
+      scenes.length +
+      " scenes आणि " +
+      scenes.length +
+      " images तयार झाल्या.",
       "success"
     );
 
@@ -948,23 +977,24 @@ async function generateAllImages(
       "⚠️ Image generation पूर्ण झाली.\n\n" +
       "तयार: " +
       successCount +
-      " / 8\n" +
-      "Failed: " +
+      " / " +
+      scenes.length +
+      "\nFailed: " +
       failedCount +
-      " / 8",
-      failedCount === 8
+      " / " +
+      scenes.length,
+      failedCount === scenes.length
         ? "error"
         : "normal"
     );
 
   }
-
 }
 
 
-/* =========================================
+/* =====================================================
    CREATE STORY
-========================================= */
+===================================================== */
 
 async function createStory(){
 
@@ -980,7 +1010,6 @@ async function createStory(){
     );
 
     return;
-
   }
 
 
@@ -999,10 +1028,7 @@ async function createStory(){
     '<div class="loading">🤖 AI 8 scenes तयार करत आहे...</div>';
 
 
-  setProgress(
-    0,
-    8
-  );
+  setProgress(0,8);
 
 
   setStatus(
@@ -1012,10 +1038,6 @@ async function createStory(){
 
 
   try{
-
-    /* =====================================
-       STORY REQUEST
-    ===================================== */
 
     const response =
       await fetch(
@@ -1030,8 +1052,9 @@ async function createStory(){
 
           body:JSON.stringify({
 
-            story:
-              story,
+            action:"generate-story",
+
+            story:story,
 
             language:
               languageInput.value,
@@ -1053,6 +1076,7 @@ async function createStory(){
 
     let data;
 
+
     try{
 
       data =
@@ -1062,16 +1086,14 @@ async function createStory(){
     catch(e){
 
       throw new Error(
-        "Backend ने valid JSON दिले नाही."
+        "Backend ने valid JSON दिले नाही.\n\n" +
+        raw.substring(0,500)
       );
 
     }
 
 
-    if(
-      !response.ok ||
-      !data.success
-    ){
+    if(!response.ok){
 
       throw new Error(
         data.error ||
@@ -1082,56 +1104,80 @@ async function createStory(){
     }
 
 
-    /* =====================================
-       CLEAN STORY
-    ===================================== */
+    /*
+      Extract story from different possible
+      backend response formats.
+    */
+
+    const aiStory =
+      extractStory(data);
+
+
+    if(!aiStory){
+
+      throw new Error(
+        "AI response मध्ये story सापडली नाही.\n\n" +
+        JSON.stringify(data).substring(0,1000)
+      );
+
+    }
+
 
     const cleanStory =
-      cleanStoryText(
-        data.story || ""
-      );
+      cleanStoryText(aiStory);
 
 
     storyOutput.textContent =
       cleanStory;
 
 
-    /* =====================================
-       PARSE SCENES
-    ===================================== */
+    /*
+      Parse scenes.
+    */
 
     const scenes =
-      parseScenes(
-        cleanStory
-      );
+      parseScenes(cleanStory);
 
 
-    if(
-      scenes.length !== 8
-    ){
+    if(scenes.length !== 8){
 
       throw new Error(
-        "AI कडून पूर्ण 8 scenes मिळाले नाहीत. मिळाले: " +
+        "AI response मध्ये पूर्ण 8 scenes सापडले नाहीत.\n\n" +
+        "मिळाले: " +
         scenes.length +
-        " scenes."
+        " / 8\n\n" +
+        "AI response:\n\n" +
+        cleanStory.substring(0,3000)
       );
 
     }
 
 
-    /* =====================================
-       SHOW SCENES
-    ===================================== */
+    /*
+      Verify scene numbers.
+    */
+
+    for(let i=0;i<8;i++){
+
+      if(
+        scenes[i].number !== i + 1
+      ){
+
+        throw new Error(
+          "Scene numbering चुकीचे आहे."
+        );
+
+      }
+    }
+
+
+    /*
+      Show scenes.
+    */
 
     const elements =
-      renderScenes(
-        scenes
-      );
+      renderScenes(scenes);
 
-
-    /* =====================================
-       AUTOMATIC IMAGES
-    ===================================== */
 
     setStatus(
       "✅ 8 scenes तयार झाले!\n\n" +
@@ -1139,6 +1185,10 @@ async function createStory(){
       "Browser बंद करू नका."
     );
 
+
+    /*
+      Generate images one by one.
+    */
 
     await generateAllImages(
       scenes,
@@ -1162,10 +1212,7 @@ async function createStory(){
       '<p class="small">❌ Scenes तयार झाले नाहीत.</p>';
 
 
-    setProgress(
-      0,
-      8
-    );
+    setProgress(0,8);
 
 
     setStatus(
@@ -1187,13 +1234,12 @@ async function createStory(){
       "🎬 CREATE STORY";
 
   }
-
 }
 
 
-/* =========================================
+/* =====================================================
    BUTTON
-========================================= */
+===================================================== */
 
 createBtn.addEventListener(
   "click",
@@ -1204,4 +1250,3 @@ createBtn.addEventListener(
 
 </body>
 </html>
-````
