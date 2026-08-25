@@ -1,3 +1,4 @@
+````html
 <!DOCTYPE html>
 <html lang="mr">
 <head>
@@ -7,245 +8,212 @@
 <title>Apna Creator AI</title>
 
 <style>
-*{
-  box-sizing:border-box;
+* {
+  box-sizing: border-box;
 }
 
-body{
-  margin:0;
-  font-family:Arial,sans-serif;
-  background:#f4f7fb;
-  color:#172033;
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f7fb;
+  color: #172033;
 }
 
-.container{
-  max-width:1000px;
-  margin:auto;
-  padding:24px;
+.container {
+  max-width: 1000px;
+  margin: auto;
+  padding: 20px;
 }
 
-.card{
-  background:#fff;
-  border-radius:16px;
-  padding:22px;
-  margin-bottom:18px;
-  box-shadow:0 4px 18px rgba(0,0,0,.08);
+.card {
+  background: white;
+  border-radius: 16px;
+  padding: 22px;
+  margin-bottom: 18px;
+  box-shadow: 0 4px 18px rgba(0,0,0,.08);
 }
 
-h1{
-  margin-top:0;
+h1 {
+  margin-top: 0;
 }
 
-label{
-  display:block;
-  font-weight:700;
-  margin:14px 0 7px;
+label {
+  display: block;
+  font-weight: bold;
+  margin: 14px 0 7px;
 }
 
 textarea,
-select{
-  width:100%;
-  padding:12px;
-  border:1px solid #ccd4df;
-  border-radius:10px;
-  font-size:15px;
+select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccd4df;
+  border-radius: 10px;
+  font-size: 15px;
 }
 
-textarea{
-  min-height:150px;
-  resize:vertical;
+textarea {
+  min-height: 150px;
+  resize: vertical;
 }
 
-button{
-  border:0;
-  border-radius:10px;
-  padding:11px 15px;
-  font-weight:700;
-  cursor:pointer;
+button {
+  border: 0;
+  border-radius: 10px;
+  padding: 11px 16px;
+  font-weight: bold;
+  cursor: pointer;
 }
 
-button:disabled{
-  opacity:.6;
-  cursor:not-allowed;
+button:disabled {
+  opacity: .6;
+  cursor: not-allowed;
 }
 
-.primary{
-  background:#2563eb;
-  color:#fff;
-  width:100%;
-  margin-top:16px;
-  font-size:16px;
+.primary {
+  background: #2563eb;
+  color: white;
+  width: 100%;
+  margin-top: 16px;
+  font-size: 16px;
 }
 
-.voice-buttons{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  margin-top:12px;
+.status {
+  padding: 12px;
+  border-radius: 10px;
+  background: #eef4ff;
+  margin-top: 15px;
+  white-space: pre-wrap;
+  line-height: 1.5;
 }
 
-.play-btn{
-  background:#16a34a;
-  color:white;
+.success {
+  background: #ecfdf5;
+  color: #166534;
 }
 
-.stop-btn{
-  background:#dc2626;
-  color:white;
+.error {
+  background: #fff0f0;
+  color: #a40000;
 }
 
-.download-btn{
-  background:#7c3aed;
-  color:white;
+.progress {
+  margin-top: 12px;
+  height: 10px;
+  background: #e2e8f0;
+  border-radius: 20px;
+  overflow: hidden;
 }
 
-.status{
-  padding:12px;
-  border-radius:10px;
-  background:#eef4ff;
-  margin-top:15px;
-  white-space:pre-wrap;
-  line-height:1.5;
+.progress-bar {
+  height: 100%;
+  width: 0%;
+  background: #2563eb;
+  transition: width .3s;
 }
 
-.error{
-  background:#fff0f0;
-  color:#a40000;
+pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.6;
 }
 
-.success{
-  background:#ecfdf5;
-  color:#166534;
+.scene {
+  border: 1px solid #dce3ec;
+  border-radius: 14px;
+  padding: 16px;
+  margin: 14px 0;
+  background: white;
 }
 
-.scene{
-  border:1px solid #dce3ec;
-  border-radius:14px;
-  padding:16px;
-  margin:14px 0;
-  background:#fff;
+.scene h3 {
+  margin-top: 0;
 }
 
-.scene h3{
-  margin:0 0 12px;
+.scene p {
+  line-height: 1.5;
 }
 
-.scene p{
-  line-height:1.5;
-  margin:8px 0;
+.image-box {
+  min-height: 240px;
+  background: #f1f4f8;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin-top: 14px;
+  color: #64748b;
+  text-align: center;
+  padding: 10px;
 }
 
-.image-box{
-  min-height:240px;
-  background:#f1f4f8;
-  border-radius:10px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  overflow:hidden;
-  margin-top:14px;
-  color:#64748b;
-  text-align:center;
-  padding:10px;
+.image-box img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 10px;
 }
 
-.image-box img{
-  width:100%;
-  height:auto;
-  display:block;
-  border-radius:10px;
+.image-status,
+.voice-status {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  background: #f8fafc;
+  font-size: 14px;
+  color: #475569;
 }
 
-.image-status{
-  margin-top:10px;
-  padding:10px;
-  border-radius:8px;
-  background:#f8fafc;
-  font-size:14px;
-  color:#475569;
+.ok {
+  background: #ecfdf5;
+  color: #166534;
 }
 
-.image-success{
-  background:#ecfdf5;
-  color:#166534;
+.bad {
+  background: #fff0f0;
+  color: #a40000;
 }
 
-.image-error{
-  background:#fff0f0;
-  color:#a40000;
+.voice-controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
 }
 
-.voice-status{
-  margin-top:10px;
-  padding:10px;
-  border-radius:8px;
-  background:#f8fafc;
-  color:#475569;
-  font-size:14px;
+.play-btn {
+  background: #16a34a;
+  color: white;
 }
 
-.voice-success{
-  background:#ecfdf5;
-  color:#166534;
+.stop-btn {
+  background: #dc2626;
+  color: white;
 }
 
-.voice-error{
-  background:#fff0f0;
-  color:#a40000;
+.download-btn {
+  background: #7c3aed;
+  color: white;
+  text-decoration: none;
+  display: inline-block;
 }
 
-.small{
-  font-size:13px;
-  color:#64748b;
+.loading {
+  padding: 20px;
+  text-align: center;
+  font-weight: bold;
+  color: #2563eb;
 }
 
-pre{
-  white-space:pre-wrap;
-  word-break:break-word;
-  line-height:1.6;
+.small {
+  color: #64748b;
+  font-size: 13px;
 }
 
-.loading{
-  padding:20px;
-  text-align:center;
-  font-weight:700;
-  color:#2563eb;
-}
-
-.progress{
-  margin-top:12px;
-  height:10px;
-  background:#e2e8f0;
-  border-radius:20px;
-  overflow:hidden;
-}
-
-.progress-bar{
-  height:100%;
-  width:0%;
-  background:#2563eb;
-  transition:width .3s ease;
-}
-
-.audio-player{
-  width:100%;
-  margin-top:12px;
-}
-
-@media(max-width:600px){
-
-  .container{
-    padding:12px;
-  }
-
-  .card{
-    padding:16px;
-  }
-
-  .voice-buttons button{
-    width:100%;
-  }
-
+audio {
+  width: 100%;
+  margin-top: 10px;
 }
 </style>
 </head>
@@ -254,98 +222,84 @@ pre{
 
 <div class="container">
 
-<div class="card">
+  <div class="card">
 
-<h1>🎬 Apna Creator AI</h1>
+    <h1>🎬 Apna Creator AI</h1>
 
-<p>
-तुमची Story द्या → 8 Scenes तयार करा → 8 Cartoon Images + Voice आपोआप तयार करा.
-</p>
+    <p>
+      तुमची Story द्या → 8 Scenes तयार करा → 8 Cartoon Images + Voice आपोआप तयार करा.
+    </p>
 
-<label for="story">
-तुमची Story
-</label>
+    <label for="story">तुमची Story</label>
 
-<textarea
-id="story"
-placeholder="उदा. एक छोटा मुलगा जंगलात जातो आणि त्याला बोलणारा पोपट भेटतो."
-></textarea>
+    <textarea
+      id="story"
+      placeholder="उदा. एक छोटा मुलगा जंगलात जातो आणि त्याला बोलणारा पोपट भेटतो."
+    ></textarea>
 
-<label for="language">
-Language
-</label>
+    <label for="language">Language</label>
 
-<select id="language">
-<option value="Hindi">Hindi</option>
-<option value="Marathi" selected>Marathi</option>
-<option value="English">English</option>
-</select>
+    <select id="language">
+      <option value="Hindi">Hindi</option>
+      <option value="Marathi" selected>Marathi</option>
+      <option value="English">English</option>
+    </select>
 
-<label for="duration">
-Duration
-</label>
+    <label for="duration">Duration</label>
 
-<select id="duration">
-<option value="1 Minute">1 Minute</option>
-<option value="2 Minutes">2 Minutes</option>
-<option value="3 Minutes">3 Minutes</option>
-</select>
+    <select id="duration">
+      <option value="1 Minute">1 Minute</option>
+      <option value="2 Minutes">2 Minutes</option>
+      <option value="3 Minutes">3 Minutes</option>
+    </select>
 
-<label for="style">
-Cartoon Style
-</label>
+    <label for="style">Cartoon Style</label>
 
-<select id="style">
-<option value="3D Cartoon">3D Cartoon</option>
-<option value="2D Cartoon">2D Cartoon</option>
-<option value="Kids Cartoon">Kids Cartoon</option>
-</select>
+    <select id="style">
+      <option value="3D Cartoon">3D Cartoon</option>
+      <option value="2D Cartoon">2D Cartoon</option>
+      <option value="Kids Cartoon">Kids Cartoon</option>
+    </select>
 
-<button
-id="createBtn"
-class="primary"
->
-🎬 CREATE STORY
-</button>
+    <button
+      id="createBtn"
+      class="primary"
+      type="button"
+    >
+      🎬 CREATE STORY
+    </button>
 
-<div id="status" class="status">
-Ready.
-</div>
+    <div id="status" class="status">
+      Ready.
+    </div>
 
-<div class="progress">
-<div
-id="progressBar"
-class="progress-bar"
-></div>
-</div>
+    <div class="progress">
+      <div id="progressBar" class="progress-bar"></div>
+    </div>
 
-</div>
+  </div>
 
 
-<div class="card">
+  <div class="card">
 
-<h2>📖 Generated Story</h2>
+    <h2>📖 Generated Story</h2>
 
-<pre id="storyOutput">
-Story येथे दिसेल.
-</pre>
+    <pre id="storyOutput">Story येथे दिसेल.</pre>
 
-</div>
+  </div>
 
 
-<div class="card">
+  <div class="card">
 
-<h2>🎨 Scenes + Images + Voice</h2>
+    <h2>🎨 Scenes + Images + Voice</h2>
 
-<div id="scenesOutput">
+    <div id="scenesOutput">
+      <p class="small">
+        CREATE STORY दाबल्यानंतर 8 scenes येथे दिसतील.
+      </p>
+    </div>
 
-<p class="small">
-CREATE STORY दाबल्यानंतर 8 scenes येथे दिसतील.
-</p>
-
-</div>
-
-</div>
+  </div>
 
 </div>
 
@@ -353,11 +307,11 @@ CREATE STORY दाबल्यानंतर 8 scenes येथे दिस�
 <script>
 
 /* =====================================================
-   CLOUDFLARE WORKER
+   BACKEND
 ===================================================== */
 
 const BACKEND_URL =
-"https://apna-creator-ai.apnacreatorai.workers.dev/";
+  "https://apna-creator-ai.apnacreatorai.workers.dev";
 
 
 /* =====================================================
@@ -365,51 +319,49 @@ const BACKEND_URL =
 ===================================================== */
 
 const storyInput =
-document.getElementById("story");
+  document.getElementById("story");
 
 const languageInput =
-document.getElementById("language");
+  document.getElementById("language");
 
 const durationInput =
-document.getElementById("duration");
+  document.getElementById("duration");
 
 const styleInput =
-document.getElementById("style");
+  document.getElementById("style");
 
 const createBtn =
-document.getElementById("createBtn");
+  document.getElementById("createBtn");
 
 const statusBox =
-document.getElementById("status");
+  document.getElementById("status");
 
 const storyOutput =
-document.getElementById("storyOutput");
+  document.getElementById("storyOutput");
 
 const scenesOutput =
-document.getElementById("scenesOutput");
+  document.getElementById("scenesOutput");
 
 const progressBar =
-document.getElementById("progressBar");
+  document.getElementById("progressBar");
 
 
 /* =====================================================
    STATUS
 ===================================================== */
 
-function setStatus(text,type="normal"){
+function setStatus(text, type) {
 
-statusBox.textContent=text;
+  statusBox.textContent = text;
+  statusBox.className = "status";
 
-statusBox.className="status";
+  if (type === "success") {
+    statusBox.classList.add("success");
+  }
 
-if(type==="error"){
-statusBox.classList.add("error");
-}
-
-if(type==="success"){
-statusBox.classList.add("success");
-}
-
+  if (type === "error") {
+    statusBox.classList.add("error");
+  }
 }
 
 
@@ -417,16 +369,18 @@ statusBox.classList.add("success");
    PROGRESS
 ===================================================== */
 
-function setProgress(done,total=8){
+function setProgress(done, total) {
 
-const percent =
-total > 0
-? Math.round((done/total)*100)
-:0;
+  if (!total) {
+    progressBar.style.width = "0%";
+    return;
+  }
 
-progressBar.style.width =
-percent+"%";
+  const percent =
+    Math.round((done / total) * 100);
 
+  progressBar.style.width =
+    percent + "%";
 }
 
 
@@ -434,67 +388,62 @@ percent+"%";
    EXTRACT STORY
 ===================================================== */
 
-function extractStory(data){
+function extractStory(data) {
 
-if(!data){
-return "";
-}
+  if (!data) {
+    return "";
+  }
 
-if(typeof data==="string"){
-return data.trim();
-}
+  if (typeof data === "string") {
+    return data.trim();
+  }
 
-const fields=[
-data.story,
-data.text,
-data.output,
-data.response,
-data.result,
-data.content
-];
+  const fields = [
+    data.story,
+    data.text,
+    data.output,
+    data.response,
+    data.result,
+    data.content
+  ];
 
-for(const value of fields){
+  for (const value of fields) {
 
-if(
-typeof value==="string" &&
-value.trim()
-){
-return value.trim();
-}
+    if (
+      typeof value === "string" &&
+      value.trim()
+    ) {
+      return value.trim();
+    }
+  }
 
-}
+  if (
+    data.response &&
+    typeof data.response === "object"
+  ) {
 
-if(
-data.response &&
-typeof data.response==="object"
-){
+    const nested =
+      extractStory(data.response);
 
-const nested=
-extractStory(data.response);
+    if (nested) {
+      return nested;
+    }
+  }
 
-if(nested){
-return nested;
-}
+  if (Array.isArray(data)) {
 
-}
+    for (const item of data) {
 
-if(Array.isArray(data)){
+      const nested =
+        extractStory(item);
 
-for(const item of data){
+      if (nested) {
+        return nested;
+      }
+    }
+  }
 
-const nested=
-extractStory(item);
-
-if(nested){
-return nested;
-}
-
-}
-
-}
-
-return "";
-
+  return "";
 }
 
 
@@ -502,47 +451,34 @@ return "";
    CLEAN STORY
 ===================================================== */
 
-function cleanStoryText(text){
+function cleanStoryText(text) {
 
-let result=
-String(text||"").trim();
+  let result =
+    String(text || "").trim();
 
-result=
-result
-.replace(/```json/gi,"")
-.replace(/```text/gi,"")
-.replace(/```markdown/gi,"")
-.replace(/```/g,"")
-.trim();
+  result =
+    result
+      .replace(/```json/gi, "")
+      .replace(/```text/gi, "")
+      .replace(/```markdown/gi, "")
+      .replace(/```/g, "")
+      .trim();
 
+  const index =
+    result.search(/SCENE\s*1\b/i);
 
-const scene1=
-result.match(
-/(?:^|\n)\s*SCENE\s*1\b/i
-);
+  if (index >= 0) {
+    result =
+      result.substring(index).trim();
+  }
 
-if(scene1){
+  result =
+    result.replace(
+      /\n+\s*(Here is the output|I will make sure|Please let me know|Hope this helps|STOP)[\s\S]*$/i,
+      ""
+    );
 
-result=
-result.substring(
-scene1.index+
-(
-scene1[0].startsWith("\n")
-?1
-:0
-)
-).trim();
-
-}
-
-result=
-result.replace(
-/\n+\s*(Here is the output|I will make sure|Please let me know|Hope this helps)[\s\S]*$/i,
-""
-).trim();
-
-return result;
-
+  return result.trim();
 }
 
 
@@ -550,91 +486,69 @@ return result;
    PARSE SCENES
 ===================================================== */
 
-function parseScenes(text){
+function parseScenes(text) {
 
-const scenes=[];
+  const source =
+    String(text || "")
+      .replace(/\r/g, "")
+      .trim();
 
-const source=
-String(text||"")
-.replace(/\r/g,"")
-.trim();
+  const scenes = [];
 
-const regex=
-/(?:^|\n)\s*SCENE\s*([1-8])\s*:?\s*\n\s*Visual\s*:\s*([\s\S]*?)\n\s*Voice\s*:\s*([\s\S]*?)(?=\n\s*SCENE\s*[1-8]\s*:?\s*\n|$)/gi;
+  const regex =
+    /(?:^|\n)\s*SCENE\s*([1-8])\s*:?\s*\n\s*Visual\s*:\s*([\s\S]*?)\n\s*Voice\s*:\s*([\s\S]*?)(?=\n\s*SCENE\s*[1-8]\s*:?\s*\n|$)/gi;
 
-let match;
+  let match;
 
-while(
-(match=regex.exec(source))!==null
-){
+  while (
+    (match = regex.exec(source)) !== null
+  ) {
 
-const number=
-Number(match[1]);
+    const number =
+      Number(match[1]);
 
-let visual=
-String(match[2]||"")
-.trim();
+    const visual =
+      String(match[2] || "")
+        .replace(/\*\*/g, "")
+        .replace(/```/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
 
-let voice=
-String(match[3]||"")
-.trim();
+    const voice =
+      String(match[3] || "")
+        .replace(/\*\*/g, "")
+        .replace(/```/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
 
-visual=
-visual
-.replace(/\*\*/g,"")
-.replace(/```/g,"")
-.replace(/\s+/g," ")
-.trim();
+    if (
+      number >= 1 &&
+      number <= 8 &&
+      visual &&
+      voice
+    ) {
 
-voice=
-voice
-.replace(/\*\*/g,"")
-.replace(/```/g,"")
-.replace(/\s+/g," ")
-.trim();
+      scenes.push({
+        number: number,
+        visual: visual,
+        voice: voice
+      });
 
-if(
-number>=1 &&
-number<=8 &&
-visual &&
-voice
-){
-
-scenes.push({
-number,
-visual,
-voice
-});
-
-}
-
-}
+    }
+  }
 
 
-/* Remove duplicates */
+  const unique =
+    new Map();
 
-const unique=[];
+  for (const scene of scenes) {
+    unique.set(scene.number, scene);
+  }
 
-for(const scene of scenes){
-
-if(
-!unique.some(
-x=>x.number===scene.number
-)
-){
-
-unique.push(scene);
-
-}
-
-}
-
-unique.sort(
-(a,b)=>a.number-b.number
-);
-
-return unique;
-
+  return Array.from(unique.values())
+    .sort(function(a, b) {
+      return a.number - b.number;
+    });
 }
 
 
@@ -642,322 +556,171 @@ return unique;
    RENDER SCENES
 ===================================================== */
 
-function renderScenes(scenes){
+function renderScenes(scenes) {
 
-scenesOutput.innerHTML="";
+  scenesOutput.innerHTML = "";
 
-const elements=[];
+  const elements = [];
 
-for(const scene of scenes){
+  for (const scene of scenes) {
 
-const div=
-document.createElement("div");
+    const div =
+      document.createElement("div");
 
-div.className="scene";
+    div.className = "scene";
 
 
-const h=
-document.createElement("h3");
+    const title =
+      document.createElement("h3");
 
-h.textContent=
-"🎬 SCENE "+scene.number;
+    title.textContent =
+      "🎬 SCENE " + scene.number;
 
 
-const visual=
-document.createElement("p");
+    const visual =
+      document.createElement("p");
 
-const visualBold=
-document.createElement("b");
+    visual.innerHTML =
+      "<b>Visual:</b> ";
 
-visualBold.textContent="Visual: ";
+    visual.appendChild(
+      document.createTextNode(scene.visual)
+    );
 
-visual.appendChild(visualBold);
 
-visual.appendChild(
-document.createTextNode(scene.visual)
-);
+    const voice =
+      document.createElement("p");
 
+    voice.innerHTML =
+      "<b>Voice:</b> ";
 
-const voice=
-document.createElement("p");
+    voice.appendChild(
+      document.createTextNode(scene.voice)
+    );
 
-const voiceBold=
-document.createElement("b");
 
-voiceBold.textContent="Voice: ";
+    const imageBox =
+      document.createElement("div");
 
-voice.appendChild(voiceBold);
+    imageBox.className =
+      "image-box";
 
-voice.appendChild(
-document.createTextNode(scene.voice)
-);
+    imageBox.textContent =
+      "⏳ Image तयार होत आहे...";
 
 
-/* IMAGE */
+    const imageStatus =
+      document.createElement("div");
 
-const imageBox=
-document.createElement("div");
+    imageStatus.className =
+      "image-status";
 
-imageBox.className="image-box";
+    imageStatus.textContent =
+      "Waiting...";
 
-imageBox.textContent=
-"⏳ Image तयार होण्याची वाट पाहत आहे...";
 
+    const voiceTitle =
+      document.createElement("div");
 
-const imageStatus=
-document.createElement("div");
+    voiceTitle.style.marginTop =
+      "16px";
 
-imageStatus.className=
-"image-status";
+    voiceTitle.innerHTML =
+      "<b>🔊 VOICE</b>";
 
-imageStatus.textContent=
-"⏳ Image Waiting...";
 
+    const voiceStatus =
+      document.createElement("div");
 
-/* VOICE */
+    voiceStatus.className =
+      "voice-status";
 
-const voiceButtons=
-document.createElement("div");
+    voiceStatus.textContent =
+      "⏳ Voice तयार होत आहे...";
 
-voiceButtons.className=
-"voice-buttons";
 
+    const controls =
+      document.createElement("div");
 
-const playBtn=
-document.createElement("button");
+    controls.className =
+      "voice-controls";
 
-playBtn.className="play-btn";
 
-playBtn.textContent=
-"▶️ Play Voice";
+    const playBtn =
+      document.createElement("button");
 
+    playBtn.type = "button";
+    playBtn.className = "play-btn";
+    playBtn.textContent = "▶️ Play Voice";
+    playBtn.disabled = true;
 
-const stopBtn=
-document.createElement("button");
 
-stopBtn.className="stop-btn";
+    const stopBtn =
+      document.createElement("button");
 
-stopBtn.textContent=
-"⏹️ Stop";
+    stopBtn.type = "button";
+    stopBtn.className = "stop-btn";
+    stopBtn.textContent = "⏹️ Stop";
+    stopBtn.disabled = true;
 
 
-const downloadBtn=
-document.createElement("button");
+    const downloadBtn =
+      document.createElement("a");
 
-downloadBtn.className=
-"download-btn";
+    downloadBtn.className =
+      "download-btn";
 
-downloadBtn.textContent=
-"⬇️ Download MP3";
+    downloadBtn.textContent =
+      "⬇️ Download MP3";
 
-downloadBtn.disabled=true;
+    downloadBtn.style.display =
+      "none";
 
+    downloadBtn.download =
+      "scene-" +
+      scene.number +
+      ".mp3";
 
-voiceButtons.appendChild(playBtn);
-voiceButtons.appendChild(stopBtn);
-voiceButtons.appendChild(downloadBtn);
 
+    const audio =
+      document.createElement("audio");
 
-/* VOICE STATUS */
+    audio.controls = true;
+    audio.style.display = "none";
 
-const voiceStatus=
-document.createElement("div");
 
-voiceStatus.className=
-"voice-status";
+    controls.appendChild(playBtn);
+    controls.appendChild(stopBtn);
+    controls.appendChild(downloadBtn);
 
-voiceStatus.textContent=
-"⏳ Voice तयार झालेली नाही.";
 
+    div.appendChild(title);
+    div.appendChild(visual);
+    div.appendChild(voice);
+    div.appendChild(imageBox);
+    div.appendChild(imageStatus);
+    div.appendChild(voiceTitle);
+    div.appendChild(voiceStatus);
+    div.appendChild(controls);
+    div.appendChild(audio);
 
-/* AUDIO */
+    scenesOutput.appendChild(div);
 
-const audio=
-document.createElement("audio");
 
-audio.className=
-"audio-player";
+    elements.push({
+      imageBox: imageBox,
+      imageStatus: imageStatus,
+      voiceStatus: voiceStatus,
+      playBtn: playBtn,
+      stopBtn: stopBtn,
+      downloadBtn: downloadBtn,
+      audio: audio,
+      audioURL: null
+    });
 
-audio.controls=true;
+  }
 
-audio.style.display="none";
-
-
-/* APPEND */
-
-div.appendChild(h);
-div.appendChild(visual);
-div.appendChild(voice);
-div.appendChild(imageBox);
-div.appendChild(imageStatus);
-div.appendChild(voiceButtons);
-div.appendChild(voiceStatus);
-div.appendChild(audio);
-
-scenesOutput.appendChild(div);
-
-
-/* PLAY */
-
-playBtn.addEventListener(
-"click",
-()=>{
-playVoice(
-scene.voice,
-languageInput.value
-);
-}
-);
-
-
-/* STOP */
-
-stopBtn.addEventListener(
-"click",
-()=>{
-stopVoice();
-}
-);
-
-
-/* DOWNLOAD */
-
-downloadBtn.addEventListener(
-"click",
-()=>{
-downloadAudio(
-audio.src,
-scene.number
-);
-}
-);
-
-
-elements.push({
-
-imageBox,
-imageStatus,
-
-playBtn,
-stopBtn,
-downloadBtn,
-
-voiceStatus,
-audio
-
-});
-
-}
-
-return elements;
-
-}
-
-
-/* =====================================================
-   BROWSER VOICE PLAY
-   FALLBACK
-===================================================== */
-
-let currentSpeech=null;
-
-function playVoice(text,language){
-
-stopVoice();
-
-if(
-!("speechSynthesis" in window)
-){
-
-alert(
-"तुमच्या Browser मध्ये Voice support उपलब्ध नाही."
-);
-
-return;
-
-}
-
-let lang="hi-IN";
-
-if(language==="Marathi"){
-lang="mr-IN";
-}
-
-if(language==="English"){
-lang="en-IN";
-}
-
-const utterance=
-new SpeechSynthesisUtterance(
-text
-);
-
-utterance.lang=lang;
-
-utterance.rate=0.95;
-
-utterance.pitch=1.05;
-
-utterance.volume=1;
-
-currentSpeech=utterance;
-
-speechSynthesis.speak(
-utterance
-);
-
-}
-
-
-/* =====================================================
-   STOP VOICE
-===================================================== */
-
-function stopVoice(){
-
-if(
-"speechSynthesis" in window
-){
-
-speechSynthesis.cancel();
-
-}
-
-currentSpeech=null;
-
-}
-
-
-/* =====================================================
-   DOWNLOAD AUDIO
-===================================================== */
-
-function downloadAudio(url,sceneNumber){
-
-if(!url){
-
-alert(
-"या Scene साठी MP3 तयार झालेली नाही."
-);
-
-return;
-
-}
-
-const a=
-document.createElement("a");
-
-a.href=url;
-
-a.download=
-"apna-creator-ai-scene-"+sceneNumber+".mp3";
-
-document.body.appendChild(a);
-
-a.click();
-
-a.remove();
-
+  return elements;
 }
 
 
@@ -965,146 +728,127 @@ a.remove();
    GENERATE IMAGE
 ===================================================== */
 
-async function generateImage(
-scene,
-element
-){
+async function generateImage(scene, element) {
 
-element.imageStatus.className=
-"image-status";
+  element.imageStatus.className =
+    "image-status";
 
-element.imageStatus.textContent=
-"🎨 Scene "+
-scene.number+
-" ची image तयार होत आहे...";
+  element.imageStatus.textContent =
+    "🎨 Scene " +
+    scene.number +
+    " image तयार होत आहे...";
 
-element.imageBox.innerHTML=
-'<div class="loading">🎨 Image generating...</div>';
+  element.imageBox.innerHTML =
+    '<div class="loading">🎨 Image generating...<br>कृपया थांबा.</div>';
 
-try{
+  try {
 
-const response=
-await fetch(
-BACKEND_URL,
-{
-method:"POST",
+    const response =
+      await fetch(
+        BACKEND_URL,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            action: "generate-image",
+            visual: scene.visual,
+            language: languageInput.value,
+            style: styleInput.value
+          })
+        }
+      );
 
-headers:{
-"Content-Type":
-"application/json"
-},
+    if (!response.ok) {
 
-body:JSON.stringify({
+      const text =
+        await response.text();
 
-action:"generate-image",
+      let message =
+        "Image error HTTP " +
+        response.status;
 
-visual:scene.visual,
+      try {
 
-language:
-languageInput.value,
+        const data =
+          JSON.parse(text);
 
-style:
-styleInput.value
+        if (data.error) {
+          message = data.error;
+        }
 
-})
+      } catch (e) {}
 
-}
-);
-
-
-const contentType=
-response.headers.get(
-"content-type"
-)||"";
-
-
-if(!response.ok){
-
-const text=
-await response.text();
-
-let message=
-"Image generation failed.";
-
-try{
-
-const data=
-JSON.parse(text);
-
-if(data.error){
-message=data.error;
-}
-
-}catch(e){}
-
-throw new Error(message);
-
-}
+      throw new Error(message);
+    }
 
 
-if(
-!contentType.includes("image/")
-){
+    const contentType =
+      response.headers.get("content-type") || "";
 
-const text=
-await response.text();
+    if (!contentType.includes("image")) {
 
-throw new Error(
-"Backend ने image ऐवजी response दिला."
-);
+      const text =
+        await response.text();
 
-}
+      throw new Error(
+        "Backend ने image ऐवजी response दिला: " +
+        text.substring(0, 300)
+      );
+    }
 
 
-const blob=
-await response.blob();
+    const blob =
+      await response.blob();
 
-const imageURL=
-URL.createObjectURL(blob);
+    const url =
+      URL.createObjectURL(blob);
 
-element.imageBox.innerHTML="";
+    element.imageBox.innerHTML =
+      "";
 
-const img=
-document.createElement("img");
+    const img =
+      document.createElement("img");
 
-img.src=imageURL;
+    img.src = url;
 
-img.alt=
-"Scene "+
-scene.number+
-" Cartoon Image";
+    img.alt =
+      "Scene " +
+      scene.number +
+      " Cartoon Image";
 
-element.imageBox.appendChild(img);
+    element.imageBox.appendChild(img);
 
-element.imageStatus.className=
-"image-status image-success";
+    element.imageStatus.className =
+      "image-status ok";
 
-element.imageStatus.textContent=
-"✅ Scene "+
-scene.number+
-" image तयार झाली.";
+    element.imageStatus.textContent =
+      "✅ Scene " +
+      scene.number +
+      " image तयार झाली.";
 
-return true;
+    return true;
 
-}
-catch(error){
+  } catch (error) {
 
-console.error(error);
+    console.error(
+      "IMAGE ERROR:",
+      error
+    );
 
-element.imageBox.innerHTML=
-"❌ Image तयार झाली नाही.";
+    element.imageBox.textContent =
+      "❌ Image तयार झाली नाही.";
 
-element.imageStatus.className=
-"image-status image-error";
+    element.imageStatus.className =
+      "image-status bad";
 
-element.imageStatus.textContent=
-"❌ "+
-(error.message||error);
+    element.imageStatus.textContent =
+      "❌ " +
+      (error.message || error);
 
-return false;
-
-}
-
+    return false;
+  }
 }
 
 
@@ -1112,140 +856,178 @@ return false;
    GENERATE VOICE
 ===================================================== */
 
-async function generateVoice(
-scene,
-element
-){
+async function generateVoice(scene, element) {
 
-element.voiceStatus.className=
-"voice-status";
+  element.voiceStatus.className =
+    "voice-status";
 
-element.voiceStatus.textContent=
-"🎙️ Scene "+
-scene.number+
-" ची Voice तयार होत आहे...";
+  element.voiceStatus.textContent =
+    "🔊 Scene " +
+    scene.number +
+    " voice तयार होत आहे...";
 
-element.downloadBtn.disabled=true;
-
-try{
-
-const response=
-await fetch(
-BACKEND_URL,
-{
-method:"POST",
-
-headers:{
-"Content-Type":
-"application/json"
-},
-
-body:JSON.stringify({
-
-action:"generate-voice",
-
-text:scene.voice,
-
-language:
-languageInput.value,
-
-scene:
-scene.number
-
-})
-
-}
-);
+  element.playBtn.disabled = true;
+  element.stopBtn.disabled = true;
+  element.downloadBtn.style.display = "none";
 
 
-if(!response.ok){
+  try {
 
-const text=
-await response.text();
-
-let message=
-"Voice generation failed.";
-
-try{
-
-const data=
-JSON.parse(text);
-
-if(data.error){
-message=data.error;
-}
-
-}catch(e){}
-
-throw new Error(message);
-
-}
+    const response =
+      await fetch(
+        BACKEND_URL,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            action: "generate-voice",
+            text: scene.voice,
+            language: languageInput.value
+          })
+        }
+      );
 
 
-const contentType=
-response.headers.get(
-"content-type"
-)||"";
+    if (!response.ok) {
+
+      const text =
+        await response.text();
+
+      let message =
+        "Voice error HTTP " +
+        response.status;
+
+      try {
+
+        const data =
+          JSON.parse(text);
+
+        if (data.error) {
+          message = data.error;
+        }
+
+      } catch (e) {}
+
+      throw new Error(message);
+    }
 
 
-if(
-!contentType.includes("audio/")
-){
-
-throw new Error(
-"Worker ने audio file परत केली नाही."
-);
-
-}
+    const contentType =
+      response.headers.get("content-type") || "";
 
 
-const blob=
-await response.blob();
+    if (
+      !contentType.includes("audio") &&
+      !contentType.includes("mpeg") &&
+      !contentType.includes("mp3")
+    ) {
 
-const audioURL=
-URL.createObjectURL(blob);
+      const text =
+        await response.text();
 
-element.audio.src=
-audioURL;
-
-element.audio.style.display=
-"block";
-
-element.downloadBtn.disabled=
-false;
-
-element.voiceStatus.className=
-"voice-status voice-success";
-
-element.voiceStatus.textContent=
-"✅ Scene "+
-scene.number+
-" Voice तयार झाली.";
-
-return true;
-
-}
-catch(error){
-
-console.error(
-"VOICE ERROR:",
-error
-);
+      throw new Error(
+        "Backend ने audio ऐवजी response दिला: " +
+        text.substring(0, 300)
+      );
+    }
 
 
-/*
- Browser voice fallback.
- Play button still works.
- */
+    const blob =
+      await response.blob();
 
-element.voiceStatus.className=
-"voice-status";
 
-element.voiceStatus.textContent=
-"⚠️ MP3 Voice Worker कडून तयार झाली नाही. Play Voice वापरल्यास Browser Voice चालेल.";
+    if (!blob.size) {
+      throw new Error(
+        "Audio file रिकामी आहे."
+      );
+    }
 
-return false;
 
+    const url =
+      URL.createObjectURL(blob);
+
+
+    element.audioURL =
+      url;
+
+    element.audio.src =
+      url;
+
+
+    element.playBtn.disabled =
+      false;
+
+    element.stopBtn.disabled =
+      false;
+
+    element.downloadBtn.href =
+      url;
+
+    element.downloadBtn.style.display =
+      "inline-block";
+
+
+    element.playBtn.onclick =
+      async function() {
+
+        try {
+
+          await element.audio.play();
+
+        } catch (error) {
+
+          console.error(
+            "PLAY ERROR:",
+            error
+          );
+
+        }
+
+      };
+
+
+    element.stopBtn.onclick =
+      function() {
+
+        element.audio.pause();
+
+        element.audio.currentTime =
+          0;
+
+      };
+
+
+    element.voiceStatus.className =
+      "voice-status ok";
+
+    element.voiceStatus.textContent =
+      "✅ Scene " +
+      scene.number +
+      " voice तयार झाली.";
+
+
+    return true;
+
+  } catch (error) {
+
+    console.error(
+      "VOICE ERROR:",
+      error
+    );
+
+    element.voiceStatus.className =
+      "voice-status bad";
+
+    element.voiceStatus.textContent =
+      "❌ Scene " +
+      scene.number +
+      " voice error: " +
+      (error.message || error);
+
+    return false;
+  }
 }
 
 
@@ -1253,59 +1035,100 @@ return false;
    GENERATE ALL
 ===================================================== */
 
-async function generateAll(
-scenes,
-elements
-){
+async function generateAll(scenes, elements) {
 
-let completed=0;
-
-for(let i=0;i<scenes.length;i++){
-
-const scene=
-scenes[i];
-
-setStatus(
-"🎨 Scene "+
-scene.number+
-" / 8 तयार होत आहे...\n\n"+
-"Image + Voice processing..."
-);
-
-const imageOK=
-await generateImage(
-scene,
-elements[i]
-);
-
-const voiceOK=
-await generateVoice(
-scene,
-elements[i]
-);
-
-completed++;
-
-setProgress(
-completed,
-8
-);
-
-}
+  let imageSuccess = 0;
+  let voiceSuccess = 0;
+  let failed = 0;
 
 
-/*
- Success
- */
+  for (let i = 0; i < scenes.length; i++) {
 
-setStatus(
-"🎉 पूर्ण झाले!\n\n"+
-"8 scenes तयार झाले.\n"+
-"Images तयार झाल्या.\n"+
-"Voice processing पूर्ण झाली.",
-"success"
-);
+    const scene =
+      scenes[i];
 
+    const element =
+      elements[i];
+
+
+    setStatus(
+      "🎨 Scene " +
+      scene.number +
+      " / 8\n\n" +
+      "Image + Voice तयार होत आहेत...\n\n" +
+      "Images: " +
+      imageSuccess +
+      " / 8\n" +
+      "Voice: " +
+      voiceSuccess +
+      " / 8"
+    );
+
+
+    const imageOK =
+      await generateImage(
+        scene,
+        element
+      );
+
+
+    if (imageOK) {
+      imageSuccess++;
+    } else {
+      failed++;
+    }
+
+
+    const voiceOK =
+      await generateVoice(
+        scene,
+        element
+      );
+
+
+    if (voiceOK) {
+      voiceSuccess++;
+    } else {
+      failed++;
+    }
+
+
+    setProgress(
+      i + 1,
+      scenes.length
+    );
+  }
+
+
+  if (
+    imageSuccess === 8 &&
+    voiceSuccess === 8
+  ) {
+
+    setStatus(
+      "🎉 पूर्ण झाले!\n\n" +
+      "Images: 8 / 8\n" +
+      "Voice: 8 / 8\n\n" +
+      "प्रत्येक Scene खाली Play आणि Download MP3 उपलब्ध आहे.",
+      "success"
+    );
+
+  } else {
+
+    setStatus(
+      "⚠️ Generation पूर्ण झाली.\n\n" +
+      "Images: " +
+      imageSuccess +
+      " / 8\n" +
+      "Voice: " +
+      voiceSuccess +
+      " / 8\n" +
+      "Failed: " +
+      failed,
+      failed > 0 ? "error" : "normal"
+    );
+
+  }
 }
 
 
@@ -1313,218 +1136,221 @@ setStatus(
    CREATE STORY
 ===================================================== */
 
-async function createStory(){
+async function createStory() {
 
-const story=
-storyInput.value.trim();
+  const story =
+    storyInput.value.trim();
 
-if(!story){
 
-setStatus(
-"कृपया आधी Story लिहा.",
-"error"
-);
+  if (!story) {
 
-return;
+    setStatus(
+      "कृपया आधी Story लिहा.",
+      "error"
+    );
 
-}
+    return;
+  }
 
 
-createBtn.disabled=true;
+  createBtn.disabled =
+    true;
 
-createBtn.textContent=
-"⏳ STORY तयार होत आहे...";
+  createBtn.textContent =
+    "⏳ तयार होत आहे...";
 
-storyOutput.textContent=
-"कृपया थोडा वेळ थांबा...";
 
-scenesOutput.innerHTML=
-'<div class="loading">🤖 AI 8 scenes तयार करत आहे...</div>';
+  storyOutput.textContent =
+    "कृपया थांबा...";
 
-setProgress(0,8);
 
-setStatus(
-"🤖 Story AI कडे पाठवत आहे..."
-);
+  scenesOutput.innerHTML =
+    '<div class="loading">🤖 AI 8 scenes तयार करत आहे...</div>';
 
 
-try{
+  setProgress(0, 8);
 
-const response=
-await fetch(
-BACKEND_URL,
-{
-method:"POST",
 
-headers:{
-"Content-Type":
-"application/json"
-},
+  setStatus(
+    "🤖 Story AI कडे पाठवत आहे..."
+  );
 
-body:JSON.stringify({
 
-action:"generate-story",
+  try {
 
-story:story,
+    const response =
+      await fetch(
+        BACKEND_URL,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            action: "generate-story",
+            story: story,
+            language: languageInput.value,
+            duration: durationInput.value,
+            style: styleInput.value
+          })
+        }
+      );
 
-language:
-languageInput.value,
 
-duration:
-durationInput.value,
+    const raw =
+      await response.text();
 
-style:
-styleInput.value
 
-})
+    let data;
 
-}
-);
 
+    try {
 
-const raw=
-await response.text();
+      data =
+        JSON.parse(raw);
 
-let data;
+    } catch (error) {
 
-try{
+      throw new Error(
+        "Backend ने valid JSON दिले नाही.\n\n" +
+        raw.substring(0, 500)
+      );
+    }
 
-data=
-JSON.parse(raw);
 
-}
-catch(e){
+    if (!response.ok) {
 
-throw new Error(
-"Backend ने valid JSON दिले नाही.\n\n"+
-raw.substring(0,500)
-);
+      throw new Error(
+        data.error ||
+        "Story generation failed. HTTP " +
+        response.status
+      );
+    }
 
-}
 
+    const aiStory =
+      extractStory(data);
 
-if(!response.ok){
 
-throw new Error(
-data.error||
-"Story generation failed."
-);
+    if (!aiStory) {
 
-}
+      throw new Error(
+        "AI response मध्ये Story सापडली नाही.\n\n" +
+        JSON.stringify(data).substring(0, 1000)
+      );
+    }
 
 
-const aiStory=
-extractStory(data);
+    const cleanStory =
+      cleanStoryText(aiStory);
 
-if(!aiStory){
 
-throw new Error(
-"AI response मध्ये Story सापडली नाही."
-);
+    storyOutput.textContent =
+      cleanStory;
 
-}
 
+    const scenes =
+      parseScenes(cleanStory);
 
-const cleanStory=
-cleanStoryText(aiStory);
 
-storyOutput.textContent=
-cleanStory;
+    if (scenes.length !== 8) {
 
+      throw new Error(
+        "AI response मध्ये पूर्ण 8 scenes सापडले नाहीत.\n\n" +
+        "मिळाले: " +
+        scenes.length +
+        " / 8\n\n" +
+        cleanStory.substring(0, 3000)
+      );
+    }
 
-const scenes=
-parseScenes(cleanStory);
 
-if(scenes.length!==8){
+    for (let i = 0; i < 8; i++) {
 
-throw new Error(
-"पूर्ण 8 scenes सापडले नाहीत.\n\n"+
-"मिळाले: "+
-scenes.length+
-" / 8\n\n"+
-cleanStory.substring(0,3000)
-);
+      if (
+        scenes[i].number !== i + 1
+      ) {
 
-}
+        throw new Error(
+          "Scene numbering चुकीचे आहे."
+        );
+      }
+    }
 
 
-for(let i=0;i<8;i++){
+    const elements =
+      renderScenes(scenes);
 
-if(
-scenes[i].number!==i+1
-){
 
-throw new Error(
-"Scene numbering चुकीचे आहे."
-);
+    setStatus(
+      "✅ 8 scenes तयार झाले!\n\n" +
+      "आता Images + Voice तयार होत आहेत.\n\n" +
+      "कृपया Browser बंद करू नका."
+    );
 
-}
 
-}
+    await generateAll(
+      scenes,
+      elements
+    );
 
 
-const elements=
-renderScenes(scenes);
+  } catch (error) {
 
+    console.error(
+      "CREATE STORY ERROR:",
+      error
+    );
 
-setStatus(
-"✅ 8 scenes तयार झाले!\n\n"+
-"🎨 Images आणि 🎙️ Voice तयार होत आहेत...\n\n"+
-"कृपया Browser बंद करू नका."
-);
 
+    storyOutput.textContent =
+      "Story तयार झाली नाही.";
 
-await generateAll(
-scenes,
-elements
-);
 
+    scenesOutput.innerHTML =
+      "<p class='small'>❌ Scenes तयार झाले नाहीत.</p>";
 
-}
-catch(error){
 
-console.error(
-"CREATE ERROR:",
-error
-);
+    setProgress(0, 8);
 
-storyOutput.textContent=
-"Story तयार झाली नाही.";
 
-scenesOutput.innerHTML=
-'<p class="small">❌ Scenes तयार झाले नाहीत.</p>';
+    setStatus(
+      "❌ समस्या आली.\n\n" +
+      (error.message || error),
+      "error"
+    );
 
-setProgress(0,8);
+  } finally {
 
-setStatus(
-"❌ समस्या आली.\n\n"+
-(error.message||error),
-"error"
-);
+    createBtn.disabled =
+      false;
 
-}
-finally{
-
-createBtn.disabled=false;
-
-createBtn.textContent=
-"🎬 CREATE STORY";
-
-}
-
+    createBtn.textContent =
+      "🎬 CREATE STORY";
+  }
 }
 
 
 /* =====================================================
-   BUTTON
+   BUTTON EVENT
 ===================================================== */
 
 createBtn.addEventListener(
-"click",
-createStory
+  "click",
+  createStory
+);
+
+
+/* =====================================================
+   PAGE READY
+===================================================== */
+
+console.log(
+  "Apna Creator AI ready."
 );
 
 </script>
 
 </body>
 </html>
+````
