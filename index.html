@@ -1,3 +1,4 @@
+````html
 <!DOCTYPE html>
 <html lang="mr">
 <head>
@@ -7,6 +8,7 @@
 <title>Apna Creator AI</title>
 
 <style>
+
 *{
   box-sizing:border-box;
 }
@@ -59,9 +61,10 @@ textarea{
 button{
   border:0;
   border-radius:10px;
-  padding:12px 18px;
+  padding:11px 16px;
   font-weight:700;
   cursor:pointer;
+  font-size:14px;
 }
 
 button:disabled{
@@ -74,6 +77,8 @@ button:disabled{
   color:#fff;
   width:100%;
   margin-top:16px;
+  font-size:16px;
+  padding:14px;
 }
 
 .status{
@@ -133,7 +138,8 @@ button:disabled{
   border-radius:10px;
 }
 
-.image-status{
+.image-status,
+.voice-status{
   margin-top:10px;
   padding:10px;
   border-radius:8px;
@@ -142,14 +148,45 @@ button:disabled{
   color:#475569;
 }
 
-.image-success{
+.image-success,
+.voice-success{
   background:#ecfdf5;
   color:#166534;
 }
 
-.image-error{
+.image-error,
+.voice-error{
   background:#fff0f0;
   color:#a40000;
+}
+
+.voice-box{
+  margin-top:14px;
+  padding:14px;
+  border-radius:10px;
+  background:#f8fafc;
+}
+
+.voice-buttons{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:10px;
+}
+
+.play-btn{
+  background:#16a34a;
+  color:white;
+}
+
+.stop-btn{
+  background:#dc2626;
+  color:white;
+}
+
+.download-btn{
+  background:#7c3aed;
+  color:white;
 }
 
 .small{
@@ -184,6 +221,22 @@ pre{
   background:#2563eb;
   transition:width .3s ease;
 }
+
+audio{
+  width:100%;
+  margin-top:10px;
+}
+
+.badge{
+  display:inline-block;
+  padding:5px 9px;
+  border-radius:20px;
+  background:#e8eefc;
+  color:#2563eb;
+  font-size:12px;
+  font-weight:700;
+}
+
 </style>
 </head>
 
@@ -191,12 +244,17 @@ pre{
 
 <div class="container">
 
+  <!-- =================================================
+       MAIN
+  ================================================== -->
+
   <div class="card">
 
     <h1>🎬 Apna Creator AI</h1>
 
     <p>
-      तुमची Story द्या → 8 Scenes तयार करा → 8 Cartoon Images आपोआप तयार करा.
+      तुमची Story द्या → 8 Scenes तयार करा →
+      8 Cartoon Images + Voice आपोआप तयार करा.
     </p>
 
     <label for="story">
@@ -250,29 +308,43 @@ pre{
     </div>
 
     <div class="progress">
-      <div id="progressBar" class="progress-bar"></div>
+      <div
+        id="progressBar"
+        class="progress-bar">
+      </div>
     </div>
 
   </div>
 
 
+  <!-- =================================================
+       STORY
+  ================================================== -->
+
   <div class="card">
 
     <h2>📖 Generated Story</h2>
 
-    <pre id="storyOutput">Story येथे दिसेल.</pre>
+    <pre id="storyOutput">
+Story येथे दिसेल.
+    </pre>
 
   </div>
 
 
+  <!-- =================================================
+       SCENES
+  ================================================== -->
+
   <div class="card">
 
-    <h2>🎨 Scenes & Images</h2>
+    <h2>🎨 Scenes, Images & Voice</h2>
 
     <div id="scenesOutput">
 
       <p class="small">
-        CREATE STORY दाबल्यानंतर 8 scenes आणि images येथे दिसतील.
+        CREATE STORY दाबल्यानंतर 8 scenes,
+        images आणि voice येथे दिसतील.
       </p>
 
     </div>
@@ -330,9 +402,11 @@ document.getElementById("progressBar");
 
 function setStatus(text,type="normal"){
 
-  statusBox.textContent = text;
+  statusBox.textContent =
+    text;
 
-  statusBox.className = "status";
+  statusBox.className =
+    "status";
 
   if(type === "error"){
     statusBox.classList.add("error");
@@ -348,11 +422,16 @@ function setStatus(text,type="normal"){
    PROGRESS
 ===================================================== */
 
-function setProgress(completed,total=8){
+function setProgress(
+  completed,
+  total=8
+){
 
   const percent =
     total > 0
-      ? Math.round((completed / total) * 100)
+      ? Math.round(
+          (completed / total) * 100
+        )
       : 0;
 
   progressBar.style.width =
@@ -361,7 +440,7 @@ function setProgress(completed,total=8){
 
 
 /* =====================================================
-   EXTRACT STORY FROM ANY BACKEND RESPONSE
+   EXTRACT STORY
 ===================================================== */
 
 function extractStory(data){
@@ -374,44 +453,55 @@ function extractStory(data){
     return data.trim();
   }
 
-  const possibleFields = [
+  const fields = [
+
     data.story,
     data.text,
     data.output,
     data.response,
     data.result,
     data.content
+
   ];
 
-  for(const value of possibleFields){
+  for(
+    const value of fields
+  ){
 
-    if(typeof value === "string" && value.trim()){
+    if(
+      typeof value === "string" &&
+      value.trim()
+    ){
+
       return value.trim();
+
     }
+
   }
 
-  /*
-    Some AI APIs return:
-    { response: { response: "..." } }
-  */
 
-  if(data.response && typeof data.response === "object"){
+  if(
+    data.response &&
+    typeof data.response === "object"
+  ){
 
     const nested =
-      extractStory(data.response);
+      extractStory(
+        data.response
+      );
 
     if(nested){
       return nested;
     }
+
   }
 
-  /*
-    Some APIs return an array.
-  */
 
   if(Array.isArray(data)){
 
-    for(const item of data){
+    for(
+      const item of data
+    ){
 
       const nested =
         extractStory(item);
@@ -419,7 +509,9 @@ function extractStory(data){
       if(nested){
         return nested;
       }
+
     }
+
   }
 
   return "";
@@ -427,18 +519,15 @@ function extractStory(data){
 
 
 /* =====================================================
-   CLEAN AI STORY
+   CLEAN STORY
 ===================================================== */
 
 function cleanStoryText(text){
 
   let result =
-    String(text || "").trim();
+    String(text || "")
+      .trim();
 
-
-  /*
-    Remove markdown code fences.
-  */
 
   result =
     result
@@ -449,20 +538,18 @@ function cleanStoryText(text){
       .trim();
 
 
-  /*
-    Remove leading explanation before SCENE 1.
-  */
-
   const scene1 =
     result.match(
       /(?:^|\n)\s*SCENE\s*1\b/i
     );
 
+
   if(scene1){
 
     result =
       result.substring(
-        scene1.index + (
+        scene1.index +
+        (
           scene1[0].startsWith("\n")
             ? 1
             : 0
@@ -472,17 +559,11 @@ function cleanStoryText(text){
   }
 
 
-  /*
-    Remove unwanted closing text.
-  */
-
   result =
-    result
-      .replace(
-        /\n+\s*(Here is the output|I will make sure|Please let me know|Hope this helps)[\s\S]*$/i,
-        ""
-      )
-      .trim();
+    result.replace(
+      /\n+\s*(Here is the output|I will make sure|Please let me know|Hope this helps)[\s\S]*$/i,
+      ""
+    ).trim();
 
 
   return result;
@@ -491,7 +572,6 @@ function cleanStoryText(text){
 
 /* =====================================================
    PARSE 8 SCENES
-   VERY FLEXIBLE PARSER
 ===================================================== */
 
 function parseScenes(text){
@@ -504,79 +584,45 @@ function parseScenes(text){
       .trim();
 
 
-  /*
-    This parser supports:
-
-    SCENE 1
-    Visual:
-    Voice:
-
-    SCENE 1:
-    Visual:
-    Voice:
-
-    Scene 1
-    Visual:
-    Voice:
-  */
-
   const sceneRegex =
     /(?:^|\n)\s*SCENE\s*([1-8])\s*:?\s*\n\s*Visual\s*:\s*([\s\S]*?)\n\s*Voice\s*:\s*([\s\S]*?)(?=\n\s*SCENE\s*[1-8]\s*:?\s*\n|$)/gi;
 
 
   let match;
 
+
   while(
-    (match = sceneRegex.exec(source)) !== null
+    (match =
+      sceneRegex.exec(
+        source
+      )) !== null
   ){
 
     const number =
       Number(match[1]);
 
+
     let visual =
       String(match[2] || "")
+        .replace(/\*\*/g,"")
+        .replace(/```/g,"")
+        .replace(/\s+/g," ")
         .trim();
+
 
     let voice =
       String(match[3] || "")
-        .trim();
-
-
-    /*
-      Clean visual.
-    */
-
-    visual =
-      visual
         .replace(/\*\*/g,"")
         .replace(/```/g,"")
         .replace(/\s+/g," ")
         .trim();
 
 
-    /*
-      Clean voice.
-    */
-
     voice =
-      voice
-        .replace(/\*\*/g,"")
-        .replace(/```/g,"")
-        .replace(/\s+/g," ")
-        .trim();
-
-
-    /*
-      Remove accidental extra AI text.
-    */
-
-    voice =
-      voice
-        .replace(
-          /(?:Here is the output|I will make sure|Please let me know|STOP)[\s\S]*$/i,
-          ""
-        )
-        .trim();
+      voice.replace(
+        /(?:Here is the output|I will make sure|Please let me know|STOP)[\s\S]*$/i,
+        ""
+      ).trim();
 
 
     if(
@@ -587,9 +633,11 @@ function parseScenes(text){
     ){
 
       scenes.push({
+
         number,
         visual,
         voice
+
       });
 
     }
@@ -597,13 +645,12 @@ function parseScenes(text){
   }
 
 
-  /*
-    Remove duplicates.
-  */
-
   const unique = [];
 
-  for(const scene of scenes){
+
+  for(
+    const scene of scenes
+  ){
 
     if(
       !unique.some(
@@ -635,31 +682,52 @@ function parseScenes(text){
 
 function renderScenes(scenes){
 
-  scenesOutput.innerHTML = "";
+  scenesOutput.innerHTML =
+    "";
 
   const elements = [];
 
 
-  for(const scene of scenes){
+  for(
+    const scene of scenes
+  ){
 
     const div =
-      document.createElement("div");
+      document.createElement(
+        "div"
+      );
 
-    div.className = "scene";
+    div.className =
+      "scene";
 
+
+    /* -----------------------------------------------
+       TITLE
+    ------------------------------------------------ */
 
     const h =
-      document.createElement("h3");
+      document.createElement(
+        "h3"
+      );
 
     h.textContent =
-      "🎬 SCENE " + scene.number;
+      "🎬 SCENE " +
+      scene.number;
 
+
+    /* -----------------------------------------------
+       VISUAL
+    ------------------------------------------------ */
 
     const visual =
-      document.createElement("p");
+      document.createElement(
+        "p"
+      );
 
     const visualBold =
-      document.createElement("b");
+      document.createElement(
+        "b"
+      );
 
     visualBold.textContent =
       "Visual: ";
@@ -675,11 +743,19 @@ function renderScenes(scenes){
     );
 
 
+    /* -----------------------------------------------
+       VOICE TEXT
+    ------------------------------------------------ */
+
     const voice =
-      document.createElement("p");
+      document.createElement(
+        "p"
+      );
 
     const voiceBold =
-      document.createElement("b");
+      document.createElement(
+        "b"
+      );
 
     voiceBold.textContent =
       "Voice: ";
@@ -695,18 +771,30 @@ function renderScenes(scenes){
     );
 
 
+    /* -----------------------------------------------
+       IMAGE
+    ------------------------------------------------ */
+
     const imageBox =
-      document.createElement("div");
+      document.createElement(
+        "div"
+      );
 
     imageBox.className =
       "image-box";
 
     imageBox.textContent =
-      "⏳ Image तयार होण्याची वाट पाहत आहे...";
+      "⏳ Image तयार होत आहे...";
 
+
+    /* -----------------------------------------------
+       IMAGE STATUS
+    ------------------------------------------------ */
 
     const imageStatus =
-      document.createElement("div");
+      document.createElement(
+        "div"
+      );
 
     imageStatus.className =
       "image-status";
@@ -715,18 +803,182 @@ function renderScenes(scenes){
       "⏳ Waiting...";
 
 
-    div.appendChild(h);
-    div.appendChild(visual);
-    div.appendChild(voice);
-    div.appendChild(imageBox);
-    div.appendChild(imageStatus);
+    /* -----------------------------------------------
+       VOICE BOX
+    ------------------------------------------------ */
 
-    scenesOutput.appendChild(div);
+    const voiceBox =
+      document.createElement(
+        "div"
+      );
+
+    voiceBox.className =
+      "voice-box";
+
+
+    const voiceTitle =
+      document.createElement(
+        "div"
+      );
+
+    voiceTitle.innerHTML =
+      '<span class="badge">🔊 VOICE</span>';
+
+
+    const voiceStatus =
+      document.createElement(
+        "div"
+      );
+
+    voiceStatus.className =
+      "voice-status";
+
+    voiceStatus.textContent =
+      "⏳ Voice तयार होण्याची वाट पाहत आहे...";
+
+
+    const audio =
+      document.createElement(
+        "audio"
+      );
+
+    audio.controls =
+      true;
+
+    audio.style.display =
+      "none";
+
+
+    const buttons =
+      document.createElement(
+        "div"
+      );
+
+    buttons.className =
+      "voice-buttons";
+
+
+    const playBtn =
+      document.createElement(
+        "button"
+      );
+
+    playBtn.className =
+      "play-btn";
+
+    playBtn.textContent =
+      "▶️ Play Voice";
+
+    playBtn.disabled =
+      true;
+
+
+    const stopBtn =
+      document.createElement(
+        "button"
+      );
+
+    stopBtn.className =
+      "stop-btn";
+
+    stopBtn.textContent =
+      "⏹️ Stop";
+
+    stopBtn.disabled =
+      true;
+
+
+    const downloadBtn =
+      document.createElement(
+        "button"
+      );
+
+    downloadBtn.className =
+      "download-btn";
+
+    downloadBtn.textContent =
+      "⬇️ Download MP3";
+
+    downloadBtn.disabled =
+      true;
+
+
+    buttons.appendChild(
+      playBtn
+    );
+
+    buttons.appendChild(
+      stopBtn
+    );
+
+    buttons.appendChild(
+      downloadBtn
+    );
+
+
+    voiceBox.appendChild(
+      voiceTitle
+    );
+
+    voiceBox.appendChild(
+      voiceStatus
+    );
+
+    voiceBox.appendChild(
+      audio
+    );
+
+    voiceBox.appendChild(
+      buttons
+    );
+
+
+    /* -----------------------------------------------
+       APPEND
+    ------------------------------------------------ */
+
+    div.appendChild(h);
+
+    div.appendChild(
+      visual
+    );
+
+    div.appendChild(
+      voice
+    );
+
+    div.appendChild(
+      imageBox
+    );
+
+    div.appendChild(
+      imageStatus
+    );
+
+    div.appendChild(
+      voiceBox
+    );
+
+
+    scenesOutput.appendChild(
+      div
+    );
 
 
     elements.push({
+
       imageBox,
-      imageStatus
+      imageStatus,
+
+      voiceStatus,
+      audio,
+
+      playBtn,
+      stopBtn,
+      downloadBtn,
+
+      voiceURL:null
+
     });
 
   }
@@ -737,10 +989,13 @@ function renderScenes(scenes){
 
 
 /* =====================================================
-   GENERATE ONE IMAGE
+   GENERATE IMAGE
 ===================================================== */
 
-async function generateImage(scene,elements){
+async function generateImage(
+  scene,
+  elements
+){
 
   elements.imageStatus.className =
     "image-status";
@@ -761,6 +1016,7 @@ async function generateImage(scene,elements){
       await fetch(
         BACKEND_URL,
         {
+
           method:"POST",
 
           headers:{
@@ -770,15 +1026,20 @@ async function generateImage(scene,elements){
 
           body:JSON.stringify({
 
-            action:"generate-image",
+            action:
+              "generate-image",
 
-            visual:scene.visual,
+            visual:
+              scene.visual,
 
-            language:languageInput.value,
+            language:
+              languageInput.value,
 
-            style:styleInput.value
+            style:
+              styleInput.value
 
           })
+
         }
       );
 
@@ -798,10 +1059,13 @@ async function generateImage(scene,elements){
         "Image generation failed. HTTP " +
         response.status;
 
+
       try{
 
         const errorData =
-          JSON.parse(errorText);
+          JSON.parse(
+            errorText
+          );
 
         if(errorData.error){
           message =
@@ -811,16 +1075,18 @@ async function generateImage(scene,elements){
       }
       catch(e){}
 
-      throw new Error(message);
+
+      throw new Error(
+        message
+      );
+
     }
 
 
-    /*
-      Backend must return an image.
-    */
-
     if(
-      !contentType.includes("image/")
+      !contentType.includes(
+        "image/"
+      )
     ){
 
       const errorText =
@@ -828,7 +1094,10 @@ async function generateImage(scene,elements){
 
       throw new Error(
         "Backend ने image ऐवजी response दिला: " +
-        errorText.substring(0,300)
+        errorText.substring(
+          0,
+          300
+        )
       );
 
     }
@@ -839,7 +1108,9 @@ async function generateImage(scene,elements){
 
 
     const imageURL =
-      URL.createObjectURL(blob);
+      URL.createObjectURL(
+        blob
+      );
 
 
     elements.imageBox.innerHTML =
@@ -847,7 +1118,9 @@ async function generateImage(scene,elements){
 
 
     const img =
-      document.createElement("img");
+      document.createElement(
+        "img"
+      );
 
     img.src =
       imageURL;
@@ -858,7 +1131,9 @@ async function generateImage(scene,elements){
       " Cartoon Image";
 
 
-    elements.imageBox.appendChild(img);
+    elements.imageBox.appendChild(
+      img
+    );
 
 
     elements.imageStatus.className =
@@ -904,50 +1179,326 @@ async function generateImage(scene,elements){
 
 
 /* =====================================================
-   GENERATE ALL IMAGES
+   GENERATE VOICE
 ===================================================== */
 
-async function generateAllImages(
+async function generateVoice(
+  scene,
+  elements
+){
+
+  elements.voiceStatus.className =
+    "voice-status";
+
+  elements.voiceStatus.textContent =
+    "🔊 Scene " +
+    scene.number +
+    " ची voice तयार होत आहे...";
+
+
+  elements.playBtn.disabled =
+    true;
+
+  elements.stopBtn.disabled =
+    true;
+
+  elements.downloadBtn.disabled =
+    true;
+
+
+  try{
+
+    const response =
+      await fetch(
+        BACKEND_URL,
+        {
+
+          method:"POST",
+
+          headers:{
+            "Content-Type":
+              "application/json"
+          },
+
+          body:JSON.stringify({
+
+            action:
+              "generate-voice",
+
+            text:
+              scene.voice,
+
+            language:
+              languageInput.value
+
+          })
+
+        }
+      );
+
+
+    if(!response.ok){
+
+      const errorText =
+        await response.text();
+
+      let message =
+        "Voice generation failed. HTTP " +
+        response.status;
+
+
+      try{
+
+        const errorData =
+          JSON.parse(
+            errorText
+          );
+
+        if(errorData.error){
+          message =
+            errorData.error;
+        }
+
+      }
+      catch(e){}
+
+
+      throw new Error(
+        message
+      );
+
+    }
+
+
+    const contentType =
+      response.headers.get(
+        "content-type"
+      ) || "";
+
+
+    if(
+      !contentType.includes(
+        "audio/"
+      )
+    ){
+
+      const errorText =
+        await response.text();
+
+      throw new Error(
+        "Backend ने audio ऐवजी response दिला: " +
+        errorText.substring(
+          0,
+          300
+        )
+      );
+
+    }
+
+
+    const blob =
+      await response.blob();
+
+
+    const voiceURL =
+      URL.createObjectURL(
+        blob
+      );
+
+
+    elements.voiceURL =
+      voiceURL;
+
+
+    elements.audio.src =
+      voiceURL;
+
+
+    elements.audio.style.display =
+      "block";
+
+
+    /* -----------------------------------------------
+       PLAY
+    ------------------------------------------------ */
+
+    elements.playBtn.disabled =
+      false;
+
+    elements.playBtn.onclick =
+      function(){
+
+        elements.audio.play();
+
+      };
+
+
+    /* -----------------------------------------------
+       STOP
+    ------------------------------------------------ */
+
+    elements.stopBtn.disabled =
+      false;
+
+    elements.stopBtn.onclick =
+      function(){
+
+        elements.audio.pause();
+
+        elements.audio.currentTime =
+          0;
+
+      };
+
+
+    /* -----------------------------------------------
+       DOWNLOAD
+    ------------------------------------------------ */
+
+    elements.downloadBtn.disabled =
+      false;
+
+    elements.downloadBtn.onclick =
+      function(){
+
+        const a =
+          document.createElement(
+            "a"
+          );
+
+        a.href =
+          voiceURL;
+
+        a.download =
+          "Apna-Creator-AI-Scene-" +
+          scene.number +
+          ".mp3";
+
+        document.body.appendChild(
+          a
+        );
+
+        a.click();
+
+        a.remove();
+
+      };
+
+
+    elements.voiceStatus.className =
+      "voice-status voice-success";
+
+    elements.voiceStatus.textContent =
+      "✅ Scene " +
+      scene.number +
+      " voice तयार झाली.";
+
+
+    return true;
+
+  }
+  catch(error){
+
+    console.error(
+      "VOICE ERROR:",
+      error
+    );
+
+
+    elements.voiceStatus.className =
+      "voice-status voice-error";
+
+    elements.voiceStatus.textContent =
+      "❌ Scene " +
+      scene.number +
+      " voice error: " +
+      (
+        error.message ||
+        error
+      );
+
+
+    return false;
+  }
+}
+
+
+/* =====================================================
+   GENERATE ALL IMAGES + VOICES
+===================================================== */
+
+async function generateAllMedia(
   scenes,
   elements
 ){
 
-  let successCount = 0;
-  let failedCount = 0;
+  let imageSuccess =
+    0;
+
+  let voiceSuccess =
+    0;
+
+  let failed =
+    0;
 
 
-  for(let i=0;i<scenes.length;i++){
+  for(
+    let i=0;
+    i<scenes.length;
+    i++
+  ){
 
     const scene =
       scenes[i];
 
 
     setStatus(
-      "🎨 Images तयार होत आहेत...\n\n" +
-      "आत्ता Scene " +
+      "🎨 Scene " +
       scene.number +
       " / " +
       scenes.length +
-      " तयार होत आहे.\n\n" +
-      "तयार: " +
-      successCount +
-      " / " +
-      scenes.length
+      "\n\n" +
+      "Image तयार होत आहे..."
     );
 
 
-    const success =
+    const imageOK =
       await generateImage(
         scene,
         elements[i]
       );
 
 
-    if(success){
-      successCount++;
+    if(imageOK){
+      imageSuccess++;
     }
     else{
-      failedCount++;
+      failed++;
+    }
+
+
+    setStatus(
+      "🔊 Scene " +
+      scene.number +
+      " / " +
+      scenes.length +
+      "\n\n" +
+      "Voice तयार होत आहे..."
+    );
+
+
+    const voiceOK =
+      await generateVoice(
+        scene,
+        elements[i]
+      );
+
+
+    if(voiceOK){
+      voiceSuccess++;
+    }
+    else{
+      failed++;
     }
 
 
@@ -959,14 +1510,17 @@ async function generateAllImages(
   }
 
 
-  if(failedCount === 0){
+  if(
+    imageSuccess === 8 &&
+    voiceSuccess === 8
+  ){
 
     setStatus(
       "🎉 पूर्ण झाले!\n\n" +
-      scenes.length +
-      " scenes आणि " +
-      scenes.length +
-      " images तयार झाल्या.",
+      "✅ 8 Scenes\n" +
+      "✅ 8 Cartoon Images\n" +
+      "✅ 8 Voice Files\n\n" +
+      "प्रत्येक Scene खाली Play आणि Download MP3 वापरू शकता.",
       "success"
     );
 
@@ -974,16 +1528,16 @@ async function generateAllImages(
   else{
 
     setStatus(
-      "⚠️ Image generation पूर्ण झाली.\n\n" +
-      "तयार: " +
-      successCount +
-      " / " +
-      scenes.length +
-      "\nFailed: " +
-      failedCount +
-      " / " +
-      scenes.length,
-      failedCount === scenes.length
+      "⚠️ Generation पूर्ण झाली.\n\n" +
+      "Images: " +
+      imageSuccess +
+      " / 8\n" +
+      "Voice: " +
+      voiceSuccess +
+      " / 8\n\n" +
+      "Failed: " +
+      failed,
+      failed >= 16
         ? "error"
         : "normal"
     );
@@ -1017,7 +1571,7 @@ async function createStory(){
     true;
 
   createBtn.textContent =
-    "⏳ STORY + IMAGES तयार होत आहेत...";
+    "⏳ STORY + IMAGES + VOICE...";
 
 
   storyOutput.textContent =
@@ -1028,12 +1582,15 @@ async function createStory(){
     '<div class="loading">🤖 AI 8 scenes तयार करत आहे...</div>';
 
 
-  setProgress(0,8);
+  setProgress(
+    0,
+    8
+  );
 
 
   setStatus(
     "🤖 तुमची Story AI कडे पाठवत आहे...\n\n" +
-    "AI तुमच्या Story वरून 8 connected scenes तयार करेल."
+    "AI 8 connected scenes तयार करेल."
   );
 
 
@@ -1043,6 +1600,7 @@ async function createStory(){
       await fetch(
         BACKEND_URL,
         {
+
           method:"POST",
 
           headers:{
@@ -1052,9 +1610,11 @@ async function createStory(){
 
           body:JSON.stringify({
 
-            action:"generate-story",
+            action:
+              "generate-story",
 
-            story:story,
+            story:
+              story,
 
             language:
               languageInput.value,
@@ -1066,6 +1626,7 @@ async function createStory(){
               styleInput.value
 
           })
+
         }
       );
 
@@ -1087,7 +1648,10 @@ async function createStory(){
 
       throw new Error(
         "Backend ने valid JSON दिले नाही.\n\n" +
-        raw.substring(0,500)
+        raw.substring(
+          0,
+          500
+        )
       );
 
     }
@@ -1104,63 +1668,70 @@ async function createStory(){
     }
 
 
-    /*
-      Extract story from different possible
-      backend response formats.
-    */
-
     const aiStory =
-      extractStory(data);
+      extractStory(
+        data
+      );
 
 
     if(!aiStory){
 
       throw new Error(
         "AI response मध्ये story सापडली नाही.\n\n" +
-        JSON.stringify(data).substring(0,1000)
+        JSON.stringify(
+          data
+        ).substring(
+          0,
+          1000
+        )
       );
 
     }
 
 
     const cleanStory =
-      cleanStoryText(aiStory);
+      cleanStoryText(
+        aiStory
+      );
 
 
     storyOutput.textContent =
       cleanStory;
 
 
-    /*
-      Parse scenes.
-    */
-
     const scenes =
-      parseScenes(cleanStory);
+      parseScenes(
+        cleanStory
+      );
 
 
-    if(scenes.length !== 8){
+    if(
+      scenes.length !== 8
+    ){
 
       throw new Error(
         "AI response मध्ये पूर्ण 8 scenes सापडले नाहीत.\n\n" +
         "मिळाले: " +
         scenes.length +
         " / 8\n\n" +
-        "AI response:\n\n" +
-        cleanStory.substring(0,3000)
+        cleanStory.substring(
+          0,
+          3000
+        )
       );
 
     }
 
 
-    /*
-      Verify scene numbers.
-    */
-
-    for(let i=0;i<8;i++){
+    for(
+      let i=0;
+      i<8;
+      i++
+    ){
 
       if(
-        scenes[i].number !== i + 1
+        scenes[i].number !==
+        i + 1
       ){
 
         throw new Error(
@@ -1168,29 +1739,24 @@ async function createStory(){
         );
 
       }
+
     }
 
 
-    /*
-      Show scenes.
-    */
-
     const elements =
-      renderScenes(scenes);
+      renderScenes(
+        scenes
+      );
 
 
     setStatus(
       "✅ 8 scenes तयार झाले!\n\n" +
-      "🎨 आता प्रत्येक Scene च्या Visual वरून image आपोआप तयार होत आहे.\n\n" +
+      "🎨 Images आणि 🔊 Voice तयार होत आहेत.\n\n" +
       "Browser बंद करू नका."
     );
 
 
-    /*
-      Generate images one by one.
-    */
-
-    await generateAllImages(
+    await generateAllMedia(
       scenes,
       elements
     );
@@ -1212,7 +1778,10 @@ async function createStory(){
       '<p class="small">❌ Scenes तयार झाले नाहीत.</p>';
 
 
-    setProgress(0,8);
+    setProgress(
+      0,
+      8
+    );
 
 
     setStatus(
@@ -1250,3 +1819,4 @@ createBtn.addEventListener(
 
 </body>
 </html>
+````
