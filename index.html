@@ -1,4 +1,3 @@
-````html
 <!DOCTYPE html>
 <html lang="mr">
 <head>
@@ -725,129 +724,103 @@ function renderScenes(scenes) {
 
 
 /* =====================================================
+   IMAGE REFERENCE HELPER
+===================================================== */
+
+async function blobToBase64(blob) {
+  const buffer = await blob.arrayBuffer();
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  const chunkSize = 0x8000;
+
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    const chunk = bytes.subarray(i, i + chunkSize);
+    binary += String.fromCharCode(...chunk);
+  }
+
+  return btoa(binary);
+}
+
+
+/* =====================================================
    GENERATE IMAGE
 ===================================================== */
 
-async function generateImage(scene, element) {
+async function generateImage(
+  scene,
+  element,
+  storyContext,
+  characterLock,
+  referenceImageBase64
+) {
 
-  element.imageStatus.className =
-    "image-status";
-
+  element.imageStatus.className = "image-status";
   element.imageStatus.textContent =
-    "🎨 Scene " +
-    scene.number +
-    " image तयार होत आहे...";
-
+    "🎨 Scene " + scene.number + " image तयार होत आहे...";
   element.imageBox.innerHTML =
     '<div class="loading">🎨 Image generating...<br>कृपया थांबा.</div>';
 
   try {
-
-    const response =
-      await fetch(
-        BACKEND_URL,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            action: "generate-image",
-            visual: scene.visual,
-            language: languageInput.value,
-            style: styleInput.value
-          })
-        }
-      );
+    const response = await fetch(BACKEND_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "generate-image",
+        visual: scene.visual,
+        storyContext: storyContext,
+        characterLock: characterLock,
+        referenceImageBase64: referenceImageBase64 || "",
+        language: languageInput.value,
+        style: styleInput.value
+      })
+    });
 
     if (!response.ok) {
-
-      const text =
-        await response.text();
-
-      let message =
-        "Image error HTTP " +
-        response.status;
-
+      const text = await response.text();
+      let message = "Image error HTTP " + response.status;
       try {
-
-        const data =
-          JSON.parse(text);
-
-        if (data.error) {
-          message = data.error;
-        }
-
+        const data = JSON.parse(text);
+        if (data.error) message = data.error;
       } catch (e) {}
-
       throw new Error(message);
     }
 
-
-    const contentType =
-      response.headers.get("content-type") || "";
-
+    const contentType = response.headers.get("content-type") || "";
     if (!contentType.includes("image")) {
-
-      const text =
-        await response.text();
-
+      const text = await response.text();
       throw new Error(
-        "Backend ने image ऐवजी response दिला: " +
-        text.substring(0, 300)
+        "Backend ने image ऐवजी response दिला: " + text.substring(0, 300)
       );
     }
 
+    const blob = await response.blob();
+    if (!blob.size) throw new Error("Image file रिकामी आहे.");
 
-    const blob =
-      await response.blob();
+    const url = URL.createObjectURL(blob);
+    element.imageBox.innerHTML = "";
 
-    const url =
-      URL.createObjectURL(blob);
-
-    element.imageBox.innerHTML =
-      "";
-
-    const img =
-      document.createElement("img");
-
+    const img = document.createElement("img");
     img.src = url;
-
-    img.alt =
-      "Scene " +
-      scene.number +
-      " Cartoon Image";
-
+    img.alt = "Scene " + scene.number + " Cartoon Image";
     element.imageBox.appendChild(img);
 
-    element.imageStatus.className =
-      "image-status ok";
-
+    element.imageStatus.className = "image-status ok";
     element.imageStatus.textContent =
-      "✅ Scene " +
-      scene.number +
-      " image तयार झाली.";
+      "✅ Scene " + scene.number + " image तयार झाली.";
 
-    return true;
+    // Scene 1 becomes the fixed visual reference for recurring characters.
+    const reference = scene.number === 1
+      ? await blobToBase64(blob)
+      : null;
+
+    return { ok: true, referenceImageBase64: reference };
 
   } catch (error) {
-
-    console.error(
-      "IMAGE ERROR:",
-      error
-    );
-
-    element.imageBox.textContent =
-      "❌ Image तयार झाली नाही.";
-
-    element.imageStatus.className =
-      "image-status bad";
-
-    element.imageStatus.textContent =
-      "❌ " +
-      (error.message || error);
-
-    return false;
+    console.error("IMAGE ERROR:", error);
+    element.imageBox.textContent = "❌ Image तयार झाली नाही.";
+    element.imageStatus.className = "image-status bad";
+    element.imageStatus.textContent = "❌ " + (error.message || error);
+    return { ok: false, referenceImageBase64: null };
   }
 }
 
@@ -1035,76 +1008,54 @@ async function generateVoice(scene, element) {
    GENERATE ALL
 ===================================================== */
 
-async function generateAll(scenes, elements) {
+async function generateAll(
+  scenes,
+  elements,
+  storyContext,
+  characterLock
+) {
 
   let imageSuccess = 0;
   let voiceSuccess = 0;
   let failed = 0;
-
+  let characterReferenceImageBase64 = null;
 
   for (let i = 0; i < scenes.length; i++) {
-
-    const scene =
-      scenes[i];
-
-    const element =
-      elements[i];
-
+    const scene = scenes[i];
+    const element = elements[i];
 
     setStatus(
-      "🎨 Scene " +
-      scene.number +
-      " / 8\n\n" +
+      "🎨 Scene " + scene.number + " / 8\n\n" +
       "Image + Voice तयार होत आहेत...\n\n" +
-      "Images: " +
-      imageSuccess +
-      " / 8\n" +
-      "Voice: " +
-      voiceSuccess +
-      " / 8"
+      "Images: " + imageSuccess + " / 8\n" +
+      "Voice: " + voiceSuccess + " / 8"
     );
 
+    const imageResult = await generateImage(
+      scene,
+      element,
+      storyContext,
+      characterLock,
+      characterReferenceImageBase64
+    );
 
-    const imageOK =
-      await generateImage(
-        scene,
-        element
-      );
-
-
-    if (imageOK) {
+    if (imageResult.ok) {
       imageSuccess++;
+      if (scene.number === 1 && imageResult.referenceImageBase64) {
+        characterReferenceImageBase64 = imageResult.referenceImageBase64;
+      }
     } else {
       failed++;
     }
 
+    const voiceOK = await generateVoice(scene, element);
+    if (voiceOK) voiceSuccess++;
+    else failed++;
 
-    const voiceOK =
-      await generateVoice(
-        scene,
-        element
-      );
-
-
-    if (voiceOK) {
-      voiceSuccess++;
-    } else {
-      failed++;
-    }
-
-
-    setProgress(
-      i + 1,
-      scenes.length
-    );
+    setProgress(i + 1, scenes.length);
   }
 
-
-  if (
-    imageSuccess === 8 &&
-    voiceSuccess === 8
-  ) {
-
+  if (imageSuccess === 8 && voiceSuccess === 8) {
     setStatus(
       "🎉 पूर्ण झाले!\n\n" +
       "Images: 8 / 8\n" +
@@ -1112,22 +1063,15 @@ async function generateAll(scenes, elements) {
       "प्रत्येक Scene खाली Play आणि Download MP3 उपलब्ध आहे.",
       "success"
     );
-
   } else {
-
     setStatus(
       "⚠️ Generation पूर्ण झाली.\n\n" +
-      "Images: " +
-      imageSuccess +
-      " / 8\n" +
-      "Voice: " +
-      voiceSuccess +
-      " / 8\n" +
-      "Failed: " +
-      failed,
-      failed > 0 ? "error" : "normal"
+      "Images: " + imageSuccess + " / 8\n" +
+      "Voice: " + voiceSuccess + " / 8\n" +
+      "Failed: " + failed + "\n\n" +
+      "वरील Scene मधील लाल error वाचा.",
+      "error"
     );
-
   }
 }
 
@@ -1278,20 +1222,30 @@ async function createStory() {
     }
 
 
-    const elements =
-      renderScenes(scenes);
+    const characterLock =
+      typeof data.characterLock === "string"
+        ? data.characterLock.trim()
+        : "";
 
+    if (!characterLock) {
+      throw new Error(
+        "AI ने Character Lock दिला नाही. पुन्हा CREATE STORY करा."
+      );
+    }
+
+    const elements = renderScenes(scenes);
 
     setStatus(
-      "✅ 8 scenes तयार झाले!\n\n" +
-      "आता Images + Voice तयार होत आहेत.\n\n" +
+      "✅ 8 scenes आणि Character Lock तयार झाले!\n\n" +
+      "आता Story-matched Images + Voice तयार होत आहेत.\n\n" +
       "कृपया Browser बंद करू नका."
     );
 
-
     await generateAll(
       scenes,
-      elements
+      elements,
+      story,
+      characterLock
     );
 
 
@@ -1353,4 +1307,3 @@ console.log(
 
 </body>
 </html>
-````
