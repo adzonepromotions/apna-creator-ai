@@ -5,103 +5,158 @@ const corsHeaders = {
   "Access-Control-Max-Age": "86400"
 };
 
-const STORY_MODEL = "@cf/meta/llama-3.1-8b-instruct-fast";
-const IMAGE_MODEL = "@cf/black-forest-labs/flux-2-klein-9b";
-
 function jsonResponse(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
     headers: {
       ...corsHeaders,
-      "Content-Type": "application/json; charset=UTF-8",
-      "Cache-Control": "no-store"
+      "Content-Type": "application/json; charset=UTF-8"
     }
   });
 }
 
-function cleanLine(value) {
-  return String(value || "").replace(/\s+/g, " ").trim();
+/* =========================================
+   TEXT CLEANING
+========================================= */
+
+function cleanText(text) {
+  return String(text || "")
+    .replace(/```json/gi, "")
+    .replace(/```text/gi, "")
+    .replace(/```/g, "")
+    .replace(/\r/g, "")
+    .trim();
 }
 
-function escapeXml(value) {
-  return String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;");
+function cleanLine(text) {
+  return String(text || "")
+    .replace(/\s+/g, " ")
+    .replace(/^["“”]+|["“”]+$/g, "")
+    .trim();
 }
 
-function decodeDataUrl(dataUrl) {
-  const match = String(dataUrl || "").match(/^data:image\/(?:png|jpeg|jpg|webp);base64,([A-Za-z0-9+/=]+)$/i);
-  if (!match) throw new Error("Reference image data is invalid.");
-  const binary = atob(match[1]);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-  return bytes;
-}
+/* =========================================
+   LANGUAGE
+========================================= */
 
-function imageResultToBytes(result) {
-  if (result instanceof Uint8Array) return result;
-  if (result instanceof ArrayBuffer) return new Uint8Array(result);
-  if (ArrayBuffer.isView(result)) {
-    return new Uint8Array(result.buffer, result.byteOffset, result.byteLength);
-  }
-  const encoded = result && (result.image || result.data);
-  if (typeof encoded === "string") {
-    const clean = encoded.replace(/^data:image\/[^;]+;base64,/, "");
-    const binary = atob(clean);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    return bytes;
-  }
-  throw new Error("Image model returned no image bytes.");
-}
+function getLanguageRule(language) {
 
-function getLanguageDetails(language) {
   if (language === "Hindi") {
-    return {
-      locale: "hi-IN",
-      voice: "hi-IN-SwaraNeural"
-    };
+    return `
+TARGET LANGUAGE: HINDI
+
+The final Voice must be natural, simple Hindi.
+Translate the meaning into Hindi if the user's story is in another language.
+Do NOT copy Marathi or English sentences into Voice.
+Use Devanagari Hindi script.
+`;
   }
+
   if (language === "English") {
-    return {
-      locale: "en-IN",
-      voice: "en-IN-NeerjaNeural"
-    };
+    return `
+TARGET LANGUAGE: ENGLISH
+
+The final Voice must be natural, simple English.
+Translate the meaning into English if the user's story is in another language.
+Do NOT copy Marathi or Hindi sentences into Voice.
+`;
   }
-  return {
-    locale: "mr-IN",
-    voice: "mr-IN-AarohiNeural"
-  };
+
+  return `
+TARGET LANGUAGE: MARATHI
+
+The final Voice must be natural, simple Marathi.
+Translate the meaning into Marathi if the user's story is in another language.
+Do NOT copy Hindi or English sentences into Voice.
+Use natural Marathi grammar.
+`;
 }
 
-function makeStoryPrompt(story, language, duration, style) {
-  return `You are a professional children's story writer and animation storyboard director.
+/* =========================================
+   STORY PROMPT
+========================================= */
 
-SOURCE STORY (the only source of truth):
+function createStoryPrompt(story, language) {
+
+  return `
+You are an expert children's cartoon screenwriter and animation director.
+
+USER STORY:
 ${story}
 
-Create exactly 8 chronological, connected scenes. Preserve the source story's characters, setting, objects, cause-and-effect, and ending. Do not replace it with a generic children's story. Do not invent a new cast or unrelated events. Expand only where necessary to create 8 visual moments.
+${getLanguageRule(language)}
 
-Target narration language: ${language}.
-Cartoon style: ${style}.
-Requested total video duration: ${duration}.
+IMPORTANT:
 
-Before the scenes, create CHARACTER_LOCK. List every important recurring character and give each a short fixed visual description: name, approximate age/species, face, hair/fur/feathers, body shape, clothing and colors, accessories. If the source does not specify a detail, choose one simple design and keep it identical in all scenes. Do not invent extra main characters.
+The user's story is the source of truth.
 
-For every scene:
-- Visual must be in English and describe one specific frame/action that actually happens in the source story.
-- Include the names and fixed appearance details of characters who are visible in that scene.
-- State the exact action, location, important object, and emotion. Avoid generic phrases.
-- Voice must be natural ${language}, one or two short sentences, and must narrate that exact scene.
-- The eight Visuals must be different and advance the same story in order.
+DO NOT replace the user's story with a different story.
 
-Return only this format, with no Markdown and no extra explanation:
+DO NOT invent unrelated events.
+
+Keep the same main characters, animals, objects and important events from the user's story.
+
+You may expand the story into 8 connected scenes, but the story must remain faithful to the user's idea.
+
+Create EXACTLY 8 connected scenes.
+
+CHARACTER CONSISTENCY IS EXTREMELY IMPORTANT.
+
+First identify the important characters from the user's story.
+
+For every important character, create a short CHARACTER LOCK description containing:
+- character type
+- age or size if known
+- gender if clearly known
+- body appearance
+- face appearance
+- hair or feathers
+- clothing
+- clothing colors
+- important accessories
+- important identifying features
+
+If the story does not specify something, choose a simple appearance and KEEP IT EXACTLY THE SAME in all 8 scenes.
+
+Do not change character clothes, colors, hairstyle, feathers, body type or face between scenes.
+
+The same character must look like the same character in every image.
+
+VISUAL RULE:
+
+Visual must be written in ENGLISH.
+
+Visual must describe the actual action happening in that scene.
+
+Do NOT write generic filler such as:
+"fun adventure"
+"beautiful jungle"
+"happy friends"
+unless that is actually part of the scene.
+
+Every Visual must include the relevant character names or character descriptions and the exact action.
+
+VOICE RULE:
+
+Voice must be exactly ONE short sentence.
+
+Voice must be in ${language}.
+
+Voice must describe or support the actual scene.
+
+Do not repeat Voice sentences.
+
+No title.
+No explanation.
+No markdown.
+No code fences.
+
+OUTPUT EXACTLY IN THIS FORMAT:
+
 CHARACTER_LOCK:
 Character 1: ...
 Character 2: ...
+Character 3: ...
 
 SCENE 1
 Visual: ...
@@ -133,262 +188,886 @@ Voice: ...
 
 SCENE 8
 Visual: ...
-Voice: ...`;
+Voice: ...
+
+OUTPUT ONLY CHARACTER_LOCK AND THE 8 SCENES.
+`;
 }
 
-function extractScenes(text) {
-  const source = String(text || "")
-    .replace(/```(?:text|markdown)?/gi, "")
-    .replace(/```/g, "")
-    .replace(/\r/g, "")
-    .trim();
-  const regex = /SCENE\s*([1-8])\s*:?\s*[\r\n]+\s*Visual\s*:\s*([\s\S]*?)\s*[\r\n]+\s*Voice\s*:\s*([\s\S]*?)(?=[\r\n]+\s*SCENE\s*[1-8]\b|$)/gi;
-  const found = new Map();
-  let match;
-  while ((match = regex.exec(source)) !== null) {
-    const number = Number(match[1]);
-    const visual = cleanLine(match[2]);
-    const voice = cleanLine(match[3]);
-    if (number >= 1 && number <= 8 && visual && voice) {
-      found.set(number, { number, visual, voice });
-    }
-  }
-  return Array.from(found.values()).sort((a, b) => a.number - b.number);
-}
+/* =========================================
+   EXTRACT CHARACTER LOCK
+========================================= */
 
 function extractCharacterLock(text) {
-  const source = String(text || "").replace(/\r/g, "");
-  const match = source.match(/CHARACTER_LOCK\s*:\s*([\s\S]*?)(?=\n\s*SCENE\s*1\b)/i);
-  return match ? match[1].trim() : "";
+
+  const cleaned = cleanText(text);
+
+  const start =
+    cleaned.search(/CHARACTER_LOCK\s*:/i);
+
+  if (start < 0) {
+    return "";
+  }
+
+  const after =
+    cleaned.substring(start);
+
+  const sceneStart =
+    after.search(/SCENE\s*1\b/i);
+
+  if (sceneStart < 0) {
+    return "";
+  }
+
+  const lock =
+    after.substring(0, sceneStart).trim();
+
+  return lock
+    .replace(/^CHARACTER_LOCK\s*:\s*/i, "")
+    .trim();
 }
+
+/* =========================================
+   EXTRACT SCENES
+========================================= */
+
+function extractScenes(text) {
+
+  const cleaned =
+    cleanText(text);
+
+  const regex =
+    /SCENE\s*([1-8])\s*[\r\n]+Visual\s*:\s*([\s\S]*?)[\r\n]+Voice\s*:\s*([\s\S]*?)(?=[\r\n]+SCENE\s*[1-8]\b|$)/gi;
+
+  const scenes = [];
+
+  let match;
+
+  while (
+    (match = regex.exec(cleaned)) !== null
+  ) {
+
+    const number =
+      Number(match[1]);
+
+    if (
+      number < 1 ||
+      number > 8
+    ) {
+      continue;
+    }
+
+    let visual =
+      cleanLine(match[2]);
+
+    let voice =
+      cleanLine(match[3]);
+
+    /*
+      Remove accidental extra text
+      after Voice.
+    */
+
+    voice =
+      voice
+        .replace(
+          /\s+(CHARACTER_LOCK|SCENE)\s*.*$/i,
+          ""
+        )
+        .trim();
+
+    if (
+      visual &&
+      voice
+    ) {
+
+      scenes.push({
+        number,
+        visual,
+        voice
+      });
+
+    }
+
+  }
+
+  /*
+    Remove duplicate scenes.
+  */
+
+  const unique = [];
+
+  for (const scene of scenes) {
+
+    if (
+      !unique.some(
+        x => x.number === scene.number
+      )
+    ) {
+
+      unique.push(scene);
+
+    }
+
+  }
+
+  unique.sort(
+    (a, b) =>
+      a.number - b.number
+  );
+
+  return unique;
+}
+
+/* =========================================
+   VALIDATE 8 SCENES
+========================================= */
+
+function validateScenes(scenes) {
+
+  if (
+    !Array.isArray(scenes) ||
+    scenes.length !== 8
+  ) {
+    return false;
+  }
+
+  for (
+    let i = 0;
+    i < 8;
+    i++
+  ) {
+
+    if (
+      !scenes[i] ||
+      scenes[i].number !== i + 1 ||
+      !scenes[i].visual ||
+      !scenes[i].voice
+    ) {
+
+      return false;
+
+    }
+
+  }
+
+  return true;
+}
+
+/* =========================================
+   BUILD STORY
+========================================= */
 
 function buildStory(scenes) {
-  return scenes.map(scene =>
-    `SCENE ${scene.number}\nVisual: ${scene.visual}\nVoice: ${scene.voice}`
-  ).join("\n\n");
+
+  return scenes
+    .map(scene => {
+
+      return (
+        "SCENE " +
+        scene.number +
+        "\nVisual: " +
+        cleanLine(scene.visual) +
+        "\nVoice: " +
+        cleanLine(scene.voice)
+      );
+
+    })
+    .join("\n\n");
 }
 
-async function generateStory(env, story, language, duration, style) {
-  const prompt = makeStoryPrompt(story, language, duration, style);
-  let lastText = "";
+/* =========================================
+   IMAGE PROMPT
+========================================= */
 
-  for (let attempt = 1; attempt <= 2; attempt++) {
-    const promptToSend = attempt === 1 ? prompt : `${prompt}\n\nSTRICT RETRY: Your prior response did not contain a parseable CHARACTER_LOCK and all 8 numbered scenes. Return all sections exactly in the required format. Do not omit any scene.`;
-    const result = await env.AI.run(STORY_MODEL, {
-      prompt: promptToSend,
-      max_tokens: 3200,
-      temperature: 0.2
-    });
-    lastText = result && typeof result.response === "string" ? result.response : "";
-    const scenes = extractScenes(lastText);
-    const characterLock = extractCharacterLock(lastText);
-    if (scenes.length === 8 && scenes.every((scene, index) => scene.number === index + 1) && characterLock.length >= 20) {
-      return { scenes, characterLock };
-    }
-  }
+function createImagePrompt(
+  visual,
+  characterLock,
+  style
+) {
 
-  throw new Error(`AI did not return a valid character lock and 8 scenes. No fallback story was generated. Response: ${lastText.slice(0, 900)}`);
-}
+  const styleText =
+    style === "2D Cartoon"
+      ? "high quality 2D children's cartoon animation"
+      : style === "Kids Cartoon"
+        ? "bright colorful children's cartoon animation"
+        : "high quality 3D children's cartoon animation";
 
-function makeImagePrompt({ story, visual, characterLock, style, sceneNumber }) {
-  const styleDescription = style === "2D Cartoon"
-    ? "polished 2D hand-painted children's animation"
-    : style === "Kids Cartoon"
-      ? "bright soft children's picture-book cartoon illustration"
-      : "high quality cinematic 3D animated children's cartoon";
+  return `
+Create ONE children's cartoon image.
 
-  return `Create ONE single cinematic frame for scene ${sceneNumber} of an existing children's story.
+IMPORTANT CHARACTER CONSISTENCY RULE:
 
-FULL STORY CONTEXT (use only to understand continuity):
-${String(story || "").slice(0, 2500)}
+The characters described below are LOCKED.
 
-FIXED CHARACTER DESIGNS — preserve these identities exactly:
-${characterLock}
+CHARACTER LOCK:
+${characterLock || "Keep all characters exactly consistent with the previous scene."}
 
-THIS SCENE'S EXACT VISUAL ACTION — illustrate this, not a different event:
+NEVER change:
+- character identity
+- face
+- body shape
+- age
+- hairstyle
+- hair color
+- feather color
+- clothing
+- clothing colors
+- accessories
+- important identifying features
+
+If the same character appears in another scene, it MUST look like the SAME character.
+
+CURRENT SCENE:
 ${visual}
 
-Continuity instructions:
-- Any recurring character shown must retain the exact same face, hairstyle, skin/fur/feather colors, body proportions, clothing, clothing colors and accessories from the reference image and character descriptions.
-- Use the reference image only as identity/design guidance; do not copy its old pose or background.
-- Show only characters and objects required by this scene. Do not add random children, animals or props.
-- One scene only, one coherent camera view, not a collage or storyboard.
+IMAGE STYLE:
+${styleText}
 
-Visual style: ${styleDescription}. Rich expressive faces, clear readable action, detailed story-appropriate background, warm cinematic lighting, attractive composition.
+Requirements:
+- child friendly
+- expressive characters
+- clear character faces
+- consistent character design
+- detailed environment matching the scene
+- cinematic composition
+- good lighting
+- vibrant colors
+- high quality
+- no text
+- no subtitles
+- no speech bubbles
+- no watermark
+- no random characters
+- no unrelated objects
+- do not change the story
+- show exactly what the current scene describes
 
-STRICT IMAGE RESTRICTIONS: no letters, no words, no numbers, no title, no captions, no subtitles, no speech bubbles, no signs with writing, no logos, no watermarks. Do not draw any text anywhere.`;
+Create only the image.
+`;
 }
 
-async function generateImage(env, data) {
-  const prompt = makeImagePrompt({
-    story: data.story,
-    visual: data.visual,
-    characterLock: data.characterLock,
-    style: data.style,
-    sceneNumber: data.sceneNumber
-  });
+/* =========================================
+   IMAGE GENERATION
+========================================= */
 
-  const form = new FormData();
-  form.set("prompt", prompt);
-  form.set("width", "1024");
-  form.set("height", "768");
+async function generateImage(
+  env,
+  visual,
+  characterLock,
+  style
+) {
 
-  if (data.referenceImage) {
-    const refBytes = decodeDataUrl(data.referenceImage);
-    if (refBytes.byteLength > 2_000_000) {
-      throw new Error("Reference image is too large. The browser should resize it before upload.");
+  const prompt =
+    createImagePrompt(
+      visual,
+      characterLock,
+      style
+    );
+
+  /*
+    IMPORTANT:
+    No num_steps parameter.
+    This avoids the previous
+    Cloudflare schema error.
+  */
+
+  return await env.AI.run(
+    "@cf/bytedance/stable-diffusion-xl-lightning",
+    {
+      prompt: prompt
     }
-    form.append("input_image_0", new Blob([refBytes], { type: "image/jpeg" }), "character-reference.jpg");
-  }
+  );
+}
 
-  const multipartResponse = new Response(form);
-  const result = await env.AI.run(IMAGE_MODEL, {
-    multipart: {
-      body: multipartResponse.body,
-      contentType: multipartResponse.headers.get("content-type")
+/* =========================================
+   STORY GENERATION
+========================================= */
+
+async function generateStory(
+  env,
+  prompt
+) {
+
+  return await env.AI.run(
+    "@cf/meta/llama-3.1-8b-instruct-fast",
+    {
+      prompt: prompt,
+      max_tokens: 1800,
+      temperature: 0.15
     }
-  });
-  return imageResultToBytes(result);
+  );
 }
 
-async function generateVoice(env, text, language) {
-  if (!env.SPEECH_KEY || !env.SPEECH_REGION) {
-    throw new Error("Voice setup missing. Add SPEECH_KEY (Secret) and SPEECH_REGION (Variable) in Cloudflare Worker settings.");
+/* =========================================
+   FALLBACK STORY
+========================================= */
+
+function createFallbackScenes(
+  story,
+  language
+) {
+
+  const safeStory =
+    cleanLine(story);
+
+  let voices;
+
+  if (language === "Hindi") {
+
+    voices = [
+      "आज हम इस कहानी की शुरुआत करते हैं।",
+      "हम आगे बढ़ते हैं और नई चीज़ देखते हैं।",
+      "यह अनुभव बहुत रोचक है।",
+      "हम अपने दोस्तों के साथ आगे बढ़ते हैं।",
+      "यह दृश्य हमें एक नई बात सिखाता है।",
+      "हम मिलकर इस समस्या का हल खोजते हैं।",
+      "अब हमें कहानी का महत्वपूर्ण सबक समझ आता है।",
+      "इस कहानी से हमें हमेशा एक अच्छी सीख मिलती है।"
+    ];
+
+  } else if (language === "English") {
+
+    voices = [
+      "Our story begins with a wonderful adventure.",
+      "We move forward and discover something new.",
+      "This moment is very exciting.",
+      "We continue the journey together.",
+      "This scene teaches us something important.",
+      "Together, we find a way forward.",
+      "Now we understand the important lesson.",
+      "This story gives us a wonderful lesson."
+    ];
+
+  } else {
+
+    voices = [
+      "आपली सुंदर गोष्ट आता सुरू होते.",
+      "आपण पुढे जाताना एक नवीन गोष्ट पाहतो.",
+      "हा क्षण खूपच रोमांचक आहे.",
+      "आपण सगळे मिळून पुढे जातो.",
+      "या प्रसंगातून आपल्याला एक महत्त्वाची गोष्ट शिकायला मिळते.",
+      "आपण मिळून या समस्येचा मार्ग शोधतो.",
+      "आता आपल्याला या गोष्टीचा महत्त्वाचा धडा समजतो.",
+      "या गोष्टीतून आपल्याला एक सुंदर शिकवण मिळते."
+    ];
+
   }
 
-  const details = getLanguageDetails(language);
-  const ssml = `<speak version="1.0" xml:lang="${details.locale}"><voice name="${details.voice}">${escapeXml(text)}</voice></speak>`;
-  const region = String(env.SPEECH_REGION).trim().toLowerCase();
-  if (!/^[a-z0-9-]+$/.test(region)) throw new Error("SPEECH_REGION is invalid.");
+  const scenes = [];
 
-  const response = await fetch(`https://${region}.tts.speech.microsoft.com/cognitiveservices/v1`, {
-    method: "POST",
-    headers: {
-      "Ocp-Apim-Subscription-Key": env.SPEECH_KEY,
-      "Content-Type": "application/ssml+xml",
-      "X-Microsoft-OutputFormat": "audio-24khz-48kbitrate-mono-mp3",
-      "User-Agent": "ApnaCreatorAI"
-    },
-    body: ssml
-  });
+  for (
+    let i = 0;
+    i < 8;
+    i++
+  ) {
 
-  if (!response.ok) {
-    const detail = (await response.text()).slice(0, 500);
-    throw new Error(`Azure Speech failed (HTTP ${response.status}): ${detail}`);
+    scenes.push({
+
+      number:
+        i + 1,
+
+      visual:
+        `Children's cartoon scene based directly on this user story: ${safeStory}. Scene ${i + 1} continues the same story and keeps all characters consistent.`,
+
+      voice:
+        voices[i]
+
+    });
+
   }
-  const audio = await response.arrayBuffer();
-  if (!audio.byteLength) throw new Error("Speech service returned an empty audio file.");
-  return audio;
+
+  return scenes;
 }
+
+/* =========================================
+   WORKER
+========================================= */
 
 export default {
-  async fetch(request, env) {
-    if (request.method === "OPTIONS") {
-      return new Response(null, { status: 204, headers: corsHeaders });
+
+  async fetch(
+    request,
+    env
+  ) {
+
+    /* =====================================
+       CORS
+    ===================================== */
+
+    if (
+      request.method === "OPTIONS"
+    ) {
+
+      return new Response(
+        null,
+        {
+          status: 204,
+          headers: corsHeaders
+        }
+      );
+
     }
 
-    if (request.method === "GET") {
+    /* =====================================
+       GET TEST
+    ===================================== */
+
+    if (
+      request.method === "GET"
+    ) {
+
       return jsonResponse({
-        success: true,
-        status: "ok",
-        message: "Apna Creator AI Worker is running.",
-        storyModel: STORY_MODEL,
-        imageModel: IMAGE_MODEL,
-        voiceConfigured: Boolean(env.SPEECH_KEY && env.SPEECH_REGION)
+
+        success:
+          true,
+
+        status:
+          "ok",
+
+        message:
+          "Apna Creator AI Backend is active and running!",
+
+        storyModel:
+          "@cf/meta/llama-3.1-8b-instruct-fast",
+
+        imageModel:
+          "@cf/bytedance/stable-diffusion-xl-lightning"
+
       });
+
     }
 
-    if (request.method !== "POST") {
-      return jsonResponse({ success: false, error: "Method Not Allowed" }, 405);
+    /* =====================================
+       ONLY POST
+    ===================================== */
+
+    if (
+      request.method !== "POST"
+    ) {
+
+      return jsonResponse(
+        {
+          success:
+            false,
+
+          error:
+            "Method Not Allowed"
+        },
+        405
+      );
+
     }
 
-    let data;
     try {
-      data = await request.json();
-    } catch {
-      return jsonResponse({ success: false, error: "Request body must be valid JSON." }, 400);
-    }
 
-    try {
-      if (data.action === "generate-story") {
-        const story = String(data.story || "").trim();
-        const language = String(data.language || "Marathi").trim();
-        const duration = String(data.duration || "1 Minute").trim();
-        const style = String(data.style || "3D Cartoon").trim();
-        if (!story) return jsonResponse({ success: false, error: "Story is required." }, 400);
+      const data =
+        await request.json();
 
-        const generated = await generateStory(env, story, language, duration, style);
-        return jsonResponse({
-          success: true,
-          language,
-          duration,
-          style,
-          characterLock: generated.characterLock,
-          scenes: generated.scenes,
-          story: buildStory(generated.scenes)
-        });
-      }
+      /* ===================================
+         IMAGE REQUEST
+      =================================== */
 
-      if (data.action === "generate-image") {
-        const visual = String(data.visual || "").trim();
-        const story = String(data.story || "").trim();
-        const characterLock = String(data.characterLock || "").trim();
-        const style = String(data.style || "3D Cartoon").trim();
-        const sceneNumber = Math.max(1, Math.min(8, Number(data.sceneNumber) || 1));
-        if (!visual || !characterLock) {
-          return jsonResponse({ success: false, error: "Scene visual or character lock is missing. Generate the story again." }, 400);
+      if (
+        data.action ===
+        "generate-image"
+      ) {
+
+        const visual =
+          String(
+            data.visual || ""
+          ).trim();
+
+        const characterLock =
+          String(
+            data.characterLock || ""
+          ).trim();
+
+        const style =
+          String(
+            data.style ||
+            "3D Cartoon"
+          ).trim();
+
+        if (!visual) {
+
+          return jsonResponse(
+            {
+              success:
+                false,
+
+              error:
+                "Visual description required"
+            },
+            400
+          );
+
         }
 
-        const bytes = await generateImage(env, {
+        try {
+
+          const image =
+            await generateImage(
+              env,
+              visual,
+              characterLock,
+              style
+            );
+
+          return new Response(
+            image,
+            {
+              status: 200,
+
+              headers: {
+                ...corsHeaders,
+
+                "Content-Type":
+                  "image/png",
+
+                "Cache-Control":
+                  "no-store"
+              }
+            }
+          );
+
+        } catch (imageError) {
+
+          return jsonResponse(
+            {
+              success:
+                false,
+
+              error:
+                "Image generation failed: " +
+                (
+                  imageError &&
+                  imageError.message
+                    ? imageError.message
+                    : "Unknown image error"
+                )
+            },
+            500
+          );
+
+        }
+
+      }
+
+      /* ===================================
+         STORY REQUEST
+      =================================== */
+
+      const story =
+        String(
+          data.story || ""
+        ).trim();
+
+      const language =
+        String(
+          data.language ||
+          "Hindi"
+        ).trim();
+
+      const duration =
+        String(
+          data.duration ||
+          "1 Minute"
+        ).trim();
+
+      const style =
+        String(
+          data.style ||
+          "3D Cartoon"
+        ).trim();
+
+      if (!story) {
+
+        return jsonResponse(
+          {
+            success:
+              false,
+
+            error:
+              "Story is required"
+          },
+          400
+        );
+
+      }
+
+      /* ===================================
+         CREATE PROMPT
+      =================================== */
+
+      const prompt =
+        createStoryPrompt(
           story,
-          visual,
-          characterLock,
-          style,
-          sceneNumber,
-          referenceImage: data.referenceImage || ""
-        });
-        return new Response(bytes, {
-          status: 200,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "image/png",
-            "Cache-Control": "no-store"
-          }
-        });
+          language
+        );
+
+      /* ===================================
+         ATTEMPT 1
+      =================================== */
+
+      let result =
+        await generateStory(
+          env,
+          prompt
+        );
+
+      let raw =
+        result &&
+        result.response
+          ? result.response
+          : "";
+
+      let scenes =
+        extractScenes(raw);
+
+      let characterLock =
+        extractCharacterLock(raw);
+
+      /* ===================================
+         ATTEMPT 2
+      =================================== */
+
+      if (
+        !validateScenes(scenes)
+      ) {
+
+        const retryPrompt =
+          prompt +
+          `
+
+CRITICAL RETRY:
+
+Your previous response was invalid.
+
+You MUST return:
+1 CHARACTER_LOCK
+AND
+EXACTLY 8 SCENES.
+
+The scene numbers MUST be:
+1, 2, 3, 4, 5, 6, 7, 8.
+
+Every scene MUST contain:
+Visual:
+Voice:
+
+Every Voice MUST be in ${language}.
+
+Visual MUST be in English.
+
+Do not change the user's story.
+
+Return nothing except CHARACTER_LOCK and the 8 scenes.
+`;
+
+        result =
+          await generateStory(
+            env,
+            retryPrompt
+          );
+
+        raw =
+          result &&
+          result.response
+            ? result.response
+            : "";
+
+        scenes =
+          extractScenes(raw);
+
+        characterLock =
+          extractCharacterLock(raw);
+
       }
 
-      if (data.action === "generate-voice") {
-        const text = String(data.text || "").trim();
-        const language = String(data.language || "Marathi").trim();
-        if (!text) return jsonResponse({ success: false, error: "Voice text is required." }, 400);
-        const audio = await generateVoice(env, text, language);
-        return new Response(audio, {
-          status: 200,
-          headers: {
-            ...corsHeaders,
-            "Content-Type": "audio/mpeg",
-            "Content-Length": String(audio.byteLength),
-            "Cache-Control": "no-store"
-          }
-        });
+      /* ===================================
+         ATTEMPT 3
+      =================================== */
+
+      if (
+        !validateScenes(scenes)
+      ) {
+
+        const finalPrompt = `
+You are a children's cartoon director.
+
+USER STORY:
+${story}
+
+TARGET LANGUAGE:
+${language}
+
+Create exactly 8 scenes.
+
+Keep the user's story and characters.
+
+Create a CHARACTER_LOCK first.
+
+Then create exactly:
+
+SCENE 1
+Visual: English
+Voice: ${language}
+
+SCENE 2
+Visual: English
+Voice: ${language}
+
+SCENE 3
+Visual: English
+Voice: ${language}
+
+SCENE 4
+Visual: English
+Voice: ${language}
+
+SCENE 5
+Visual: English
+Voice: ${language}
+
+SCENE 6
+Visual: English
+Voice: ${language}
+
+SCENE 7
+Visual: English
+Voice: ${language}
+
+SCENE 8
+Visual: English
+Voice: ${language}
+
+Rules:
+- exactly 8 scenes
+- same characters throughout
+- no unrelated story
+- no repeated scenes
+- no repeated Voice
+- one short Voice sentence per scene
+- Visual in English
+- Voice only in ${language}
+- no markdown
+- no explanation
+- no title
+`;
+
+        result =
+          await generateStory(
+            env,
+            finalPrompt
+          );
+
+        raw =
+          result &&
+          result.response
+            ? result.response
+            : "";
+
+        scenes =
+          extractScenes(raw);
+
+        characterLock =
+          extractCharacterLock(raw);
+
       }
 
-      return jsonResponse({ success: false, error: `Unknown action: ${String(data.action || "(missing)")}` }, 400);
-    } catch (error) {
-      console.error("APNA CREATOR AI ERROR", error);
+      /* ===================================
+         FINAL VALIDATION
+      =================================== */
+
+      if (
+        validateScenes(scenes)
+      ) {
+
+        return jsonResponse({
+
+          success:
+            true,
+
+          language:
+            language,
+
+          duration:
+            duration,
+
+          style:
+            style,
+
+          characterLock:
+            characterLock,
+
+          story:
+            buildStory(scenes)
+
+        });
+
+      }
+
+      /* ===================================
+         FALLBACK
+      =================================== */
+
+      const fallbackScenes =
+        createFallbackScenes(
+          story,
+          language
+        );
+
       return jsonResponse({
-        success: false,
-        error: error && error.message ? error.message : "Unexpected Worker error."
-      }, 500);
-    }
-  }
-};
 
-function escapeXml(value) {
-  return String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/\"/g, "&quot;")
-    .replace(/'/g, "&apos;");
-}
+        success:
+          true,
+
+        language:
+          language,
+
+        duration:
+          duration,
+
+        style:
+          style,
+
+        characterLock:
+          `Keep the exact characters from the user's original story consistent in every scene.`,
+
+        story:
+          buildStory(
+            fallbackScenes
+          ),
+
+        note:
+          "Automatic fallback was used because the AI did not return a valid 8-scene structure."
+
+      });
+
+    } catch (error) {
+
+      console.error(
+        "Worker error:",
+        error
+      );
+
+      return jsonResponse(
+        {
+          success:
+            false,
+
+          error:
+            error &&
+            error.message
+              ? error.message
+              : "Server Error"
+        },
+        500
+      );
+
+    }
+
+  }
+
+};
