@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Apna Creator AI - Animated Story</title>
+<title>Apna Creator AI - Voice Story Lab</title>
 
 <style>
 *{box-sizing:border-box}
@@ -14,24 +14,30 @@ body{margin:0;background:#edf2fa;color:#172033;font-family:Arial,sans-serif}
 h1{font-size:25px;margin:0 0 8px}
 h2{font-size:19px}
 .sub,.note{color:#64748b;font-size:13px;line-height:1.5}
-#stage{height:500px;width:100%;overflow:hidden;border-radius:12px;background:#b7def5}
+#stage{height:490px;width:100%;overflow:hidden;border-radius:12px;background:#b7def5}
 #stage canvas{width:100%;height:100%;display:block}
 .controls{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}
-button{border:0;border-radius:8px;padding:12px 17px;background:#2563eb;color:white;font-weight:bold;cursor:pointer}
+button,select{border:0;border-radius:8px;padding:11px 15px;font-weight:bold;cursor:pointer}
+button{background:#2563eb;color:white}
 button.active{background:#15803d}
 button:disabled{opacity:.5}
-.progress{height:9px;background:#e2e8f0;border-radius:20px;overflow:hidden;margin-top:14px}
-#progressBar{height:100%;width:0;background:#2563eb;transition:width .1s}
+select{background:#f1f5f9;border:1px solid #cbd5e1}
 #status{background:#eff6ff;padding:13px;border-radius:9px;margin-top:12px;font-size:14px;line-height:1.5;white-space:pre-wrap}
+#progress{height:9px;background:#e2e8f0;border-radius:20px;overflow:hidden;margin-top:14px}
+#bar{height:100%;width:0;background:#2563eb;transition:width .2s}
 .timeline{display:grid;gap:9px}
-.sceneRow{display:grid;grid-template-columns:95px 1fr;gap:10px;padding:11px;border:1px solid #e2e8f0;border-radius:9px;font-size:14px}
-.sceneTime{font-weight:bold;color:#2563eb}
+.sceneRow{display:grid;grid-template-columns:90px 1fr;gap:10px;padding:12px;border:1px solid #e2e8f0;border-radius:9px;font-size:14px}
 .sceneRow.current{background:#eff6ff;border-color:#2563eb}
+.sceneTime{font-weight:bold;color:#2563eb}
+.line{padding:10px;background:#f8fafc;border-radius:8px;margin-top:8px;line-height:1.5}
+.line.speaking{background:#dcfce7;border:1px solid #86efac}
+#dialogue{font-size:14px;line-height:1.5}
+label{font-size:13px;font-weight:bold}
 @media(max-width:600px){
- #stage{height:380px}
+ #stage{height:370px}
  .wrap{padding:8px}
  button{padding:10px 12px}
- .sceneRow{grid-template-columns:75px 1fr}
+ .sceneRow{grid-template-columns:68px 1fr}
 }
 </style>
 
@@ -48,8 +54,17 @@ button:disabled{opacity:.5}
 <div class="wrap">
 
 <div class="card">
-<h1>🎬 Apna Creator AI – Story Animation</h1>
-<p class="sub">Tiger and Mouse – Automatic 30 Second Cartoon Story</p>
+<h1>🎬 Apna Creator AI – Voice Story Lab</h1>
+<p class="sub">Tiger and Mouse | Talking Characters | Multilingual Story</p>
+
+<div style="margin:15px 0">
+<label for="language">Choose Story Language</label><br><br>
+<select id="language">
+<option value="Marathi">मराठी</option>
+<option value="Hindi">हिंदी</option>
+<option value="English">English</option>
+</select>
+</div>
 
 <div id="stage"></div>
 
@@ -57,13 +72,16 @@ button:disabled{opacity:.5}
 <button id="playBtn">▶ Play Story</button>
 <button id="pauseBtn">⏸ Pause</button>
 <button id="restartBtn">↻ Restart</button>
+<button id="stopBtn">⏹ Stop</button>
 </div>
 
-<div class="progress">
-<div id="progressBar"></div>
-</div>
-
+<div id="progress"><div id="bar"></div></div>
 <div id="status">Loading 3D Story...</div>
+</div>
+
+<div class="card">
+<h2>🗣️ Current Dialogue</h2>
+<div id="dialogue">Story dialogue will appear here.</div>
 </div>
 
 <div class="card">
@@ -72,15 +90,16 @@ button:disabled{opacity:.5}
 </div>
 
 <div class="card">
-<h3>Prototype Details</h3>
+<h3>Voice Features</h3>
 <p class="note">
-This test uses a pre-written 30-second story timeline.
-Tiger and Mouse animations are automatically controlled by the timeline.
-No Cloudflare AI quota is used.
+Marathi, Hindi and English browser voice playback.
+Tiger and Mouse talking animation preview.
+Automatic scene-by-scene dialogue.
 </p>
 <p class="note">
-This is a prototype. AI-generated script interpretation, real dialogue,
-voice acting, lip-sync and MP4 export are future features.
+Voice uses your browser's built-in Speech Synthesis.
+Actual voice availability and pronunciation depend on your device.
+MP3 download and professional lip-sync are not included yet.
 </p>
 </div>
 
@@ -89,36 +108,36 @@ voice acting, lip-sync and MP4 export are future features.
 <script type="module">
 import * as THREE from "three";
 
-// -----------------------------------
-// BASIC SETUP
-// -----------------------------------
+// --------------------------------------
+// BASIC THREE.JS SETUP
+// --------------------------------------
 
-const stage = document.getElementById("stage");
-const status = document.getElementById("status");
-const progressBar = document.getElementById("progressBar");
-const timelineBox = document.getElementById("timeline");
+const stage=document.getElementById("stage");
+const status=document.getElementById("status");
+const bar=document.getElementById("bar");
+const dialogueBox=document.getElementById("dialogue");
 
-const renderer = new THREE.WebGLRenderer({
-  antialias:true,
-  powerPreference:"low-power"
+const renderer=new THREE.WebGLRenderer({
+ antialias:true,
+ powerPreference:"low-power"
 });
 
-renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1,1.5));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));
 renderer.setSize(stage.clientWidth,stage.clientHeight);
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.outputColorSpace=THREE.SRGBColorSpace;
 stage.appendChild(renderer.domElement);
 
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xb7def5);
-scene.fog = new THREE.Fog(0xb7def5,17,38);
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0xb7def5);
+scene.fog=new THREE.Fog(0xb7def5,17,38);
 
-const camera = new THREE.PerspectiveCamera(
-  38,
-  stage.clientWidth/stage.clientHeight,
-  0.1,
-  100
+const camera=new THREE.PerspectiveCamera(
+ 38,
+ stage.clientWidth/stage.clientHeight,
+ .1,
+ 100
 );
 
 camera.position.set(4.3,3.2,9.2);
@@ -126,121 +145,120 @@ camera.lookAt(0,1.2,0);
 
 scene.add(new THREE.HemisphereLight(0xffffff,0x64744d,2));
 
-const sunlight = new THREE.DirectionalLight(0xffffff,2.3);
+const sunlight=new THREE.DirectionalLight(0xffffff,2.3);
 sunlight.position.set(-4,9,6);
-sunlight.castShadow = true;
+sunlight.castShadow=true;
 sunlight.shadow.mapSize.set(1024,1024);
 scene.add(sunlight);
 
-// -----------------------------------
+// --------------------------------------
 // MATERIALS AND HELPERS
-// -----------------------------------
+// --------------------------------------
 
-const mat = color =>
-  new THREE.MeshStandardMaterial({
-    color,
-    roughness:0.82
-  });
+const mat=color=>new THREE.MeshStandardMaterial({
+ color,
+ roughness:.82
+});
 
-const M = {
-  ground:mat(0x7eae64),
-  trunk:mat(0x76502f),
-  leaf:mat(0x38864c),
-  leaf2:mat(0x4a9955),
-  tiger:mat(0xe99535),
-  tigerLight:mat(0xf4bd71),
-  stripe:mat(0x29211c),
-  cream:mat(0xffe3b5),
-  black:mat(0x201915),
-  white:mat(0xffffff),
-  nose:mat(0x30201c),
-  mouth:mat(0x3b1718),
-  mouse:mat(0x92949c),
-  mouseLight:mat(0xb9bac2),
-  pink:mat(0xe994a9),
-  pink2:mat(0xc96e87),
-  blue:mat(0x477eaf)
+const M={
+ ground:mat(0x7eae64),
+ trunk:mat(0x76502f),
+ leaf:mat(0x38864c),
+ leaf2:mat(0x4a9955),
+ tiger:mat(0xe99535),
+ tigerLight:mat(0xf4bd71),
+ stripe:mat(0x29211c),
+ cream:mat(0xffe3b5),
+ black:mat(0x201915),
+ white:mat(0xffffff),
+ nose:mat(0x30201c),
+ mouth:mat(0x3b1718),
+ mouse:mat(0x92949c),
+ mouseLight:mat(0xb9bac2),
+ pink:mat(0xe994a9),
+ pink2:mat(0xc96e87),
+ blue:mat(0x477eaf)
 };
 
 function sphere(parent,name,pos,scale,material){
-  const mesh = new THREE.Mesh(
-    new THREE.SphereGeometry(1,20,16),
-    material
-  );
-  mesh.name=name;
-  mesh.position.set(...pos);
-  mesh.scale.set(...scale);
-  mesh.castShadow=true;
-  mesh.receiveShadow=true;
-  parent.add(mesh);
-  return mesh;
+ const mesh=new THREE.Mesh(
+  new THREE.SphereGeometry(1,20,16),
+  material
+ );
+
+ mesh.name=name;
+ mesh.position.set(...pos);
+ mesh.scale.set(...scale);
+ mesh.castShadow=true;
+ mesh.receiveShadow=true;
+ parent.add(mesh);
+
+ return mesh;
 }
 
 function cylinder(parent,name,pos,r1,r2,height,material){
-  const mesh = new THREE.Mesh(
-    new THREE.CylinderGeometry(r1,r2,height,14),
-    material
-  );
-  mesh.name=name;
-  mesh.position.set(...pos);
-  mesh.castShadow=true;
-  parent.add(mesh);
-  return mesh;
+ const mesh=new THREE.Mesh(
+  new THREE.CylinderGeometry(r1,r2,height,14),
+  material
+ );
+
+ mesh.name=name;
+ mesh.position.set(...pos);
+ mesh.castShadow=true;
+ mesh.receiveShadow=true;
+ parent.add(mesh);
+
+ return mesh;
 }
 
 function tube(parent,name,points,radius,material){
-  const curve = new THREE.CatmullRomCurve3(
-    points.map(p=>new THREE.Vector3(...p))
-  );
+ const curve=new THREE.CatmullRomCurve3(
+  points.map(p=>new THREE.Vector3(...p))
+ );
 
-  const mesh = new THREE.Mesh(
-    new THREE.TubeGeometry(curve,20,radius,8,false),
-    material
-  );
+ const mesh=new THREE.Mesh(
+  new THREE.TubeGeometry(curve,20,radius,8,false),
+  material
+ );
 
-  mesh.name=name;
-  mesh.castShadow=true;
-  parent.add(mesh);
-  return mesh;
+ mesh.name=name;
+ mesh.castShadow=true;
+ parent.add(mesh);
+
+ return mesh;
 }
 
 function mix(a,b,t){
-  return a+(b-a)*t;
+ return a+(b-a)*t;
 }
 
 function smooth(t){
-  t=Math.max(0,Math.min(1,t));
-  return t*t*(3-2*t);
+ t=Math.max(0,Math.min(1,t));
+ return t*t*(3-2*t);
 }
 
-function localProgress(time,start,end){
-  return smooth((time-start)/(end-start));
-}
-
-// -----------------------------------
-// ENVIRONMENT
-// -----------------------------------
+// --------------------------------------
+// JUNGLE ENVIRONMENT
+// --------------------------------------
 
 const ground=new THREE.Mesh(
-  new THREE.PlaneGeometry(60,60),
-  M.ground
+ new THREE.PlaneGeometry(60,60),
+ M.ground
 );
 
 ground.rotation.x=-Math.PI/2;
-ground.position.y=-0.04;
+ground.position.y=-.04;
 ground.receiveShadow=true;
 scene.add(ground);
 
 function addTree(x,z,h){
-  const tree=new THREE.Group();
-  tree.position.set(x,0,z);
-  scene.add(tree);
+ const tree=new THREE.Group();
+ tree.position.set(x,0,z);
+ scene.add(tree);
 
-  cylinder(tree,"tree trunk",[0,h/2,0],.14,.19,h,M.trunk);
-
-  sphere(tree,"tree crown",[0,h+.28,0],[.82,1.05,.78],M.leaf);
-
-  sphere(tree,"tree leaves detail",[.42,h+.08,.04],[.52,.67,.55],M.leaf2);
+ cylinder(tree,"tree trunk",[0,h/2,0],.14,.19,h,M.trunk);
+ sphere(tree,"tree crown",[0,h+.28,0],[.82,1.05,.78],M.leaf);
+ sphere(tree,"tree leaves",[.42,h+.08,.04],[.52,.67,.55],M.leaf2);
 }
 
 addTree(-4,-2,2.1);
@@ -248,9 +266,9 @@ addTree(4,-3,2.6);
 addTree(-4,-6,2.3);
 addTree(4.4,-7,2.2);
 
-// -----------------------------------
+// --------------------------------------
 // TIGER CHARACTER
-// -----------------------------------
+// --------------------------------------
 
 const tiger=new THREE.Group();
 tiger.position.set(-1.45,0,0);
@@ -259,19 +277,19 @@ scene.add(tiger);
 const tigerBody=new THREE.Group();
 tiger.add(tigerBody);
 
-sphere(tigerBody,"tiger torso",[0,.98,0],[.49,.47,.91],M.tiger);
-sphere(tigerBody,"tiger belly",[0,.78,.12],[.37,.29,.72],M.tigerLight);
-sphere(tigerBody,"tiger chest",[0,1.02,.66],[.39,.43,.30],M.tiger);
+sphere(tigerBody,"body",[0,.98,0],[.49,.47,.91],M.tiger);
+sphere(tigerBody,"belly",[0,.78,.12],[.37,.29,.72],M.tigerLight);
+sphere(tigerBody,"chest",[0,1.02,.66],[.39,.43,.30],M.tiger);
 
 for(const side of [-1,1]){
-  for(let i=0;i<4;i++){
-    const stripe=sphere(
-      tigerBody,"tiger stripe",
-      [side*(.425-i*.012),1.02,(i-1.5)*.31],
-      [.027,.18,.085],M.stripe
-    );
-    stripe.rotation.z=(i%2===0?-.22:.22)*side;
-  }
+ for(let i=0;i<4;i++){
+  const stripe=sphere(
+   tigerBody,"tiger stripe",
+   [side*(.425-i*.012),1.02,(i-1.5)*.31],
+   [.027,.18,.085],M.stripe
+  );
+  stripe.rotation.z=(i%2===0?-.22:.22)*side;
+ }
 }
 
 const tigerHead=new THREE.Group();
@@ -281,11 +299,13 @@ tiger.add(tigerHead);
 sphere(tigerHead,"head",[0,0,0],[.43,.40,.37],M.tiger);
 
 for(const side of [-1,1]){
-  sphere(tigerHead,"ear",[side*.30,.30,-.015],[.15,.17,.12],M.tiger);
-  sphere(tigerHead,"ear inside",[side*.30,.30,.087],[.085,.10,.035],M.pink2);
-  sphere(tigerHead,"eye white",[side*.16,.075,.315],[.082,.094,.045],M.white);
-  sphere(tigerHead,"pupil",[side*.16,.07,.355],[.038,.052,.022],M.black);
-  sphere(tigerHead,"cheek",[side*.25,-.13,.25],[.15,.12,.13],M.cream);
+ sphere(tigerHead,"ear",[side*.30,.30,-.015],[.15,.17,.12],M.tiger);
+ sphere(tigerHead,"inner ear",[side*.30,.30,.087],[.085,.10,.035],M.pink2);
+
+ sphere(tigerHead,"eye white",[side*.16,.075,.315],[.082,.094,.045],M.white);
+ sphere(tigerHead,"eye pupil",[side*.16,.07,.355],[.038,.052,.022],M.black);
+
+ sphere(tigerHead,"cheek",[side*.25,-.13,.25],[.15,.12,.13],M.cream);
 }
 
 sphere(tigerHead,"muzzle left",[-.105,-.13,.365],[.15,.13,.15],M.cream);
@@ -293,24 +313,26 @@ sphere(tigerHead,"muzzle right",[.105,-.13,.365],[.15,.13,.15],M.cream);
 sphere(tigerHead,"nose",[0,-.055,.49],[.105,.075,.065],M.nose);
 
 const tigerMouth=sphere(
-  tigerHead,"mouth",[0,-.255,.405],[.105,.025,.035],M.mouth
+ tigerHead,"mouth",
+ [0,-.255,.405],
+ [.105,.025,.035],
+ M.mouth
 );
 
 const tigerLegs=[];
 
 for(const x of [-.30,.30]){
-  for(const z of [-.57,.58]){
-    const hip=new THREE.Group();
-    hip.position.set(x,.77,z);
-    tiger.add(hip);
+ for(const z of [-.57,.58]){
+  const hip=new THREE.Group();
+  hip.position.set(x,.77,z);
+  tiger.add(hip);
 
-    cylinder(hip,"leg",[0,-.19,0],.13,.15,.39,M.tiger);
-    sphere(hip,"knee",[0,-.38,0],[.125,.12,.13],M.tiger);
+  cylinder(hip,"leg",[0,-.19,0],.13,.15,.39,M.tiger);
+  sphere(hip,"knee",[0,-.38,0],[.125,.12,.13],M.tiger);
+  sphere(hip,"paw",[0,-.72,.075],[.16,.10,.22],M.cream);
 
-    sphere(hip,"paw",[0,-.72,.075],[.16,.10,.22],M.cream);
-
-    tigerLegs.push({hip,x,z});
-  }
+  tigerLegs.push({hip,x,z});
+ }
 }
 
 const tigerTail=new THREE.Group();
@@ -318,14 +340,14 @@ tigerTail.position.set(0,1.13,-.83);
 tiger.add(tigerTail);
 
 tube(tigerTail,"tail",[
-  [0,0,0],[0,.10,-.23],[0,.34,-.42],[0,.48,-.62]
+ [0,0,0],[0,.10,-.23],[0,.34,-.42],[0,.48,-.62]
 ],.065,M.tiger);
 
 sphere(tigerTail,"tail tip",[0,.48,-.62],[.075,.08,.09],M.stripe);
 
-// -----------------------------------
+// --------------------------------------
 // MOUSE CHARACTER
-// -----------------------------------
+// --------------------------------------
 
 const mouse=new THREE.Group();
 mouse.position.set(3.1,0,.02);
@@ -339,359 +361,665 @@ sphere(mouseBody,"belly",[0,.52,.235],[.20,.25,.10],M.mouseLight);
 sphere(mouseBody,"head",[0,.94,.08],[.34,.34,.31],M.mouseLight);
 
 for(const side of [-1,1]){
-  sphere(mouseBody,"ear",[side*.27,1.20,-.02],[.19,.22,.105],M.mouse);
-  sphere(mouseBody,"pink ear",[side*.27,1.20,.075],[.12,.15,.045],M.pink);
+ sphere(mouseBody,"ear",[side*.27,1.20,-.02],[.19,.22,.105],M.mouse);
+ sphere(mouseBody,"inner ear",[side*.27,1.20,.075],[.12,.15,.045],M.pink);
 
-  sphere(mouseBody,"eye",[side*.14,1.00,.355],[.065,.083,.035],M.white);
-  sphere(mouseBody,"pupil",[side*.14,.99,.385],[.032,.05,.02],M.black);
+ sphere(mouseBody,"eye",[side*.14,1.00,.355],[.065,.083,.035],M.white);
+ sphere(mouseBody,"pupil",[side*.14,.99,.385],[.032,.05,.02],M.black);
 
-  sphere(mouseBody,"cheek",[side*.22,.82,.30],[.095,.07,.045],M.pink);
+ sphere(mouseBody,"cheek",[side*.22,.82,.30],[.095,.07,.045],M.pink);
 }
 
 sphere(mouseBody,"snout",[0,.83,.39],[.15,.12,.13],M.cream);
 sphere(mouseBody,"nose",[0,.87,.505],[.055,.045,.035],M.pink2);
-sphere(mouseBody,"mouth",[0,.73,.49],[.045,.018,.018],M.black);
+
+const mouseMouth=sphere(
+ mouseBody,"mouth",
+ [0,.73,.49],
+ [.045,.018,.018],
+ M.black
+);
+
 sphere(mouseBody,"vest",[0,.48,.03],[.285,.19,.285],M.blue);
 
 const mouseLegs=[];
 
 for(const side of [-1,1]){
-  const hip=new THREE.Group();
-  hip.position.set(side*.13,.34,.02);
-  mouse.add(hip);
+ const hip=new THREE.Group();
+ hip.position.set(side*.13,.34,.02);
+ mouse.add(hip);
 
-  cylinder(hip,"mouse leg",[0,-.13,0],.075,.085,.27,M.mouse);
-  sphere(hip,"mouse foot",[0,-.28,.07],[.115,.075,.16],M.pink2);
+ cylinder(hip,"leg",[0,-.13,0],.075,.085,.27,M.mouse);
+ sphere(hip,"foot",[0,-.28,.07],[.115,.075,.16],M.pink2);
 
-  mouseLegs.push({hip,side});
+ mouseLegs.push({hip,side});
 }
 
 const mouseArms=[];
 
 for(const side of [-1,1]){
-  const arm=new THREE.Group();
-  arm.position.set(side*.24,.62,.04);
-  mouse.add(arm);
+ const arm=new THREE.Group();
+ arm.position.set(side*.24,.62,.04);
+ mouse.add(arm);
 
-  cylinder(arm,"mouse arm",[side*.06,-.12,.06],.055,.065,.25,M.mouseLight);
-  sphere(arm,"mouse hand",[side*.07,-.25,.10],[.07,.07,.07],M.pink2);
+ cylinder(arm,"arm",[side*.06,-.12,.06],.055,.065,.25,M.mouseLight);
+ sphere(arm,"hand",[side*.07,-.25,.10],[.07,.07,.07],M.pink2);
 
-  mouseArms.push({arm,side});
+ mouseArms.push({arm,side});
 }
 
 const mouseTail=new THREE.Group();
 mouseTail.position.set(0,.57,-.23);
 mouse.add(mouseTail);
 
-tube(mouseTail,"mouse tail",[
-  [0,0,0],[.10,-.02,-.23],[.18,.04,-.48],[.10,.18,-.68]
+tube(mouseTail,"tail",[
+ [0,0,0],[.10,-.02,-.23],[.18,.04,-.48],[.10,.18,-.68]
 ],.018,M.pink2);
 
-// -----------------------------------
-// STORY TIMELINE
-// -----------------------------------
+// --------------------------------------
+// MULTILINGUAL STORY
+// --------------------------------------
 
-const DURATION=30;
+const stories={
+ Marathi:[
+  {
+   title:"Scene 1 – जंगलातील वाघ",
+   description:"एका हिरव्यागार जंगलात एक मोठा वाघ राहत होता.",
+   lines:[{speaker:"Narrator",text:"एका हिरव्यागार जंगलात एक मोठा वाघ राहत होता."}]
+  },
+  {
+   title:"Scene 2 – उंदराची भेट",
+   description:"एक छोटासा उंदीर वाघाजवळ आला.",
+   lines:[{speaker:"Mouse",text:"नमस्कार वाघदादा! आपण मित्र होऊया का?"}]
+  },
+  {
+   title:"Scene 3 – वाघाची डरकाळी",
+   description:"वाघाने उंदराला पाहून मोठी डरकाळी फोडली.",
+   lines:[{speaker:"Tiger",text:"गुर्रर्र! तू कोण आहेस? माझ्याजवळ का आलास?"}]
+  },
+  {
+   title:"Scene 4 – उंदीर घाबरला",
+   description:"उंदीर घाबरून मागे उडी मारतो.",
+   lines:[{speaker:"Mouse",text:"अरे देवा! मला खूप भीती वाटतेय!"}]
+  },
+  {
+   title:"Scene 5 – वाघ शांत झाला",
+   description:"वाघ शांत होऊन उंदराशी प्रेमाने बोलतो.",
+   lines:[{speaker:"Tiger",text:"घाबरू नकोस छोट्या मित्रा. मी तुला काही करणार नाही."}]
+  },
+  {
+   title:"Scene 6 – नवीन मैत्री",
+   description:"वाघ आणि उंदीर मित्र बनतात.",
+   lines:[{speaker:"Narrator",text:"त्या दिवसापासून वाघ आणि उंदीर छान मित्र झाले."}]
+  }
+ ],
 
-const scenes=[
-  {start:0,end:5,title:"Scene 1 – Tiger in the Jungle",description:"Tiger is standing quietly in the jungle."},
-  {start:5,end:10,title:"Scene 2 – Mouse Arrives",description:"A little mouse walks towards the tiger."},
-  {start:10,end:15,title:"Scene 3 – Tiger Roars",description:"Tiger sees the mouse and makes a loud roar."},
-  {start:15,end:20,title:"Scene 4 – Mouse Gets Scared",description:"Mouse jumps back in surprise."},
-  {start:20,end:25,title:"Scene 5 – Tiger Becomes Gentle",description:"Tiger calms down and looks at the little mouse."},
-  {start:25,end:30,title:"Scene 6 – New Friends",description:"Tiger and mouse happily become friends."}
-];
+ Hindi:[
+  {
+   title:"दृश्य 1 – जंगल का बाघ",
+   description:"एक हरे-भरे जंगल में एक बड़ा बाघ रहता था।",
+   lines:[{speaker:"Narrator",text:"एक हरे भरे जंगल में एक बड़ा बाघ रहता था।"}]
+  },
+  {
+   title:"दृश्य 2 – चूहे की मुलाकात",
+   description:"एक छोटा चूहा बाघ के पास आया।",
+   lines:[{speaker:"Mouse",text:"नमस्ते बाघ भैया! क्या हम दोस्त बन सकते हैं?"}]
+  },
+  {
+   title:"दृश्य 3 – बाघ की दहाड़",
+   description:"बाघ ने चूहे को देखकर जोर से दहाड़ लगाई।",
+   lines:[{speaker:"Tiger",text:"गुर्रर्र! तुम कौन हो और मेरे पास क्यों आए हो?"}]
+  },
+  {
+   title:"दृश्य 4 – चूहा डर गया",
+   description:"चूहा डरकर पीछे कूद गया।",
+   lines:[{speaker:"Mouse",text:"अरे बाप रे! मुझे बहुत डर लग रहा है!"}]
+  },
+  {
+   title:"दृश्य 5 – बाघ शांत हुआ",
+   description:"बाघ शांत होकर चूहे से प्यार से बात करता है।",
+   lines:[{speaker:"Tiger",text:"डरो मत छोटे दोस्त। मैं तुम्हें कुछ नहीं करूंगा।"}]
+  },
+  {
+   title:"दृश्य 6 – नई दोस्ती",
+   description:"बाघ और चूहा अच्छे दोस्त बन जाते हैं।",
+   lines:[{speaker:"Narrator",text:"उस दिन से बाघ और चूहा बहुत अच्छे दोस्त बन गए।"}]
+  }
+ ],
 
-scenes.forEach((item,index)=>{
+ English:[
+  {
+   title:"Scene 1 – Tiger in the Jungle",
+   description:"A big tiger lived in a beautiful green jungle.",
+   lines:[{speaker:"Narrator",text:"Once upon a time, a big tiger lived in a beautiful green jungle."}]
+  },
+  {
+   title:"Scene 2 – A Little Mouse Arrives",
+   description:"A little mouse walked towards the tiger.",
+   lines:[{speaker:"Mouse",text:"Hello, Mr Tiger! Can we become friends?"}]
+  },
+  {
+   title:"Scene 3 – The Tiger Roars",
+   description:"The tiger looked at the mouse and roared loudly.",
+   lines:[{speaker:"Tiger",text:"Grrrr! Who are you? Why did you come near me?"}]
+  },
+  {
+   title:"Scene 4 – The Mouse Gets Scared",
+   description:"The mouse jumped backwards in fear.",
+   lines:[{speaker:"Mouse",text:"Oh no! I am very scared!"}]
+  },
+  {
+   title:"Scene 5 – The Tiger Becomes Gentle",
+   description:"The tiger calmed down and spoke kindly.",
+   lines:[{speaker:"Tiger",text:"Do not be afraid, little friend. I will not hurt you."}]
+  },
+  {
+   title:"Scene 6 – New Friends",
+   description:"The tiger and mouse became good friends.",
+   lines:[{speaker:"Narrator",text:"From that day, the tiger and the mouse became the best of friends."}]
+  }
+ ]
+};
+
+// --------------------------------------
+// TIMELINE UI
+// --------------------------------------
+
+const timelineBox=document.getElementById("timeline");
+
+let currentLanguage="Marathi";
+let currentStory=stories[currentLanguage];
+let currentScene=-1;
+
+function renderTimeline(){
+ timelineBox.innerHTML="";
+
+ currentStory.forEach((item,index)=>{
   const row=document.createElement("div");
   row.className="sceneRow";
   row.id="timeline-"+index;
 
   const time=document.createElement("div");
   time.className="sceneTime";
-  time.textContent=item.start+"–"+item.end+" sec";
+  time.textContent="Scene "+(index+1);
 
-  const details=document.createElement("div");
+  const content=document.createElement("div");
   const title=document.createElement("b");
   title.textContent=item.title;
 
   const desc=document.createElement("div");
   desc.textContent=item.description;
-  desc.className="note";
 
-  details.append(title,desc);
-  row.append(time,details);
+  const line=document.createElement("div");
+  line.textContent=item.lines.map(x=>x.speaker+": "+x.text).join(" | ");
+  line.className="note";
+
+  content.append(title,desc,line);
+  row.append(time,content);
   timelineBox.appendChild(row);
-});
-
-// -----------------------------------
-// PLAYBACK STATE
-// -----------------------------------
-
-let elapsed=0;
-let playing=false;
-let currentScene=-1;
-
-const clock=new THREE.Clock();
-
-function resetPoses(){
-  tiger.position.set(-1.45,0,0);
-  mouse.position.set(3.1,0,.02);
-
-  tigerBody.rotation.set(0,0,0);
-  tigerHead.rotation.set(0,0,0);
-  tigerMouth.scale.y=.025;
-  tigerTail.rotation.set(0,0,0);
-
-  tigerLegs.forEach(({hip})=>{
-    hip.rotation.set(0,0,0);
-  });
-
-  mouseLegs.forEach(({hip})=>{
-    hip.rotation.set(0,0,0);
-  });
-
-  mouseArms.forEach(({arm})=>{
-    arm.rotation.set(0,0,0);
-  });
-
-  mouseTail.rotation.set(0,0,0);
-  mouse.position.y=0;
-}
-
-function setTigerWalk(time,speed=6,amount=.45){
-  tigerLegs.forEach(({hip,x,z})=>{
-    const phase=(x*z)>0?0:Math.PI;
-    hip.rotation.x=Math.sin(time*speed+phase)*amount;
-  });
-
-  tiger.position.y=
-    Math.abs(Math.sin(time*speed*2))*.045;
-
-  tigerTail.rotation.y=Math.sin(time*2.5)*.30;
-}
-
-function setMouseWalk(time,speed=7,amount=.5){
-  mouseLegs.forEach(({hip,side})=>{
-    hip.rotation.x=Math.sin(
-      time*speed+(side===1?0:Math.PI)
-    )*amount;
-  });
-
-  mouseArms.forEach(({arm,side})=>{
-    arm.rotation.x=-Math.sin(
-      time*speed+(side===1?0:Math.PI)
-    )*.45;
-  });
-
-  mouse.position.y=Math.abs(Math.sin(time*speed*2))*.035;
-  mouseTail.rotation.y=Math.sin(time*3)*.35;
+ });
 }
 
 function selectScene(index){
-  if(index===currentScene)return;
+ currentScene=index;
 
-  currentScene=index;
+ currentStory.forEach((item,i)=>{
+  document.getElementById("timeline-"+i)
+   ?.classList.toggle("current",i===index);
+ });
 
-  scenes.forEach((item,i)=>{
-    const row=document.getElementById("timeline-"+i);
-    row.classList.toggle("current",i===index);
+ const item=currentStory[index];
+ dialogueBox.innerHTML="";
+
+ const title=document.createElement("b");
+ title.textContent=item.title;
+ dialogueBox.appendChild(title);
+
+ item.lines.forEach(line=>{
+  const div=document.createElement("div");
+  div.className="line";
+  div.textContent=line.speaker+": "+line.text;
+  dialogueBox.appendChild(div);
+ });
+}
+
+// --------------------------------------
+// SPEECH SYNTHESIS
+// --------------------------------------
+
+const speechSupported="speechSynthesis" in window &&
+ typeof SpeechSynthesisUtterance!=="undefined";
+
+let voices=[];
+
+function loadVoices(){
+ if(speechSupported)voices=window.speechSynthesis.getVoices();
+}
+
+if(speechSupported){
+ loadVoices();
+ window.speechSynthesis.addEventListener("voiceschanged",loadVoices);
+}
+
+const languageCodes={
+ Marathi:"mr-IN",
+ Hindi:"hi-IN",
+ English:"en-IN"
+};
+
+function selectVoice(language){
+ const prefix={
+  Marathi:["mr-IN","mr"],
+  Hindi:["hi-IN","hi"],
+  English:["en-IN","en-GB","en-US","en"]
+ }[language];
+
+ for(const code of prefix){
+  const found=voices.find(v=>v.lang.toLowerCase()===code.toLowerCase());
+  if(found)return found;
+ }
+
+ return null;
+}
+
+// --------------------------------------
+// PLAYBACK STATE
+// --------------------------------------
+
+const clock=new THREE.Clock();
+
+let playing=false;
+let paused=false;
+let runToken=0;
+let lineIndex=0;
+let currentSpeaker="Narrator";
+let lastUtterance=null;
+let tigerSpeaking=false;
+let mouseSpeaking=false;
+
+let sceneStartTime=0;
+let sceneNumber=-1;
+
+function setStatus(message){
+ status.textContent=message;
+}
+
+function resetPoses(){
+ tiger.position.set(-1.45,0,0);
+ mouse.position.set(3.1,0,.02);
+
+ tigerBody.rotation.set(0,0,0);
+ tigerHead.rotation.set(0,0,0);
+ tigerMouth.scale.y=.025;
+ tigerTail.rotation.set(0,0,0);
+
+ tigerLegs.forEach(({hip})=>hip.rotation.set(0,0,0));
+
+ mouseLegs.forEach(({hip})=>hip.rotation.set(0,0,0));
+ mouseArms.forEach(({arm})=>arm.rotation.set(0,0,0));
+
+ mouseTail.rotation.set(0,0,0);
+ mouseMouth.scale.y=.018;
+
+ tigerSpeaking=false;
+ mouseSpeaking=false;
+
+ currentSpeaker="Narrator";
+}
+
+function setSpeaker(speaker){
+ currentSpeaker=speaker;
+ tigerSpeaking=speaker==="Tiger";
+ mouseSpeaking=speaker==="Mouse";
+}
+
+// --------------------------------------
+// TALKING ANIMATION
+// --------------------------------------
+
+function speakLine(sceneIndex,index,token){
+ if(token!==runToken||!playing)return;
+
+ const item=currentStory[sceneIndex];
+ if(!item){
+  finishStory();
+  return;
+ }
+
+ if(index>=item.lines.length){
+  playScene(sceneIndex+1,token);
+  return;
+ }
+
+ lineIndex=index;
+
+ const line=item.lines[index];
+ setSpeaker(line.speaker);
+
+ const dialogueNodes=dialogueBox.querySelectorAll(".line");
+ dialogueNodes.forEach((node,i)=>{
+  node.classList.toggle("speaking",i===index);
+ });
+
+ if(!speechSupported){
+  setStatus("या Browser मध्ये Speech Synthesis उपलब्ध नाही.");
+  finishStory();
+  return;
+ }
+
+ const utterance=new SpeechSynthesisUtterance(line.text);
+ utterance.lang=languageCodes[currentLanguage];
+ utterance.rate=.88;
+ utterance.pitch=line.speaker==="Tiger"?.78:
+                 line.speaker==="Mouse"?1.18:1;
+
+ const preferredVoice=selectVoice(currentLanguage);
+ if(preferredVoice)utterance.voice=preferredVoice;
+
+ lastUtterance=utterance;
+
+ utterance.onstart=()=>{
+  if(token!==runToken)return;
+  setSpeaker(line.speaker);
+  setStatus("🔊 "+line.speaker+" speaking:\n"+line.text);
+ };
+
+ utterance.onend=()=>{
+  if(token!==runToken||!playing)return;
+  setSpeaker("Narrator");
+  speakLine(sceneIndex,index+1,token);
+ };
+
+ utterance.onerror=(event)=>{
+  if(token!==runToken||!playing)return;
+
+  if(event.error==="canceled"||event.error==="interrupted")return;
+
+  console.warn("Speech error:",event.error);
+  setStatus("Voice playback error. Moving to the next dialogue.");
+  speakLine(sceneIndex,index+1,token);
+ };
+
+ window.speechSynthesis.speak(utterance);
+}
+
+// --------------------------------------
+// STORY SCENES
+// --------------------------------------
+
+function playScene(index,token){
+ if(token!==runToken||!playing)return;
+
+ if(index>=currentStory.length){
+  finishStory();
+  return;
+ }
+
+ sceneNumber=index;
+ sceneStartTime=clock.elapsedTime;
+
+ selectScene(index);
+ speakLine(index,0,token);
+}
+
+function finishStory(){
+ playing=false;
+ paused=false;
+ setSpeaker("Narrator");
+ setStatus("🎉 Story Completed!\nTiger and Mouse are now friends.");
+ document.getElementById("playBtn").classList.remove("active");
+ document.getElementById("pauseBtn").classList.remove("active");
+ bar.style.width="100%";
+}
+
+function startStory(){
+ if(!speechSupported){
+  setStatus("या Browser मध्ये Speech Synthesis उपलब्ध नाही.");
+  return;
+ }
+
+ if(paused){
+  paused=false;
+  playing=true;
+  window.speechSynthesis.resume();
+  setStatus("▶ Story resumed.");
+  return;
+ }
+
+ if(playing)return;
+
+ if(sceneNumber>=currentStory.length-1 && !paused){
+  restartStory();
+  return;
+ }
+
+ playing=true;
+ paused=false;
+ const token=++runToken;
+
+ document.getElementById("playBtn").classList.add("active");
+ document.getElementById("pauseBtn").classList.remove("active");
+
+ if(sceneNumber<0){
+  playScene(0,token);
+ }else{
+  speakLine(sceneNumber,lineIndex,token);
+ }
+}
+
+function pauseStory(){
+ if(!playing)return;
+
+ playing=false;
+ paused=true;
+ window.speechSynthesis.pause();
+
+ document.getElementById("playBtn").classList.remove("active");
+ document.getElementById("pauseBtn").classList.add("active");
+
+ setStatus("⏸ Story paused.");
+}
+
+function stopStory(){
+ runToken++;
+ playing=false;
+ paused=false;
+ if(speechSupported)window.speechSynthesis.cancel();
+
+ sceneNumber=-1;
+ lineIndex=0;
+ setSpeaker("Narrator");
+ resetPoses();
+
+ document.getElementById("playBtn").classList.remove("active");
+ document.getElementById("pauseBtn").classList.remove("active");
+
+ bar.style.width="0%";
+ status.textContent="⏹ Story stopped. Press Play to begin again.";
+}
+
+function restartStory(){
+ runToken++;
+ playing=false;
+ paused=false;
+
+ if(speechSupported)window.speechSynthesis.cancel();
+
+ resetPoses();
+
+ sceneNumber=-1;
+ lineIndex=0;
+ currentScene=-1;
+
+ bar.style.width="0%";
+
+ const token=++runToken;
+ playing=true;
+
+ document.getElementById("playBtn").classList.add("active");
+ document.getElementById("pauseBtn").classList.remove("active");
+
+ playScene(0,token);
+}
+
+// --------------------------------------
+// LANGUAGE SELECT
+// --------------------------------------
+
+document.getElementById("language").addEventListener("change",event=>{
+ stopStory();
+
+ currentLanguage=event.target.value;
+ currentStory=stories[currentLanguage];
+
+ renderTimeline();
+
+ dialogueBox.textContent="Language changed. Press Play Story.";
+ setStatus("Selected Language: "+currentLanguage);
+});
+
+// --------------------------------------
+// CONTROLS
+// --------------------------------------
+
+document.getElementById("playBtn").addEventListener("click",startStory);
+document.getElementById("pauseBtn").addEventListener("click",pauseStory);
+document.getElementById("restartBtn").addEventListener("click",restartStory);
+document.getElementById("stopBtn").addEventListener("click",stopStory);
+
+// --------------------------------------
+// AUTOMATIC CHARACTER MOTION
+// --------------------------------------
+
+function updateSceneMotion(time){
+ if(sceneNumber<0)return;
+
+ const localTime=time-sceneStartTime;
+
+ // Tiger and Mouse positions and actions
+
+ if(sceneNumber===0){
+  tigerTail.rotation.y=Math.sin(time*2)*.28;
+  tigerHead.rotation.y=Math.sin(time*1.5)*.06;
+  mouse.position.x=3.1;
+ }
+
+ if(sceneNumber===1){
+  const p=smooth(localTime/3.7);
+  mouse.position.x=mix(3.1,1.65,p);
+
+  mouseLegs.forEach(({hip,side})=>{
+   hip.rotation.x=Math.sin(time*7+(side===1?0:Math.PI))*.43*(1-p*.8);
   });
 
-  status.textContent=
-    scenes[index].title+"\n"+
-    scenes[index].description;
+  mouseTail.rotation.y=Math.sin(time*3)*.35;
+  tigerHead.rotation.y=Math.sin(time*2)*.10;
+ }
+
+ if(sceneNumber===2){
+  tiger.position.y=Math.abs(Math.sin(localTime*7))*.035;
+  tigerHead.rotation.x=-.10+Math.sin(localTime*7)*.05;
+  tigerMouth.scale.y=.025+Math.abs(Math.sin(localTime*9))*.04;
+  tigerTail.rotation.y=Math.sin(time*4)*.3;
+ }
+
+ if(sceneNumber===3){
+  const jump=Math.sin(Math.min(localTime/1.4,1)*Math.PI);
+
+  mouse.position.x=2.0;
+  mouse.position.y=jump*.75;
+
+  mouseLegs.forEach(({hip})=>{
+   hip.rotation.x=-.35*jump;
+  });
+
+  mouseArms.forEach(({arm})=>{
+   arm.rotation.x=-.45*jump;
+  });
+
+  tigerHead.rotation.x=.04;
+ }
+
+ if(sceneNumber===4){
+  const p=smooth(localTime/2.8);
+  tigerHead.rotation.x=.08*Math.sin(localTime);
+  mouse.position.x=mix(2.0,1.65,p);
+  tigerTail.rotation.y=Math.sin(time*2)*.18;
+ }
+
+ if(sceneNumber===5){
+  const p=smooth(localTime/3.5);
+
+  tiger.position.x=mix(-1.45,-.95,p);
+  mouse.position.x=mix(1.65,1.15,p);
+
+  tigerHead.rotation.y=Math.sin(time*2)*.1;
+  mouse.rotation.y=Math.sin(time*2+1)*.12;
+
+  tigerTail.rotation.y=Math.sin(time*3)*.25;
+  mouseTail.rotation.y=Math.sin(time*3.5)*.3;
+
+  tiger.position.y=Math.abs(Math.sin(time*3))*.025;
+  mouse.position.y=Math.abs(Math.sin(time*3+1))*.04;
+ }
 }
 
-// -----------------------------------
-// AUTOMATIC STORY ACTIONS
-// -----------------------------------
-
-function updateStory(time){
-  resetPoses();
-
-  if(time<5){
-    // Scene 1: Tiger waiting in the jungle
-    setTigerWalk(time*.12,1.8,.025);
-    tigerTail.rotation.y=Math.sin(time*2)*.25;
-    mouse.position.x=3.1;
-
-    selectScene(0);
-
-  }else if(time<10){
-    // Scene 2: Mouse walks towards Tiger
-    const p=localProgress(time,5,10);
-
-    mouse.position.x=mix(3.1,1.65,p);
-    setMouseWalk(time-5,7,.43);
-
-    tigerHead.rotation.y=Math.sin(time*2)*.12;
-    tigerTail.rotation.y=Math.sin(time*2)*.25;
-
-    selectScene(1);
-
-  }else if(time<15){
-    // Scene 3: Tiger roars
-    const p=time-10;
-
-    tigerMouth.scale.y=.08+Math.abs(Math.sin(p*8))*.12;
-    tigerHead.rotation.x=-.12+Math.sin(p*7)*.045;
-    tiger.position.y=Math.abs(Math.sin(p*8))*.04;
-
-    tigerTail.rotation.y=Math.sin(p*4)*.30;
-    mouse.position.x=1.65;
-    mouse.position.y=Math.sin(p*5)*.025;
-    mouseBody.rotation?.set(0,0,0);
-
-    selectScene(2);
-
-  }else if(time<20){
-    // Scene 4: Mouse jumps back
-    const p=time-15;
-    const jumpProgress=Math.sin((p/5)*Math.PI);
-
-    mouse.position.x=mix(1.65,2.1,localProgress(time,15,20));
-    mouse.position.y=jumpProgress*.75;
-
-    mouseLegs.forEach(({hip})=>{
-      hip.rotation.x=-.35*jumpProgress;
-    });
-
-    mouseArms.forEach(({arm})=>{
-      arm.rotation.x=-.45*jumpProgress;
-    });
-
-    tigerHead.rotation.x=.04;
-    tigerMouth.scale.y=.025;
-
-    selectScene(3);
-
-  }else if(time<25){
-    // Scene 5: Tiger calms down
-    const p=localProgress(time,20,25);
-
-    mouse.position.x=mix(2.1,1.65,p);
-    tigerHead.rotation.x=.12*Math.sin(p*Math.PI);
-
-    tigerTail.rotation.y=Math.sin(time*2)*.18;
-    tigerMouth.scale.y=.025;
-
-    mouseTail.rotation.y=Math.sin(time*3)*.25;
-
-    selectScene(4);
-
-  }else{
-    // Scene 6: Tiger and Mouse become friends
-    const p=localProgress(time,25,30);
-
-    tiger.position.x=mix(-1.45,-.95,p);
-    mouse.position.x=mix(1.65,1.10,p);
-
-    tigerHead.rotation.y=Math.sin(time*2)*.10;
-    mouse.rotation.y=Math.sin(time*2+1)*.12;
-
-    tigerTail.rotation.y=Math.sin(time*3)*.25;
-    mouseTail.rotation.y=Math.sin(time*3.5)*.30;
-
-    tiger.position.y=Math.abs(Math.sin(time*3))*.025;
-    mouse.position.y=Math.abs(Math.sin(time*3+1))*.04;
-
-    selectScene(5);
-  }
-
-  progressBar.style.width=
-    Math.min(100,(time/DURATION)*100)+"%";
-}
-
-// -----------------------------------
-// PLAY / PAUSE / RESTART
-// -----------------------------------
-
-const playBtn=document.getElementById("playBtn");
-const pauseBtn=document.getElementById("pauseBtn");
-const restartBtn=document.getElementById("restartBtn");
-
-playBtn.addEventListener("click",()=>{
-  if(elapsed>=DURATION){
-    elapsed=0;
-  }
-
-  playing=true;
-  playBtn.classList.add("active");
-  pauseBtn.classList.remove("active");
-
-  status.textContent="▶ Story is playing...";
-});
-
-pauseBtn.addEventListener("click",()=>{
-  playing=false;
-  playBtn.classList.remove("active");
-  pauseBtn.classList.add("active");
-
-  status.textContent="⏸ Story paused at "+elapsed.toFixed(1)+" seconds.";
-});
-
-restartBtn.addEventListener("click",()=>{
-  elapsed=0;
-  playing=true;
-
-  playBtn.classList.add("active");
-  pauseBtn.classList.remove("active");
-
-  currentScene=-1;
-  updateStory(0);
-
-  status.textContent="↻ Restarting story...";
-});
-
-// -----------------------------------
+// --------------------------------------
 // MAIN ANIMATION LOOP
-// -----------------------------------
+// --------------------------------------
 
 function animate(){
-  requestAnimationFrame(animate);
+ requestAnimationFrame(animate);
 
-  // Always advance clock; story timer advances only while playing.
-  const delta=Math.min(clock.getDelta(),.05);
+ const delta=Math.min(clock.getDelta(),.05);
+ const time=clock.elapsedTime;
 
-  if(playing){
-    elapsed+=delta;
+ // Mouth movement is synchronized with the
+ // character's Speech Synthesis speaking state.
+ if(tigerSpeaking){
+  tigerMouth.scale.y=.025+Math.abs(Math.sin(time*11))*.11;
+ }else if(sceneNumber!==2){
+  tigerMouth.scale.y=.025;
+ }
 
-    if(elapsed>=DURATION){
-      elapsed=DURATION;
-      playing=false;
+ if(mouseSpeaking){
+  mouseMouth.scale.y=.018+Math.abs(Math.sin(time*13))*.10;
+ }else{
+  mouseMouth.scale.y=.018;
+ }
 
-      playBtn.classList.remove("active");
-      pauseBtn.classList.add("active");
+ updateSceneMotion(time);
 
-      status.textContent=
-        "🎉 Story Completed!\n"+
-        "Tiger and Mouse are now friends.";
-    }
-  }
+ if(playing&&sceneNumber>=0){
+  const total=sceneNumber/currentStory.length;
+  bar.style.width=((total)*100)+"%";
+ }else if(!playing&&sceneNumber>=0){
+  bar.style.width=(sceneNumber/currentStory.length*100)+"%";
+ }
 
-  updateStory(elapsed);
-
-  renderer.render(scene,camera);
+ renderer.render(scene,camera);
 }
 
-function resize(){
-  const width=stage.clientWidth;
-  const height=stage.clientHeight;
+// --------------------------------------
+// RESIZE AND INITIALIZE
+// --------------------------------------
 
-  camera.aspect=width/height;
-  camera.updateProjectionMatrix();
-  renderer.setSize(width,height);
+function resize(){
+ const width=stage.clientWidth;
+ const height=stage.clientHeight;
+
+ camera.aspect=width/height;
+ camera.updateProjectionMatrix();
+ renderer.setSize(width,height);
 }
 
 window.addEventListener("resize",resize);
 
-// START IN IDLE MODE
-updateStory(0);
+renderTimeline();
+resetPoses();
 animate();
 
-status.textContent="✅ Ready! Click Play Story to start.";
+setStatus("✅ Voice Story Lab Ready! Choose a language and press Play Story.");
 </script>
-
 </body>
 </html>
