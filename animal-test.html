@@ -5,11 +5,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Apna Creator AI - Tiger & Mouse Lab</title>
+
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#edf2fa;color:#172033;font-family:Arial,sans-serif}
 .wrap{max-width:1100px;margin:auto;padding:16px}
-.card{background:#fff;border-radius:15px;padding:18px;margin-bottom:15px;box-shadow:0 4px 15px #14213d12}
+.card{background:white;border-radius:15px;padding:18px;margin-bottom:15px;box-shadow:0 4px 15px #14213d12}
 h1{font-size:25px;margin:0 0 8px}
 .sub,.note{color:#64748b;font-size:13px;line-height:1.5}
 #stage{height:520px;width:100%;overflow:hidden;border-radius:12px;background:#b7def5}
@@ -17,46 +18,58 @@ h1{font-size:25px;margin:0 0 8px}
 .controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}
 button{border:0;border-radius:8px;padding:11px 15px;background:#2563eb;color:#fff;font-weight:bold;cursor:pointer}
 button.active{background:#15803d}
-button:focus{outline:3px solid #a5bfff;outline-offset:2px}
 #status{background:#eff6ff;padding:12px;border-radius:8px;margin-top:12px;font-size:14px;white-space:pre-wrap;line-height:1.5}
 .legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .tag{display:inline-block;background:#f1f5f9;border-radius:7px;padding:6px 9px;font-size:12px}
 @media(max-width:600px){#stage{height:400px}.wrap{padding:8px}button{padding:10px 12px}}
 </style>
+
 <script type="importmap">
-{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js"}}
+{
+ "imports":{
+  "three":"https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js"
+ }
+}
 </script>
 </head>
+
 <body>
 <div class="wrap">
-  <div class="card">
-    <h1>🐯 Apna Creator AI – Tiger & Mouse Lab</h1>
-    <p class="sub">Animal Character Prototype 01 | 3D Animation</p>
-    <div id="stage"></div>
-    <div class="legend">
-      <span class="tag">🐯 Tiger</span>
-      <span class="tag">🐭 Mouse</span>
-      <span class="tag">No AI quota used</span>
-    </div>
-    <div class="controls">
-      <button id="bothBtn" class="active">Both Idle</button>
-      <button id="tigerWalkBtn">Tiger Walk</button>
-      <button id="tigerRunBtn">Tiger Run</button>
-      <button id="roarBtn">Tiger Roar</button>
-      <button id="mouseWalkBtn">Mouse Walk</button>
-      <button id="mouseRunBtn">Mouse Run</button>
-      <button id="mouseJumpBtn">Mouse Jump</button>
-      <button id="friendBtn">Become Friends</button>
-      <button id="resetBtn">Reset</button>
-    </div>
-    <div id="status">Loading Tiger and Mouse...</div>
-  </div>
-  <div class="card">
-    <h3>Prototype Features</h3>
-    <p class="note">Tiger: four articulated legs, tail sway, head movement and roar preview.</p>
-    <p class="note">Mouse: articulated legs, tail sway, running and jumping preview.</p>
-    <p class="note"><b>Note:</b> These are procedural 3D prototype characters made from shapes. Professional GLB models and AI story-to-character selection will be added later.</p>
-  </div>
+
+<div class="card">
+<h1>🐯 Apna Creator AI – Tiger & Mouse Lab</h1>
+<p class="sub">Animal Character Prototype 01 | Animation Test</p>
+
+<div id="stage"></div>
+
+<div class="legend">
+<span class="tag">🐯 Tiger</span>
+<span class="tag">🐭 Mouse</span>
+<span class="tag">No AI quota used</span>
+</div>
+
+<div class="controls">
+<button id="bothBtn" class="active">Both Idle</button>
+<button id="tigerWalkBtn">Tiger Walk</button>
+<button id="tigerRunBtn">Tiger Run</button>
+<button id="roarBtn">Tiger Roar</button>
+<button id="mouseWalkBtn">Mouse Walk</button>
+<button id="mouseRunBtn">Mouse Run</button>
+<button id="mouseJumpBtn">Mouse Jump</button>
+<button id="friendBtn">Become Friends</button>
+<button id="resetBtn">Reset</button>
+</div>
+
+<div id="status">Loading Tiger and Mouse...</div>
+</div>
+
+<div class="card">
+<h3>Prototype Features</h3>
+<p class="note">Tiger: articulated legs, tail movement, head movement and roar preview.</p>
+<p class="note">Mouse: articulated legs, tail movement, running and jumping.</p>
+<p class="note">Characters are procedural 3D prototypes. Professional GLB models will be added later.</p>
+</div>
+
 </div>
 
 <script type="module">
@@ -64,6 +77,7 @@ import * as THREE from "three";
 
 const stage = document.getElementById("stage");
 const status = document.getElementById("status");
+
 const renderer = new THREE.WebGLRenderer({
   antialias:true,
   powerPreference:"low-power"
@@ -71,111 +85,121 @@ const renderer = new THREE.WebGLRenderer({
 
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1,1.5));
 renderer.setSize(stage.clientWidth,stage.clientHeight);
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.outputColorSpace=THREE.SRGBColorSpace;
 stage.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xb7def5);
-scene.fog = new THREE.Fog(0xb7def5,15,35);
+scene.background=new THREE.Color(0xb7def5);
+scene.fog=new THREE.Fog(0xb7def5,15,35);
 
-const camera = new THREE.PerspectiveCamera(
-  38,stage.clientWidth/stage.clientHeight,0.1,100
+const camera=new THREE.PerspectiveCamera(
+ 38,
+ stage.clientWidth/stage.clientHeight,
+ 0.1,
+ 100
 );
+
 camera.position.set(4.3,3.2,9.2);
 camera.lookAt(0,1.15,0);
 
 scene.add(new THREE.HemisphereLight(0xffffff,0x64744d,2));
 
-const sun = new THREE.DirectionalLight(0xffffff,2.3);
+const sun=new THREE.DirectionalLight(0xffffff,2.3);
 sun.position.set(-4,9,6);
-sun.castShadow = true;
+sun.castShadow=true;
 sun.shadow.mapSize.set(1024,1024);
 scene.add(sun);
 
-const mat = (color,roughness=0.82) =>
-  new THREE.MeshStandardMaterial({color,roughness});
+const mat=(color,roughness=0.82)=>
+ new THREE.MeshStandardMaterial({color,roughness});
 
-const M = {
-  ground:mat(0x7eae64),
-  trunk:mat(0x76502f),
-  leaf:mat(0x38864c),
-  leaf2:mat(0x4a9955),
-  tiger:mat(0xe99535),
-  tigerLight:mat(0xf4bd71),
-  stripe:mat(0x29211c),
-  cream:mat(0xffe3b5),
-  black:mat(0x201915),
-  white:mat(0xffffff),
-  nose:mat(0x30201c),
-  mouth:mat(0x3b1718),
-  mouse:mat(0x92949c),
-  mouseLight:mat(0xb9bac2),
-  pink:mat(0xe994a9),
-  pink2:mat(0xc96e87),
-  blue:mat(0x477eaf)
+const M={
+ ground:mat(0x7eae64),
+ trunk:mat(0x76502f),
+ leaf:mat(0x38864c),
+ leaf2:mat(0x4a9955),
+ tiger:mat(0xe99535),
+ tigerLight:mat(0xf4bd71),
+ stripe:mat(0x29211c),
+ cream:mat(0xffe3b5),
+ black:mat(0x201915),
+ white:mat(0xffffff),
+ nose:mat(0x30201c),
+ mouth:mat(0x3b1718),
+ mouse:mat(0x92949c),
+ mouseLight:mat(0xb9bac2),
+ pink:mat(0xe994a9),
+ pink2:mat(0xc96e87),
+ blue:mat(0x477eaf)
 };
 
 function sphere(parent,name,position,scale,material,segments=20){
-  const mesh = new THREE.Mesh(
-    new THREE.SphereGeometry(1,segments,16),
-    material
-  );
-  mesh.name=name;
-  mesh.position.set(...position);
-  mesh.scale.set(...scale);
-  mesh.castShadow=true;
-  mesh.receiveShadow=true;
-  parent.add(mesh);
-  return mesh;
+ const mesh=new THREE.Mesh(
+  new THREE.SphereGeometry(1,segments,16),
+  material
+ );
+ mesh.name=name;
+ mesh.position.set(...position);
+ mesh.scale.set(...scale);
+ mesh.castShadow=true;
+ mesh.receiveShadow=true;
+ parent.add(mesh);
+ return mesh;
 }
 
 function cylinder(parent,name,position,rTop,rBottom,height,material){
-  const mesh = new THREE.Mesh(
-    new THREE.CylinderGeometry(rTop,rBottom,height,14),
-    material
-  );
-  mesh.name=name;
-  mesh.position.set(...position);
-  mesh.castShadow=true;
-  mesh.receiveShadow=true;
-  parent.add(mesh);
-  return mesh;
+ const mesh=new THREE.Mesh(
+  new THREE.CylinderGeometry(rTop,rBottom,height,14),
+  material
+ );
+ mesh.name=name;
+ mesh.position.set(...position);
+ mesh.castShadow=true;
+ mesh.receiveShadow=true;
+ parent.add(mesh);
+ return mesh;
 }
 
 function tube(parent,name,points,radius,material){
-  const curve = new THREE.CatmullRomCurve3(
-    points.map(p=>new THREE.Vector3(...p))
-  );
-  const mesh = new THREE.Mesh(
-    new THREE.TubeGeometry(curve,24,radius,8,false),
-    material
-  );
-  mesh.name=name;
-  mesh.castShadow=true;
-  parent.add(mesh);
-  return mesh;
+ const curve=new THREE.CatmullRomCurve3(
+  points.map(p=>new THREE.Vector3(...p))
+ );
+ const mesh=new THREE.Mesh(
+  new THREE.TubeGeometry(curve,24,radius,8,false),
+  material
+ );
+ mesh.name=name;
+ mesh.castShadow=true;
+ parent.add(mesh);
+ return mesh;
 }
 
-// ENVIRONMENT
+// GROUND
 
-const ground = new THREE.Mesh(
-  new THREE.PlaneGeometry(60,60),
-  M.ground
+const ground=new THREE.Mesh(
+ new THREE.PlaneGeometry(60,60),
+ M.ground
 );
+
 ground.rotation.x=-Math.PI/2;
 ground.position.y=-0.04;
 ground.receiveShadow=true;
 scene.add(ground);
 
+// TREES
+
 function tree(x,z,h){
-  const g=new THREE.Group();
-  g.position.set(x,0,z);
-  scene.add(g);
-  cylinder(g,"tree trunk",[0,h/2,0],.14,.19,h,M.trunk);
-  sphere(g,"tree crown",[0,h+.28,0],[.82,1.05,.78],M.leaf);
-  sphere(g,"tree crown detail",[.42,h+.08,.04],[.52,.67,.55],M.leaf2);
+ const g=new THREE.Group();
+ g.position.set(x,0,z);
+ scene.add(g);
+
+ cylinder(g,"tree trunk",[0,h/2,0],.14,.19,h,M.trunk);
+
+ sphere(g,"tree crown",[0,h+.28,0],[.82,1.05,.78],M.leaf);
+
+ sphere(g,"tree crown detail",[.42,h+.08,.04],[.52,.67,.55],M.leaf2);
 }
 
 tree(-4,-2,2.1);
@@ -192,31 +216,20 @@ scene.add(tiger);
 const tigerBody=new THREE.Group();
 tiger.add(tigerBody);
 
-sphere(
-  tigerBody,"tiger torso",
-  [0,.98,0],[.49,.47,.91],M.tiger,28
-);
-
-sphere(
-  tigerBody,"tiger belly",
-  [0,.78,.12],[.37,.29,.72],M.tigerLight,24
-);
-
-sphere(
-  tigerBody,"tiger chest",
-  [0,1.02,.66],[.39,.43,.30],M.tiger,24
-);
+sphere(tigerBody,"tiger torso",[0,.98,0],[.49,.47,.91],M.tiger,28);
+sphere(tigerBody,"tiger belly",[0,.78,.12],[.37,.29,.72],M.tigerLight,24);
+sphere(tigerBody,"tiger chest",[0,1.02,.66],[.39,.43,.30],M.tiger,24);
 
 // Tiger stripes
 for(const side of [-1,1]){
-  for(let i=0;i<4;i++){
-    const stripe=sphere(
-      tigerBody,"tiger stripe",
-      [side*(.425-i*.012),1.02,(i-1.5)*.31],
-      [.027,.18,.085],M.stripe,12
-    );
-    stripe.rotation.z=(i%2===0?-.22:.22)*side;
-  }
+ for(let i=0;i<4;i++){
+  const stripe=sphere(
+   tigerBody,"tiger stripe",
+   [side*(.425-i*.012),1.02,(i-1.5)*.31],
+   [.027,.18,.085],M.stripe,12
+  );
+  stripe.rotation.z=(i%2===0?-.22:.22)*side;
+ }
 }
 
 // Tiger head
@@ -227,25 +240,25 @@ tiger.add(tigerHead);
 sphere(tigerHead,"tiger head",[0,0,0],[.43,.40,.37],M.tiger,28);
 
 for(const side of [-1,1]){
-  sphere(tigerHead,"ear",[side*.30,.30,-.015],[.15,.17,.12],M.tiger);
-  sphere(tigerHead,"inner ear",[side*.30,.30,.087],[.085,.10,.035],M.pink2);
+ sphere(tigerHead,"ear",[side*.30,.30,-.015],[.15,.17,.12],M.tiger);
+ sphere(tigerHead,"inner ear",[side*.30,.30,.087],[.085,.10,.035],M.pink2);
 
-  sphere(tigerHead,"eye white",[side*.16,.075,.315],[.082,.094,.045],M.white);
-  sphere(tigerHead,"eye pupil",[side*.16,.07,.355],[.038,.052,.022],M.black);
+ sphere(tigerHead,"eye white",[side*.16,.075,.315],[.082,.094,.045],M.white);
+ sphere(tigerHead,"eye pupil",[side*.16,.07,.355],[.038,.052,.022],M.black);
 
-  sphere(tigerHead,"cheek",[side*.25,-.13,.25],[.15,.12,.13],M.cream);
+ sphere(tigerHead,"cheek",[side*.25,-.13,.25],[.15,.12,.13],M.cream);
 
-  tube(tigerHead,"whisker",[
-    [side*.21,-.12,.32],
-    [side*.43,-.10,.38],
-    [side*.52,-.07,.36]
-  ],.009,M.cream);
+ tube(tigerHead,"whisker",[
+  [side*.21,-.12,.32],
+  [side*.43,-.10,.38],
+  [side*.52,-.07,.36]
+ ],.009,M.cream);
 
-  tube(tigerHead,"whisker",[
-    [side*.22,-.18,.32],
-    [side*.42,-.22,.38],
-    [side*.50,-.23,.37]
-  ],.008,M.cream);
+ tube(tigerHead,"whisker",[
+  [side*.22,-.18,.32],
+  [side*.42,-.22,.38],
+  [side*.50,-.23,.37]
+ ],.008,M.cream);
 }
 
 sphere(tigerHead,"muzzle left",[-.105,-.13,.365],[.15,.13,.15],M.cream);
@@ -253,43 +266,45 @@ sphere(tigerHead,"muzzle right",[.105,-.13,.365],[.15,.13,.15],M.cream);
 sphere(tigerHead,"nose",[0,-.055,.49],[.105,.075,.065],M.nose);
 
 const tigerMouth=sphere(
-  tigerHead,"mouth",[0,-.255,.405],[.105,.025,.035],M.mouth
+ tigerHead,"mouth",[0,-.255,.405],[.105,.025,.035],M.mouth
 );
 
-// Tiger legs
+// TIGER LEGS
+
 const tigerLegs=[];
 
 for(const x of [-.30,.30]){
-  for(const z of [-.57,.58]){
-    const hip=new THREE.Group();
-    hip.position.set(x,.77,z);
-    tiger.add(hip);
+ for(const z of [-.57,.58]){
+  const hip=new THREE.Group();
+  hip.position.set(x,.77,z);
+  tiger.add(hip);
 
-    cylinder(hip,"upper leg",[0,-.19,0],.13,.15,.39,M.tiger);
-    sphere(hip,"knee",[0,-.38,0],[.125,.12,.13],M.tiger);
+  cylinder(hip,"upper leg",[0,-.19,0],.13,.15,.39,M.tiger);
+  sphere(hip,"knee",[0,-.38,0],[.125,.12,.13],M.tiger);
 
-    const lower=new THREE.Group();
-    lower.position.set(0,-.38,0);
-    hip.add(lower);
+  const lower=new THREE.Group();
+  lower.position.set(0,-.38,0);
+  hip.add(lower);
 
-    cylinder(lower,"lower leg",[0,-.16,0],.085,.105,.32,M.tigerLight);
-    sphere(lower,"paw",[0,-.34,.075],[.16,.10,.22],M.cream);
+  cylinder(lower,"lower leg",[0,-.16,0],.085,.105,.32,M.tigerLight);
+  sphere(lower,"paw",[0,-.34,.075],[.16,.10,.22],M.cream);
 
-    for(let toe=-1;toe<=1;toe++){
-      sphere(lower,"paw toe",[toe*.065,-.35,.23],[.043,.047,.065],M.cream,12);
-    }
-
-    tigerLegs.push({hip,x,z});
+  for(let toe=-1;toe<=1;toe++){
+   sphere(lower,"paw toe",[toe*.065,-.35,.23],[.043,.047,.065],M.cream,12);
   }
+
+  tigerLegs.push({hip,x,z});
+ }
 }
 
-// Tiger tail
+// TIGER TAIL
+
 const tigerTail=new THREE.Group();
 tigerTail.position.set(0,1.13,-.83);
 tiger.add(tigerTail);
 
 tube(tigerTail,"tiger tail",[
-  [0,0,0],[0,.10,-.23],[0,.34,-.42],[0,.48,-.62]
+ [0,0,0],[0,.10,-.23],[0,.34,-.42],[0,.48,-.62]
 ],.065,M.tiger);
 
 sphere(tigerTail,"tail tip",[0,.48,-.62],[.075,.08,.09],M.stripe);
@@ -308,25 +323,21 @@ sphere(mouseBody,"mouse belly",[0,.52,.235],[.20,.25,.10],M.mouseLight);
 sphere(mouseBody,"mouse head",[0,.94,.08],[.34,.34,.31],M.mouseLight,28);
 
 for(const side of [-1,1]){
-  sphere(mouseBody,"mouse ear",[side*.27,1.20,-.02],[.19,.22,.105],M.mouse);
-  sphere(mouseBody,"pink inner ear",[side*.27,1.20,.075],[.12,.15,.045],M.pink);
+ sphere(mouseBody,"mouse ear",[side*.27,1.20,-.02],[.19,.22,.105],M.mouse);
+ sphere(mouseBody,"pink inner ear",[side*.27,1.20,.075],[.12,.15,.045],M.pink);
 
-  sphere(mouseBody,"mouse eye",[side*.14,1.00,.355],[.065,.083,.035],M.white);
-  sphere(mouseBody,"mouse pupil",[side*.14,.99,.385],[.032,.05,.02],M.black);
+ sphere(mouseBody,"mouse eye",[side*.14,1.00,.355],[.065,.083,.035],M.white);
+ sphere(mouseBody,"mouse pupil",[side*.14,.99,.385],[.032,.05,.02],M.black);
 
-  sphere(mouseBody,"mouse cheek",[side*.22,.82,.30],[.095,.07,.045],M.pink);
+ sphere(mouseBody,"mouse cheek",[side*.22,.82,.30],[.095,.07,.045],M.pink);
 
-  tube(mouseBody,"mouse whisker",[
-    [side*.17,.83,.34],
-    [side*.36,.85,.40],
-    [side*.49,.88,.37]
-  ],.006,M.cream);
+ tube(mouseBody,"mouse whisker",[
+  [side*.17,.83,.34],[side*.36,.85,.40],[side*.49,.88,.37]
+ ],.006,M.cream);
 
-  tube(mouseBody,"mouse whisker",[
-    [side*.17,.79,.34],
-    [side*.37,.76,.40],
-    [side*.49,.75,.37]
-  ],.006,M.cream);
+ tube(mouseBody,"mouse whisker",[
+  [side*.17,.79,.34],[side*.37,.76,.40],[side*.49,.75,.37]
+ ],.006,M.cream);
 }
 
 sphere(mouseBody,"mouse snout",[0,.83,.39],[.15,.12,.13],M.cream);
@@ -335,44 +346,47 @@ sphere(mouseBody,"mouse mouth",[0,.73,.49],[.045,.018,.018],M.black);
 
 sphere(mouseBody,"mouse vest",[0,.48,.03],[.285,.19,.285],M.blue);
 
-// Mouse legs
+// MOUSE LEGS
+
 const mouseLegs=[];
 
 for(const side of [-1,1]){
-  const hip=new THREE.Group();
-  hip.position.set(side*.13,.34,.02);
-  mouse.add(hip);
+ const hip=new THREE.Group();
+ hip.position.set(side*.13,.34,.02);
+ mouse.add(hip);
 
-  cylinder(hip,"mouse leg",[0,-.13,0],.075,.085,.27,M.mouse);
-  sphere(hip,"mouse foot",[0,-.28,.07],[.115,.075,.16],M.pink2);
+ cylinder(hip,"mouse leg",[0,-.13,0],.075,.085,.27,M.mouse);
+ sphere(hip,"mouse foot",[0,-.28,.07],[.115,.075,.16],M.pink2);
 
-  mouseLegs.push({hip,side});
+ mouseLegs.push({hip,side});
 }
 
-// Mouse arms
+// MOUSE ARMS
+
 const mouseArms=[];
 
 for(const side of [-1,1]){
-  const arm=new THREE.Group();
-  arm.position.set(side*.24,.62,.04);
-  mouse.add(arm);
+ const arm=new THREE.Group();
+ arm.position.set(side*.24,.62,.04);
+ mouse.add(arm);
 
-  cylinder(arm,"mouse arm",[side*.06,-.12,.06],.055,.065,.25,M.mouseLight);
-  sphere(arm,"mouse hand",[side*.07,-.25,.10],[.07,.07,.07],M.pink2);
+ cylinder(arm,"mouse arm",[side*.06,-.12,.06],.055,.065,.25,M.mouseLight);
+ sphere(arm,"mouse hand",[side*.07,-.25,.10],[.07,.07,.07],M.pink2);
 
-  mouseArms.push({arm,side});
+ mouseArms.push({arm,side});
 }
 
-// Mouse tail
+// MOUSE TAIL
+
 const mouseTail=new THREE.Group();
 mouseTail.position.set(0,.57,-.23);
 mouse.add(mouseTail);
 
 tube(mouseTail,"mouse tail",[
-  [0,0,0],[.10,-.02,-.23],[.18,.04,-.48],[.10,.18,-.68]
+ [0,0,0],[.10,-.02,-.23],[.18,.04,-.48],[.10,.18,-.68]
 ],.018,M.pink2);
 
-// ANIMATION SYSTEM
+// ANIMATION STATE
 
 let tigerMode="idle";
 let mouseMode="idle";
@@ -382,188 +396,249 @@ let mouseJumpStart=-1;
 const clock=new THREE.Clock();
 
 function activate(buttonId){
-  document.querySelectorAll(".controls button").forEach(
-    b=>b.classList.remove("active")
-  );
-  if(buttonId) document.getElementById(buttonId).classList.add("active");
+ document.querySelectorAll(".controls button").forEach(
+  b=>b.classList.remove("active")
+ );
+ if(buttonId){
+  document.getElementById(buttonId).classList.add("active");
+ }
 }
 
 function setStatus(text){
-  status.textContent=text;
+ status.textContent=text;
 }
 
 function bothIdle(){
-  tigerMode="idle";
-  mouseMode="idle";
-  friendMode=false;
-  mouseJumpStart=-1;
-  activate("bothBtn");
-  setStatus("🐯 Tiger and 🐭 Mouse are idle.");
+ tigerMode="idle";
+ mouseMode="idle";
+ friendMode=false;
+ mouseJumpStart=-1;
+ activate("bothBtn");
+ setStatus("🐯 Tiger and 🐭 Mouse are idle.");
 }
 
 document.getElementById("bothBtn").onclick=bothIdle;
 
 document.getElementById("tigerWalkBtn").onclick=()=>{
-  tigerMode="walk";mouseMode="idle";friendMode=false;
-  activate("tigerWalkBtn");
-  setStatus("🐯 Tiger is walking.");
+ tigerMode="walk";
+ mouseMode="idle";
+ friendMode=false;
+ activate("tigerWalkBtn");
+ setStatus("🐯 Tiger is walking.");
 };
 
 document.getElementById("tigerRunBtn").onclick=()=>{
-  tigerMode="run";mouseMode="idle";friendMode=false;
-  activate("tigerRunBtn");
-  setStatus("🐯 Tiger is running.");
+ tigerMode="run";
+ mouseMode="idle";
+ friendMode=false;
+ activate("tigerRunBtn");
+ setStatus("🐯 Tiger is running.");
 };
 
 document.getElementById("roarBtn").onclick=()=>{
-  tigerMode="roar";mouseMode="idle";friendMode=false;
-  activate("roarBtn");
-  setStatus("🐯 Tiger roar animation preview.");
+ tigerMode="roar";
+ mouseMode="idle";
+ friendMode=false;
+ activate("roarBtn");
+ setStatus("🐯 Tiger roar animation preview.");
 };
 
 document.getElementById("mouseWalkBtn").onclick=()=>{
-  tigerMode="idle";mouseMode="walk";friendMode=false;
-  activate("mouseWalkBtn");
-  setStatus("🐭 Mouse is walking.");
+ tigerMode="idle";
+ mouseMode="walk";
+ friendMode=false;
+ activate("mouseWalkBtn");
+ setStatus("🐭 Mouse is walking.");
 };
 
 document.getElementById("mouseRunBtn").onclick=()=>{
-  tigerMode="idle";mouseMode="run";friendMode=false;
-  activate("mouseRunBtn");
-  setStatus("🐭 Mouse is running.");
+ tigerMode="idle";
+ mouseMode="run";
+ friendMode=false;
+ activate("mouseRunBtn");
+ setStatus("🐭 Mouse is running.");
 };
 
 document.getElementById("mouseJumpBtn").onclick=()=>{
-  tigerMode="idle";mouseMode="jump";friendMode=false;
-  mouseJumpStart=clock.elapsedTime;
-  activate("mouseJumpBtn");
-  setStatus("🐭 Mouse is jumping.");
+ tigerMode="idle";
+ mouseMode="jump";
+ friendMode=false;
+ mouseJumpStart=clock.elapsedTime;
+ activate("mouseJumpBtn");
+ setStatus("🐭 Mouse is jumping.");
 };
 
 document.getElementById("friendBtn").onclick=()=>{
-  tigerMode="idle";mouseMode="idle";friendMode=true;
-  mouseJumpStart=-1;
-  activate("friendBtn");
-  setStatus("🤝 Tiger and Mouse become friends!");
+ tigerMode="idle";
+ mouseMode="idle";
+ friendMode=true;
+ mouseJumpStart=-1;
+ activate("friendBtn");
+ setStatus("🤝 Tiger and Mouse become friends!");
 };
 
 document.getElementById("resetBtn").onclick=()=>{
-  tiger.position.set(-1.45,0,0);
-  mouse.position.set(1.35,0,.02);
-  tigerHead.rotation.set(0,0,0);
-  tigerMouth.scale.y=.025;
-  bothIdle();
+ tiger.position.set(-1.45,0,0);
+ mouse.position.set(1.35,0,.02);
+ tigerHead.rotation.set(0,0,0);
+ tigerMouth.scale.y=.025;
+ bothIdle();
 };
 
-// RENDER LOOP
+// ANIMATION LOOP
 
 function animate(){
-  requestAnimationFrame(animate);
-  const t=clock.elapsedTime;
+ requestAnimationFrame(animate);
 
-  // Tiger walk and run
-  if(tigerMode==="walk"||tigerMode==="run"){
-    const speed=tigerMode==="run"?9.5:5;
-    const amp=tigerMode==="run"?.62:.38;
+ // IMPORTANT FIX:
+ // getDelta() advances the Three.js clock every frame.
+ const delta=Math.min(clock.getDelta(),0.05);
+ const t=clock.elapsedTime;
 
-    tigerLegs.forEach(({hip,x,z})=>{
-      const phase=(x*z)>0?0:Math.PI;
-      hip.rotation.x=Math.sin(t*speed+phase)*amp;
-    });
+ const tigerSpeed=tigerMode==="run"?10:5;
+ const tigerAmplitude=tigerMode==="run"?.72:.48;
 
-    tiger.position.y=Math.abs(Math.sin(t*speed*2))*
-      (tigerMode==="run"?.075:.025);
+ if(tigerMode==="walk"||tigerMode==="run"){
 
-    tigerBody.rotation.x=tigerMode==="run"?
-      Math.sin(t*speed)*.035:0;
+  tigerLegs.forEach(({hip,x,z})=>{
+   const phase=(x*z)>0?0:Math.PI;
+   hip.rotation.x=Math.sin(t*tigerSpeed+phase)*tigerAmplitude;
+  });
 
-    tigerHead.rotation.x=0;
-    tigerMouth.scale.y=.025;
+  tiger.position.y=
+   Math.abs(Math.sin(t*tigerSpeed*2))*
+   (tigerMode==="run"?.105:.05);
 
-  }else if(tigerMode==="roar"){
-    tigerLegs.forEach(({hip})=>hip.rotation.x=0);
-    tiger.position.y=.015+Math.abs(Math.sin(t*5))*.035;
-    tigerHead.rotation.x=-.10+Math.sin(t*5)*.08;
-    tigerMouth.scale.y=.14+Math.abs(Math.sin(t*5))*.09;
+  tigerBody.rotation.x=
+   Math.sin(t*tigerSpeed)*.035;
+
+  tigerMouth.scale.y=.025;
+  tigerHead.rotation.x=0;
+
+ }else if(tigerMode==="roar"){
+
+  tigerLegs.forEach(({hip})=>hip.rotation.x=0);
+
+  tiger.position.y=.025+Math.abs(Math.sin(t*5))*.05;
+  tigerHead.rotation.x=-.10+Math.sin(t*5)*.08;
+  tigerMouth.scale.y=.14+Math.abs(Math.sin(t*5))*.12;
+
+ }else{
+
+  tigerLegs.forEach(({hip})=>hip.rotation.x=0);
+
+  tiger.position.y=.012+Math.sin(t*2)*.012;
+  tigerBody.rotation.x=0;
+  tigerHead.rotation.x=Math.sin(t*1.5)*.025;
+  tigerMouth.scale.y=.025;
+ }
+
+ // Tail always moves slightly.
+ tigerTail.rotation.y=Math.sin(t*2.6)*.32;
+ tigerTail.rotation.x=Math.sin(t*1.8)*.10;
+
+ // MOUSE WALK / RUN
+ if(mouseMode==="walk"||mouseMode==="run"){
+
+  const speed=mouseMode==="run"?13:7;
+  const amp=mouseMode==="run"?.82:.50;
+
+  mouseLegs.forEach(({hip,side})=>{
+   hip.rotation.x=Math.sin(
+    t*speed+(side===1?0:Math.PI)
+   )*amp;
+  });
+
+  mouseArms.forEach(({arm,side})=>{
+   arm.rotation.x=-Math.sin(
+    t*speed+(side===1?0:Math.PI)
+   )*.65;
+  });
+
+  mouse.position.y=
+   Math.abs(Math.sin(t*speed*2))*
+   (mouseMode==="run"?.10:.04);
+
+ }else if(mouseMode==="jump"&&mouseJumpStart>=0){
+
+  const elapsed=t-mouseJumpStart;
+
+  if(elapsed<.9){
+   mouse.position.y=Math.sin((elapsed/.9)*Math.PI)*.85;
+
+   mouseLegs.forEach(({hip})=>{
+    hip.rotation.x=-.42;
+   });
+
+   mouseArms.forEach(({arm})=>{
+    arm.rotation.x=-.45;
+   });
 
   }else{
-    tigerLegs.forEach(({hip})=>hip.rotation.x=0);
-    tiger.position.y=.008+Math.sin(t*2)*.008;
-    tigerBody.rotation.x=0;
-    tigerHead.rotation.x=Math.sin(t*1.5)*.018;
-    tigerMouth.scale.y=.025;
+   mouse.position.y=0;
+
+   mouseLegs.forEach(({hip})=>{
+    hip.rotation.x=0;
+   });
+
+   mouseArms.forEach(({arm})=>{
+    arm.rotation.x=0;
+   });
+
+   mouseMode="idle";
+   mouseJumpStart=-1;
+
+   activate("bothBtn");
+   setStatus("🐭 Mouse landed safely.");
   }
 
-  tigerTail.rotation.y=Math.sin(t*2.6)*.32;
-  tigerTail.rotation.x=Math.sin(t*1.8)*.10;
+ }else{
 
-  // Mouse walk and run
-  if(mouseMode==="walk"||mouseMode==="run"){
-    const speed=mouseMode==="run"?12:6;
-    const amp=mouseMode==="run"?.75:.42;
+  mouseLegs.forEach(({hip})=>{
+   hip.rotation.x=0;
+  });
 
-    mouseLegs.forEach(({hip,side})=>{
-      hip.rotation.x=Math.sin(
-        t*speed+(side===1?0:Math.PI)
-      )*amp;
-    });
+  mouseArms.forEach(({arm})=>{
+   arm.rotation.x=0;
+  });
 
-    mouseArms.forEach(({arm,side})=>{
-      arm.rotation.x=-Math.sin(
-        t*speed+(side===1?0:Math.PI)
-      )*.5;
-    });
+  mouse.position.y=.012+Math.sin(t*2.2)*.015;
+ }
 
-    mouse.position.y=Math.abs(Math.sin(t*speed*2))*
-      (mouseMode==="run"?.08:.025);
+ // Tail and friendly interaction
+ mouseTail.rotation.y=Math.sin(t*3.1)*.40;
 
-  }else if(mouseMode==="jump"&&mouseJumpStart>=0){
-    const elapsed=t-mouseJumpStart;
+ if(friendMode){
+  tigerHead.rotation.y=Math.sin(t*1.8)*.15;
+  mouse.rotation.y=Math.sin(t*1.8+1)*.15;
+  mouse.position.y=.025+Math.abs(Math.sin(t*3))*.06;
+ }else{
+  tigerHead.rotation.y=0;
+  mouse.rotation.y=0;
+ }
 
-    if(elapsed<.9){
-      mouse.position.y=Math.sin((elapsed/.9)*Math.PI)*.8;
-      mouseLegs.forEach(({hip})=>hip.rotation.x=-.35);
-    }else{
-      mouse.position.y=0;
-      mouseLegs.forEach(({hip})=>hip.rotation.x=0);
-      mouseMode="idle";
-      mouseJumpStart=-1;
-      activate("bothBtn");
-      setStatus("🐭 Mouse landed safely.");
-    }
-
-  }else{
-    mouseLegs.forEach(({hip})=>hip.rotation.x=0);
-    mouseArms.forEach(({arm})=>arm.rotation.x=0);
-    mouse.position.y=.008+Math.sin(t*2.2)*.012;
-  }
-
-  mouseTail.rotation.y=Math.sin(t*3.1)*.35;
-
-  if(friendMode){
-    tigerHead.rotation.y=Math.sin(t*1.8)*.12;
-    mouse.rotation.y=Math.sin(t*1.8+1)*.12;
-  }else{
-    tigerHead.rotation.y=0;
-    mouse.rotation.y=0;
-  }
-
-  renderer.render(scene,camera);
+ renderer.render(scene,camera);
 }
 
+// RESIZE
+
 function resize(){
-  const w=stage.clientWidth;
-  const h=stage.clientHeight;
-  camera.aspect=w/h;
-  camera.updateProjectionMatrix();
-  renderer.setSize(w,h);
+ const width=stage.clientWidth;
+ const height=stage.clientHeight;
+
+ camera.aspect=width/height;
+ camera.updateProjectionMatrix();
+ renderer.setSize(width,height);
 }
 
 window.addEventListener("resize",resize);
 
+// START
+
 bothIdle();
 animate();
-setStatus("✅ Tiger and Mouse 3D prototype ready. Select an animation.");
+
+setStatus("✅ Tiger and Mouse Animation Ready!");
 </script>
 </body>
 </html>
