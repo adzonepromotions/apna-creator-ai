@@ -3,384 +3,319 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Apna Creator AI - 3D Animation Test</title>
-
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Apna Creator AI - Character Lab</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;font-family:Arial,sans-serif;background:#edf2fa;color:#172033}
-.wrap{max-width:1050px;margin:auto;padding:18px}
-.card{background:white;border-radius:15px;padding:18px;margin-bottom:15px;box-shadow:0 4px 15px #14213d12}
-h1{font-size:25px;margin:0 0 8px}
-.sub{color:#64748b;font-size:14px}
-#stage{width:100%;height:500px;overflow:hidden;border-radius:12px;background:#a9d8f3;position:relative}
+body{margin:0;background:#edf2fa;font-family:Arial;color:#172033}
+.wrap{max-width:1050px;margin:auto;padding:16px}
+.card{background:white;border-radius:15px;padding:17px;margin-bottom:15px;box-shadow:0 4px 15px #15264b12}
+h1{margin:0 0 7px;font-size:25px}
+.sub,.note{color:#64748b;font-size:13px;line-height:1.5}
+#stage{height:500px;width:100%;overflow:hidden;border-radius:12px;background:#a9d8f3}
 #stage canvas{display:block;width:100%;height:100%}
-.controls{display:flex;flex-wrap:wrap;gap:9px;margin-top:15px}
-button{border:0;border-radius:8px;padding:12px 18px;background:#2563eb;color:white;font-weight:bold;cursor:pointer}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}
+button{border:0;border-radius:8px;padding:11px 16px;background:#2563eb;color:white;font-weight:bold;cursor:pointer}
 button.active{background:#15803d}
 #status{background:#eff6ff;padding:12px;border-radius:8px;margin-top:12px;font-size:14px}
-.note{font-size:13px;color:#64748b;line-height:1.5}
-@media(max-width:600px){#stage{height:390px}.wrap{padding:9px}}
+@media(max-width:600px){#stage{height:390px}.wrap{padding:8px}}
 </style>
-
 <script type="importmap">
-{
-  "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js"
-  }
-}
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js"}}
 </script>
 </head>
-
 <body>
 <div class="wrap">
-
 <div class="card">
-<h1>🎬 Apna Creator AI – 3D Lab</h1>
-<p class="sub">Monu + Magical Parrot | Animation Prototype 01</p>
-
+<h1>🎬 Apna Creator AI – Character Lab</h1>
+<p class="sub">Monu Character Prototype 02 | Joint Animation</p>
 <div id="stage"></div>
-
 <div class="controls">
 <button id="idleBtn">Idle</button>
 <button id="walkBtn" class="active">Walk</button>
 <button id="runBtn">Run</button>
 <button id="talkBtn">Talk</button>
+<button id="jumpBtn">Jump</button>
 <button id="flyBtn">Parrot Fly</button>
 <button id="resetBtn">Reset</button>
 </div>
-
-<div id="status">3D Animation Engine Loading...</div>
+<div id="status">Loading 3D Character...</div>
 </div>
-
 <div class="card">
-<h3>Prototype Features</h3>
+<h3>Character Lab – Version 02</h3>
 <p class="note">
-✅ Procedural 3D Boy Character<br>
-✅ Moving Arms and Legs<br>
-✅ Walking and Running Motions<br>
-✅ Talking Mouth Movement Preview<br>
-✅ Parrot Wing Flapping and Flying<br>
-✅ Real-time 3D Rendering
+Improved face, hair, body proportions, joint-based arms and legs,
+walking, running, jumping, talking preview and parrot flight.
 </p>
-<p class="note">
-This is a first 3D prototype made from basic 3D shapes.
-It is not yet the final rigged cartoon character.
-</p>
+<p class="note">This is a procedural articulated 3D prototype, not yet a professionally rigged GLB character.</p>
 </div>
-
 </div>
 
 <script type="module">
 import * as THREE from "three";
 
-const stage = document.getElementById("stage");
-const status = document.getElementById("status");
+const stage=document.getElementById("stage");
+const status=document.getElementById("status");
 
-let renderer;
-
-try {
-  renderer = new THREE.WebGLRenderer({
-    antialias: true,
-    powerPreference: "low-power"
-  });
-} catch(error) {
-  status.textContent = "WebGL is not available in this browser.";
-  throw error;
-}
-
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
-renderer.setSize(stage.clientWidth, stage.clientHeight);
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:"low-power"});
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
+renderer.setSize(stage.clientWidth,stage.clientHeight);
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.outputColorSpace=THREE.SRGBColorSpace;
 stage.appendChild(renderer.domElement);
 
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xa9d8f3);
-scene.fog = new THREE.Fog(0xa9d8f3, 12, 25);
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0xa9d8f3);
+scene.fog=new THREE.Fog(0xa9d8f3,15,35);
 
-const camera = new THREE.PerspectiveCamera(
-  42,
-  stage.clientWidth / stage.clientHeight,
-  0.1,
-  100
-);
-camera.position.set(4.5, 3.6, 8.5);
-camera.lookAt(0, 1.35, 0);
+const camera=new THREE.PerspectiveCamera(40,stage.clientWidth/stage.clientHeight,.1,100);
+camera.position.set(4.2,3.25,8.5);
+camera.lookAt(0,1.45,0);
 
-scene.add(new THREE.HemisphereLight(0xffffff, 0x55704e, 2));
+scene.add(new THREE.HemisphereLight(0xffffff,0x60734c,2));
 
-const sunlight = new THREE.DirectionalLight(0xffffff, 2.5);
-sunlight.position.set(-4, 8, 6);
-sunlight.castShadow = true;
-scene.add(sunlight);
+const sun=new THREE.DirectionalLight(0xffffff,2.5);
+sun.position.set(-4,9,6);
+sun.castShadow=true;
+sun.shadow.mapSize.set(1024,1024);
+scene.add(sun);
 
-const material = (color, roughness=0.8) =>
-  new THREE.MeshStandardMaterial({color, roughness});
+function mat(color,roughness=.8){
+ return new THREE.MeshStandardMaterial({color,roughness});
+}
 
-const colors = {
-  skin: material(0xd99465),
-  shirt: material(0xffc928),
-  shorts: material(0x2457ad),
-  hair: material(0x302019),
-  white: material(0xffffff),
-  black: material(0x171717),
-  shoe: material(0x493126),
-  green: material(0x35a853),
-  wing: material(0x168743),
-  beak: material(0xffa326),
-  branch: material(0x704529),
-  leaf: material(0x34834a)
+const M={
+ skin:mat(0xd99364),
+ skinLight:mat(0xe9aa7b),
+ shirt:mat(0xffc62f),
+ shirtDark:mat(0xe7a719),
+ shorts:mat(0x285bb0),
+ hair:mat(0x302019),
+ hairLight:mat(0x493026),
+ white:mat(0xffffff),
+ eye:mat(0x191919),
+ black:mat(0x291b18),
+ shoe:mat(0x4c2b20),
+ green:mat(0x35a953),
+ greenDark:mat(0x167b39),
+ wing:mat(0x24a34c),
+ yellow:mat(0xf6c12d),
+ beak:mat(0xff9e24),
+ leaf:mat(0x37864a),
+ trunk:mat(0x70472b),
+ ground:mat(0x78ad5d)
 };
 
-function sphere(parent, name, position, scale, mat, detail=16) {
-  const mesh = new THREE.Mesh(
-    new THREE.SphereGeometry(1, detail, detail),
-    mat
-  );
-  mesh.name = name;
-  mesh.position.set(...position);
-  mesh.scale.set(...scale);
-  mesh.castShadow = true;
-  mesh.receiveShadow = true;
-  parent.add(mesh);
-  return mesh;
+function addSphere(parent,name,pos,scale,material){
+ const mesh=new THREE.Mesh(
+  new THREE.SphereGeometry(1,24,18),material
+ );
+ mesh.name=name;
+ mesh.position.set(...pos);
+ mesh.scale.set(...scale);
+ mesh.castShadow=true;
+ mesh.receiveShadow=true;
+ parent.add(mesh);
+ return mesh;
 }
 
-function box(parent, position, size, mat) {
-  const mesh = new THREE.Mesh(
-    new THREE.BoxGeometry(...size),
-    mat
-  );
-  mesh.position.set(...position);
-  mesh.castShadow = true;
-  parent.add(mesh);
-  return mesh;
+function addCylinder(parent,pos,r1,r2,height,material){
+ const mesh=new THREE.Mesh(
+  new THREE.CylinderGeometry(r1,r2,height,16),material
+ );
+ mesh.position.set(...pos);
+ mesh.castShadow=true;
+ mesh.receiveShadow=true;
+ parent.add(mesh);
+ return mesh;
 }
 
-function cylinder(parent, position, radius, height, mat) {
-  const mesh = new THREE.Mesh(
-    new THREE.CylinderGeometry(radius, radius, height, 12),
-    mat
-  );
-  mesh.position.set(...position);
-  mesh.castShadow = true;
-  parent.add(mesh);
-  return mesh;
-}
-
-// Ground
-const ground = new THREE.Mesh(
-  new THREE.PlaneGeometry(50, 50),
-  material(0x72aa57)
+// Environment
+const ground=new THREE.Mesh(
+ new THREE.PlaneGeometry(60,60),M.ground
 );
-ground.rotation.x = -Math.PI / 2;
-ground.position.y = -0.04;
-ground.receiveShadow = true;
+ground.rotation.x=-Math.PI/2;
+ground.position.y=-.05;
+ground.receiveShadow=true;
 scene.add(ground);
 
-// Background trees
-function tree(x, z, height) {
-  const group = new THREE.Group();
-  group.position.set(x, 0, z);
-  scene.add(group);
-
-  cylinder(group,[0,height/2,0],0.13,height,colors.branch);
-
-  sphere(
-    group,"tree leaves",
-    [0,height+0.15,0],
-    [0.9,1.05,0.85],
-    colors.leaf
-  );
+function makeTree(x,z,size){
+ const tree=new THREE.Group();
+ tree.position.set(x,0,z);
+ scene.add(tree);
+ addCylinder(tree,[0,size/2,0],.12,.19,size,M.trunk);
+ addSphere(tree,"tree canopy",[0,size+.5,0],[.8,1.05,.75],M.leaf);
+ addSphere(tree,"tree canopy",[.45,size+.2,.05],[.58,.75,.58],M.green);
 }
-tree(-3,-2,2);
-tree(3.2,-3,2.5);
-tree(-4,-5,2.3);
+makeTree(-3.4,-2,2.1);
+makeTree(3.5,-3,2.5);
+makeTree(-4.3,-6,2.4);
+makeTree(4,-7,2.2);
 
-// MONU: procedural cartoon boy
-const boy = new THREE.Group();
-boy.position.x = -1.25;
+// Monu character
+const boy=new THREE.Group();
+boy.position.set(-1,0,0);
 scene.add(boy);
 
-sphere(
-  boy,"body",
-  [0,1.45,0],
-  [0.39,0.53,0.25],
-  colors.shirt
-);
-
-box(
-  boy,[0,1.02,0],
-  [0.58,0.24,0.42],
-  colors.shorts
-);
-
-// Neck and head
-cylinder(boy,[0,1.91,0],0.12,0.24,colors.skin);
-
-const head = new THREE.Group();
-head.position.set(0,2.28,0);
-boy.add(head);
-
-sphere(head,"face",[0,0,0],[0.40,0.46,0.34],colors.skin);
-
-// Hair
-sphere(
-  head,"hair",
-  [0,0.31,-0.055],
-  [0.41,0.24,0.35],
-  colors.hair
-);
-sphere(
-  head,"fringe",
-  [-0.13,0.24,0.27],
-  [0.23,0.13,0.10],
-  colors.hair
-);
-
-// Eyes
-for(const x of [-0.15,0.15]){
-  sphere(head,"eye white",[x,0.045,0.292],[0.075,0.09,0.04],colors.white);
-  sphere(head,"eye pupil",[x,0.045,0.329],[0.035,0.05,0.018],colors.black);
-}
-
-// Nose and mouth
-sphere(
-  head,"nose",
-  [0,-0.045,0.337],
-  [0.045,0.05,0.045],
-  colors.skin
-);
-
-const mouth = sphere(
-  head,"mouth",
-  [0,-0.19,0.319],
-  [0.085,0.035,0.025],
-  colors.black
-);
-
-// Arms
-const arms=[];
-
-for(const side of [-1,1]){
-  const arm = new THREE.Group();
-  arm.position.set(side*0.39,1.70,0);
-  boy.add(arm);
-
-  cylinder(arm,[0,-0.28,0],0.105,0.55,colors.skin);
-  sphere(arm,"hand",[0,-0.58,0.02],[0.12,0.12,0.12],colors.skin);
-
-  arms.push({arm,side});
-}
-
-// Legs
+// Shoes and articulated legs
 const legs=[];
 
 for(const side of [-1,1]){
-  const leg = new THREE.Group();
-  leg.position.set(side*0.16,0.94,0);
-  boy.add(leg);
+ const hip=new THREE.Group();
+ hip.position.set(side*.16,.98,0);
+ boy.add(hip);
 
-  cylinder(leg,[0,-0.29,0],0.12,0.55,colors.skin);
-  sphere(leg,"shoe",[0,-0.60,0.075],[0.17,0.105,0.24],colors.shoe);
+ addSphere(hip,"hip joint",[0,0,0],[.13,.13,.13],M.skin);
 
-  legs.push({leg,side});
+ const upper=new THREE.Group();
+ hip.add(upper);
+
+ addCylinder(upper,[0,-.20,0],.105,.13,.42,M.skin);
+ addSphere(upper,"knee",[0,-.41,0],[.105,.11,.105],M.skin);
+
+ const lower=new THREE.Group();
+ lower.position.y=-.41;
+ upper.add(lower);
+
+ addCylinder(lower,[0,-.18,0],.085,.10,.36,M.skin);
+
+ addSphere(lower,"shoe",[0,-.39,.095],[.16,.095,.24],M.shoe);
+
+ legs.push({hip,upper,lower,side});
 }
 
-// MAGIC PARROT
-const parrot = new THREE.Group();
-scene.add(parrot);
-parrot.position.set(1.45,2.45,0);
+// Shorts and torso
+addSphere(boy,"shorts",[0,1.02,0],[.34,.20,.24],M.shorts);
+addSphere(boy,"body",[0,1.43,0],[.35,.48,.25],M.shirt);
+addSphere(boy,"shirt collar",[0,1.84,.01],[.16,.10,.15],M.shirtDark);
 
-sphere(
-  parrot,"body",
-  [0,0,0],
-  [0.27,0.38,0.23],
-  colors.green
-);
+// Shirt buttons
+for(const y of [1.45,1.60,1.74]){
+ addSphere(boy,"shirt button",[0,y,.245],[.025,.025,.018],M.white);
+}
 
-sphere(
-  parrot,"head",
-  [0,0.34,0.04],
-  [0.29,0.29,0.27],
-  colors.green
-);
+// Neck
+addCylinder(boy,[0,1.91,0],.105,.12,.20,M.skin);
 
-sphere(
-  parrot,"eye",
-  [0.12,0.39,0.27],
-  [0.055,0.065,0.035],
-  colors.white
-);
+// Head pivot
+const head=new THREE.Group();
+head.position.set(0,2.34,0);
+boy.add(head);
 
-sphere(
-  parrot,"pupil",
-  [0.13,0.39,0.30],
-  [0.025,0.035,0.015],
-  colors.black
-);
+addSphere(head,"face",[0,0,0],[.385,.44,.32],M.skinLight);
 
-// Beak
-const beak = new THREE.Mesh(
-  new THREE.ConeGeometry(0.09,0.22,10),
-  colors.beak
-);
-beak.rotation.x = Math.PI/2;
-beak.position.set(0,0.25,0.34);
-parrot.add(beak);
+// Ears
+for(const side of [-1,1]){
+ addSphere(head,"ear",[side*.38,-.02,0],[.10,.15,.09],M.skin);
+}
 
-const wings=[];
+// Hair cap
+addSphere(head,"hair cap",[0,.29,-.035],[.40,.23,.34],M.hair);
+
+// Hair fringe
+addSphere(head,"fringe one",[-.21,.20,.235],[.22,.15,.13],M.hair);
+addSphere(head,"fringe two",[0,.23,.28],[.25,.13,.11],M.hair);
+addSphere(head,"fringe three",[.20,.18,.21],[.18,.12,.12],M.hair);
+
+// Eyes
+for(const side of [-1,1]){
+ addSphere(head,"eye white",[side*.14,.055,.292],[.075,.092,.035],M.white);
+ addSphere(head,"pupil",[side*.14,.045,.326],[.033,.05,.018],M.eye);
+ addSphere(head,"eyebrow",[side*.14,.18,.30],[.085,.023,.025],M.hair);
+}
+
+// Nose
+addSphere(head,"nose",[0,-.055,.342],[.045,.055,.045],M.skin);
+
+// Mouth with open/closed animation
+const mouthGroup=new THREE.Group();
+mouthGroup.position.set(0,-.20,.315);
+head.add(mouthGroup);
+
+const mouth=addSphere(mouthGroup,"mouth",[0,0,0],[.075,.025,.025],M.black);
+const tongue=addSphere(mouthGroup,"tongue",[0,-.01,.025],[.035,.008,.008],M.skin);
+
+addSphere(head,"cheek left",[-.24,-.12,.22],[.065,.035,.025],mat(0xed987f));
+addSphere(head,"cheek right",[.24,-.12,.22],[.065,.035,.025],mat(0xed987f));
+
+// Arms with shoulder, elbow and wrist pivots
+const arms=[];
 
 for(const side of [-1,1]){
-  const wing = new THREE.Group();
-  wing.position.set(side*0.22,0.04,0);
-  parrot.add(wing);
+ const shoulder=new THREE.Group();
+ shoulder.position.set(side*.34,1.72,0);
+ boy.add(shoulder);
 
-  sphere(
-    wing,"wing",
-    [side*0.15,0,0],
-    [0.26,0.09,0.20],
-    colors.wing
-  );
+ addSphere(shoulder,"shoulder",[0,0,0],[.12,.12,.12],M.shirt);
 
-  wings.push({wing,side});
+ const upper=new THREE.Group();
+ shoulder.add(upper);
+ addCylinder(upper,[side*.025,-.19,0],.105,.12,.40,M.shirt);
+
+ addSphere(upper,"elbow",[0,-.40,0],[.09,.09,.09],M.skin);
+
+ const lower=new THREE.Group();
+ lower.position.y=-.40;
+ upper.add(lower);
+
+ addCylinder(lower,[0,-.17,.01],.08,.09,.34,M.skin);
+ addSphere(lower,"hand",[0,-.38,.025],[.115,.12,.11],M.skin);
+
+ arms.push({shoulder,upper,lower,side});
 }
 
-// Tail
-const tail = new THREE.Mesh(
-  new THREE.ConeGeometry(0.12,0.60,8),
-  colors.green
-);
-tail.rotation.x = -Math.PI/2;
-tail.position.set(0,-0.35,-0.25);
-parrot.add(tail);
+// Parrot
+const parrot=new THREE.Group();
+parrot.position.set(1.55,2.2,0);
+scene.add(parrot);
 
-// Branch
-const branch = cylinder(
-  scene,
-  [1.45,2.02,0],
-  0.055,
-  1.8,
-  colors.branch
-);
-branch.rotation.z = Math.PI/2;
+addSphere(parrot,"parrot body",[0,0,0],[.25,.34,.21],M.green);
+addSphere(parrot,"parrot chest",[0,-.07,.17],[.18,.23,.08],M.yellow);
+addSphere(parrot,"parrot head",[0,.31,.025],[.27,.27,.25],M.green);
 
-// Animation controls
+addSphere(parrot,"eye white",[.13,.37,.23],[.06,.07,.03],M.white);
+addSphere(parrot,"eye pupil",[.14,.36,.257],[.025,.04,.015],M.eye);
+
+addSphere(parrot,"beak",[0,.21,.285],[.095,.10,.09],M.beak);
+
+const parrotWings=[];
+
+for(const side of [-1,1]){
+ const pivot=new THREE.Group();
+ pivot.position.set(side*.21,.04,0);
+ parrot.add(pivot);
+
+ addSphere(
+  pivot,"wing",
+  [side*.14,0,-.01],
+  [.25,.085,.18],
+  M.wing
+ );
+
+ parrotWings.push({pivot,side});
+}
+
+addSphere(parrot,"tail",[0,-.32,-.15],[.09,.30,.08],M.greenDark);
+
+// Actual visible branch under the parrot
+const branch=addCylinder(scene,[1.55,1.75,-.08],.055,.07,1.55,M.trunk);
+branch.rotation.z=Math.PI/2;
+
+// Animation
 let mode="walk";
-let birdFlying=false;
+let flying=false;
+let jumpStart=-1;
+const clock=new THREE.Clock();
 
-function setMode(newMode){
-  mode=newMode;
-
-  document.querySelectorAll(".controls button").forEach(btn=>{
-    btn.classList.remove("active");
-  });
-
-  const button=document.getElementById(newMode+"Btn");
-  if(button) button.classList.add("active");
-
-  status.textContent="Monu Animation: "+newMode.toUpperCase();
+function setMode(value){
+ mode=value;
+ document.querySelectorAll(".controls button").forEach(
+  b=>b.classList.remove("active")
+ );
+ const el=document.getElementById(value+"Btn");
+ if(el)el.classList.add("active");
+ status.textContent="Monu: "+value.toUpperCase();
 }
 
 document.getElementById("idleBtn").onclick=()=>setMode("idle");
@@ -388,91 +323,106 @@ document.getElementById("walkBtn").onclick=()=>setMode("walk");
 document.getElementById("runBtn").onclick=()=>setMode("run");
 document.getElementById("talkBtn").onclick=()=>setMode("talk");
 
+document.getElementById("jumpBtn").onclick=()=>{
+ jumpStart=clock.getElapsedTime();
+ setMode("jump");
+};
+
 document.getElementById("flyBtn").onclick=()=>{
-  birdFlying=!birdFlying;
-  status.textContent=birdFlying
-    ? "Magical Parrot is flying."
-    : "Magical Parrot is back on the branch.";
+ flying=!flying;
+ status.textContent=flying?"Parrot is flying!":"Parrot is back.";
 };
 
 document.getElementById("resetBtn").onclick=()=>{
-  boy.position.x=-1.25;
-  birdFlying=false;
-  setMode("idle");
+ boy.position.set(-1,0,0);
+ flying=false;
+ jumpStart=-1;
+ setMode("idle");
 };
 
-const clock=new THREE.Clock();
-
 function animate(){
-  requestAnimationFrame(animate);
+ requestAnimationFrame(animate);
 
-  const t=clock.getElapsedTime();
+ const t=clock.getElapsedTime();
 
-  const moving=mode==="walk"||mode==="run";
+ if(mode==="walk"||mode==="run"){
   const speed=mode==="run"?10:5;
+  const amount=mode==="run"?.75:.48;
+  const swing=Math.sin(t*speed)*amount;
 
-  if(moving){
-    const swing=Math.sin(t*speed);
-
-    boy.position.y=0.025+Math.abs(Math.sin(t*speed*2))*0.045;
-
-    legs.forEach(({leg,side})=>{
-      leg.rotation.z=swing*0.58*side;
-    });
-
-    arms.forEach(({arm,side})=>{
-      arm.rotation.z=-swing*0.50*side;
-    });
-
-  }else{
-    boy.position.y=0.02+Math.sin(t*2)*0.012;
-
-    legs.forEach(x=>x.leg.rotation.z=0);
-
-    arms.forEach(({arm,side})=>{
-      arm.rotation.z=mode==="talk"?Math.sin(t*4)*0.12*side:0;
-    });
-  }
-
-  head.rotation.y=mode==="talk"?Math.sin(t*2)*0.10:0;
-
-  mouth.scale.y=mode==="talk"
-    ?0.04+Math.abs(Math.sin(t*9))*0.10
-    :0.035;
-
-  wings.forEach(({wing,side})=>{
-    wing.rotation.z=Math.sin(t*12)*0.48*side;
+  legs.forEach(({hip,upper,lower,side})=>{
+   hip.rotation.z=swing*side;
+   upper.rotation.z=Math.max(0,-swing*side)*.6;
+   lower.rotation.z=Math.max(0,-swing*side)*.75;
   });
 
-  if(birdFlying){
-    parrot.position.x=1.45+Math.sin(t*1.1)*1.25;
-    parrot.position.y=2.75+Math.sin(t*3)*0.25;
+  arms.forEach(({shoulder,upper,lower,side})=>{
+   shoulder.rotation.z=-swing*side;
+   upper.rotation.z=.10;
+   lower.rotation.z=-.12;
+  });
+
+  boy.position.y=.025+Math.abs(Math.sin(t*speed*2))*(mode==="run"?.09:.035);
+ }else{
+  legs.forEach(({hip,upper,lower})=>{
+   hip.rotation.z=0;
+   upper.rotation.z=0;
+   lower.rotation.z=0;
+  });
+
+  arms.forEach(({shoulder,upper,lower,side})=>{
+   shoulder.rotation.z=mode==="talk"?Math.sin(t*4)*.20*side:0;
+   upper.rotation.z=mode==="talk"?.10:0;
+   lower.rotation.z=0;
+  });
+
+  boy.position.y=.015+Math.sin(t*2)*.012;
+ }
+
+ if(mode==="jump"&&jumpStart>=0){
+  const elapsed=t-jumpStart;
+  if(elapsed<.75){
+   boy.position.y=Math.sin(elapsed/.75*Math.PI)*1.05;
   }else{
-    parrot.position.x=1.45;
-    parrot.position.y=2.45+Math.sin(t*2)*0.025;
+   boy.position.y=.02;
+   jumpStart=-1;
+   setMode("idle");
   }
+ }
 
-  parrot.rotation.z=birdFlying?Math.sin(t*1.1)*0.12:0;
+ head.rotation.y=mode==="talk"?Math.sin(t*1.8)*.10:0;
+ mouth.scale.y=mode==="talk"
+  ?.025+Math.abs(Math.sin(t*10))*.12
+  :.025;
 
-  renderer.render(scene,camera);
+ parrotWings.forEach(({pivot,side})=>{
+  pivot.rotation.z=Math.sin(t*13)*.65*side;
+ });
+
+ if(flying){
+  parrot.position.x=1.55+Math.sin(t*1.2)*1.2;
+  parrot.position.y=2.5+Math.sin(t*3)*.28;
+  parrot.rotation.z=Math.sin(t*1.2)*.14;
+ }else{
+  parrot.position.set(1.55,2.2+Math.sin(t*2)*.025,0);
+  parrot.rotation.z=0;
+ }
+
+ renderer.render(scene,camera);
 }
 
 function resize(){
-  const width=stage.clientWidth;
-  const height=stage.clientHeight;
-
-  camera.aspect=width/height;
-  camera.updateProjectionMatrix();
-
-  renderer.setSize(width,height);
+ const w=stage.clientWidth;
+ const h=stage.clientHeight;
+ camera.aspect=w/h;
+ camera.updateProjectionMatrix();
+ renderer.setSize(w,h);
 }
 
 window.addEventListener("resize",resize);
-
 setMode("walk");
 animate();
-
-status.textContent="✅ 3D Animation Prototype Ready!";
+status.textContent="✅ Improved Character Prototype Ready!";
 </script>
 </body>
 </html>
