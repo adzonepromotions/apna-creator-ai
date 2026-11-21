@@ -1,0 +1,478 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apna Creator AI - 3D Animation Test</title>
+
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#edf2fa;color:#172033}
+.wrap{max-width:1050px;margin:auto;padding:18px}
+.card{background:white;border-radius:15px;padding:18px;margin-bottom:15px;box-shadow:0 4px 15px #14213d12}
+h1{font-size:25px;margin:0 0 8px}
+.sub{color:#64748b;font-size:14px}
+#stage{width:100%;height:500px;overflow:hidden;border-radius:12px;background:#a9d8f3;position:relative}
+#stage canvas{display:block;width:100%;height:100%}
+.controls{display:flex;flex-wrap:wrap;gap:9px;margin-top:15px}
+button{border:0;border-radius:8px;padding:12px 18px;background:#2563eb;color:white;font-weight:bold;cursor:pointer}
+button.active{background:#15803d}
+#status{background:#eff6ff;padding:12px;border-radius:8px;margin-top:12px;font-size:14px}
+.note{font-size:13px;color:#64748b;line-height:1.5}
+@media(max-width:600px){#stage{height:390px}.wrap{padding:9px}}
+</style>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js"
+  }
+}
+</script>
+</head>
+
+<body>
+<div class="wrap">
+
+<div class="card">
+<h1>🎬 Apna Creator AI – 3D Lab</h1>
+<p class="sub">Monu + Magical Parrot | Animation Prototype 01</p>
+
+<div id="stage"></div>
+
+<div class="controls">
+<button id="idleBtn">Idle</button>
+<button id="walkBtn" class="active">Walk</button>
+<button id="runBtn">Run</button>
+<button id="talkBtn">Talk</button>
+<button id="flyBtn">Parrot Fly</button>
+<button id="resetBtn">Reset</button>
+</div>
+
+<div id="status">3D Animation Engine Loading...</div>
+</div>
+
+<div class="card">
+<h3>Prototype Features</h3>
+<p class="note">
+✅ Procedural 3D Boy Character<br>
+✅ Moving Arms and Legs<br>
+✅ Walking and Running Motions<br>
+✅ Talking Mouth Movement Preview<br>
+✅ Parrot Wing Flapping and Flying<br>
+✅ Real-time 3D Rendering
+</p>
+<p class="note">
+This is a first 3D prototype made from basic 3D shapes.
+It is not yet the final rigged cartoon character.
+</p>
+</div>
+
+</div>
+
+<script type="module">
+import * as THREE from "three";
+
+const stage = document.getElementById("stage");
+const status = document.getElementById("status");
+
+let renderer;
+
+try {
+  renderer = new THREE.WebGLRenderer({
+    antialias: true,
+    powerPreference: "low-power"
+  });
+} catch(error) {
+  status.textContent = "WebGL is not available in this browser.";
+  throw error;
+}
+
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+renderer.setSize(stage.clientWidth, stage.clientHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+stage.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xa9d8f3);
+scene.fog = new THREE.Fog(0xa9d8f3, 12, 25);
+
+const camera = new THREE.PerspectiveCamera(
+  42,
+  stage.clientWidth / stage.clientHeight,
+  0.1,
+  100
+);
+camera.position.set(4.5, 3.6, 8.5);
+camera.lookAt(0, 1.35, 0);
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0x55704e, 2));
+
+const sunlight = new THREE.DirectionalLight(0xffffff, 2.5);
+sunlight.position.set(-4, 8, 6);
+sunlight.castShadow = true;
+scene.add(sunlight);
+
+const material = (color, roughness=0.8) =>
+  new THREE.MeshStandardMaterial({color, roughness});
+
+const colors = {
+  skin: material(0xd99465),
+  shirt: material(0xffc928),
+  shorts: material(0x2457ad),
+  hair: material(0x302019),
+  white: material(0xffffff),
+  black: material(0x171717),
+  shoe: material(0x493126),
+  green: material(0x35a853),
+  wing: material(0x168743),
+  beak: material(0xffa326),
+  branch: material(0x704529),
+  leaf: material(0x34834a)
+};
+
+function sphere(parent, name, position, scale, mat, detail=16) {
+  const mesh = new THREE.Mesh(
+    new THREE.SphereGeometry(1, detail, detail),
+    mat
+  );
+  mesh.name = name;
+  mesh.position.set(...position);
+  mesh.scale.set(...scale);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  parent.add(mesh);
+  return mesh;
+}
+
+function box(parent, position, size, mat) {
+  const mesh = new THREE.Mesh(
+    new THREE.BoxGeometry(...size),
+    mat
+  );
+  mesh.position.set(...position);
+  mesh.castShadow = true;
+  parent.add(mesh);
+  return mesh;
+}
+
+function cylinder(parent, position, radius, height, mat) {
+  const mesh = new THREE.Mesh(
+    new THREE.CylinderGeometry(radius, radius, height, 12),
+    mat
+  );
+  mesh.position.set(...position);
+  mesh.castShadow = true;
+  parent.add(mesh);
+  return mesh;
+}
+
+// Ground
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(50, 50),
+  material(0x72aa57)
+);
+ground.rotation.x = -Math.PI / 2;
+ground.position.y = -0.04;
+ground.receiveShadow = true;
+scene.add(ground);
+
+// Background trees
+function tree(x, z, height) {
+  const group = new THREE.Group();
+  group.position.set(x, 0, z);
+  scene.add(group);
+
+  cylinder(group,[0,height/2,0],0.13,height,colors.branch);
+
+  sphere(
+    group,"tree leaves",
+    [0,height+0.15,0],
+    [0.9,1.05,0.85],
+    colors.leaf
+  );
+}
+tree(-3,-2,2);
+tree(3.2,-3,2.5);
+tree(-4,-5,2.3);
+
+// MONU: procedural cartoon boy
+const boy = new THREE.Group();
+boy.position.x = -1.25;
+scene.add(boy);
+
+sphere(
+  boy,"body",
+  [0,1.45,0],
+  [0.39,0.53,0.25],
+  colors.shirt
+);
+
+box(
+  boy,[0,1.02,0],
+  [0.58,0.24,0.42],
+  colors.shorts
+);
+
+// Neck and head
+cylinder(boy,[0,1.91,0],0.12,0.24,colors.skin);
+
+const head = new THREE.Group();
+head.position.set(0,2.28,0);
+boy.add(head);
+
+sphere(head,"face",[0,0,0],[0.40,0.46,0.34],colors.skin);
+
+// Hair
+sphere(
+  head,"hair",
+  [0,0.31,-0.055],
+  [0.41,0.24,0.35],
+  colors.hair
+);
+sphere(
+  head,"fringe",
+  [-0.13,0.24,0.27],
+  [0.23,0.13,0.10],
+  colors.hair
+);
+
+// Eyes
+for(const x of [-0.15,0.15]){
+  sphere(head,"eye white",[x,0.045,0.292],[0.075,0.09,0.04],colors.white);
+  sphere(head,"eye pupil",[x,0.045,0.329],[0.035,0.05,0.018],colors.black);
+}
+
+// Nose and mouth
+sphere(
+  head,"nose",
+  [0,-0.045,0.337],
+  [0.045,0.05,0.045],
+  colors.skin
+);
+
+const mouth = sphere(
+  head,"mouth",
+  [0,-0.19,0.319],
+  [0.085,0.035,0.025],
+  colors.black
+);
+
+// Arms
+const arms=[];
+
+for(const side of [-1,1]){
+  const arm = new THREE.Group();
+  arm.position.set(side*0.39,1.70,0);
+  boy.add(arm);
+
+  cylinder(arm,[0,-0.28,0],0.105,0.55,colors.skin);
+  sphere(arm,"hand",[0,-0.58,0.02],[0.12,0.12,0.12],colors.skin);
+
+  arms.push({arm,side});
+}
+
+// Legs
+const legs=[];
+
+for(const side of [-1,1]){
+  const leg = new THREE.Group();
+  leg.position.set(side*0.16,0.94,0);
+  boy.add(leg);
+
+  cylinder(leg,[0,-0.29,0],0.12,0.55,colors.skin);
+  sphere(leg,"shoe",[0,-0.60,0.075],[0.17,0.105,0.24],colors.shoe);
+
+  legs.push({leg,side});
+}
+
+// MAGIC PARROT
+const parrot = new THREE.Group();
+scene.add(parrot);
+parrot.position.set(1.45,2.45,0);
+
+sphere(
+  parrot,"body",
+  [0,0,0],
+  [0.27,0.38,0.23],
+  colors.green
+);
+
+sphere(
+  parrot,"head",
+  [0,0.34,0.04],
+  [0.29,0.29,0.27],
+  colors.green
+);
+
+sphere(
+  parrot,"eye",
+  [0.12,0.39,0.27],
+  [0.055,0.065,0.035],
+  colors.white
+);
+
+sphere(
+  parrot,"pupil",
+  [0.13,0.39,0.30],
+  [0.025,0.035,0.015],
+  colors.black
+);
+
+// Beak
+const beak = new THREE.Mesh(
+  new THREE.ConeGeometry(0.09,0.22,10),
+  colors.beak
+);
+beak.rotation.x = Math.PI/2;
+beak.position.set(0,0.25,0.34);
+parrot.add(beak);
+
+const wings=[];
+
+for(const side of [-1,1]){
+  const wing = new THREE.Group();
+  wing.position.set(side*0.22,0.04,0);
+  parrot.add(wing);
+
+  sphere(
+    wing,"wing",
+    [side*0.15,0,0],
+    [0.26,0.09,0.20],
+    colors.wing
+  );
+
+  wings.push({wing,side});
+}
+
+// Tail
+const tail = new THREE.Mesh(
+  new THREE.ConeGeometry(0.12,0.60,8),
+  colors.green
+);
+tail.rotation.x = -Math.PI/2;
+tail.position.set(0,-0.35,-0.25);
+parrot.add(tail);
+
+// Branch
+const branch = cylinder(
+  scene,
+  [1.45,2.02,0],
+  0.055,
+  1.8,
+  colors.branch
+);
+branch.rotation.z = Math.PI/2;
+
+// Animation controls
+let mode="walk";
+let birdFlying=false;
+
+function setMode(newMode){
+  mode=newMode;
+
+  document.querySelectorAll(".controls button").forEach(btn=>{
+    btn.classList.remove("active");
+  });
+
+  const button=document.getElementById(newMode+"Btn");
+  if(button) button.classList.add("active");
+
+  status.textContent="Monu Animation: "+newMode.toUpperCase();
+}
+
+document.getElementById("idleBtn").onclick=()=>setMode("idle");
+document.getElementById("walkBtn").onclick=()=>setMode("walk");
+document.getElementById("runBtn").onclick=()=>setMode("run");
+document.getElementById("talkBtn").onclick=()=>setMode("talk");
+
+document.getElementById("flyBtn").onclick=()=>{
+  birdFlying=!birdFlying;
+  status.textContent=birdFlying
+    ? "Magical Parrot is flying."
+    : "Magical Parrot is back on the branch.";
+};
+
+document.getElementById("resetBtn").onclick=()=>{
+  boy.position.x=-1.25;
+  birdFlying=false;
+  setMode("idle");
+};
+
+const clock=new THREE.Clock();
+
+function animate(){
+  requestAnimationFrame(animate);
+
+  const t=clock.getElapsedTime();
+
+  const moving=mode==="walk"||mode==="run";
+  const speed=mode==="run"?10:5;
+
+  if(moving){
+    const swing=Math.sin(t*speed);
+
+    boy.position.y=0.025+Math.abs(Math.sin(t*speed*2))*0.045;
+
+    legs.forEach(({leg,side})=>{
+      leg.rotation.z=swing*0.58*side;
+    });
+
+    arms.forEach(({arm,side})=>{
+      arm.rotation.z=-swing*0.50*side;
+    });
+
+  }else{
+    boy.position.y=0.02+Math.sin(t*2)*0.012;
+
+    legs.forEach(x=>x.leg.rotation.z=0);
+
+    arms.forEach(({arm,side})=>{
+      arm.rotation.z=mode==="talk"?Math.sin(t*4)*0.12*side:0;
+    });
+  }
+
+  head.rotation.y=mode==="talk"?Math.sin(t*2)*0.10:0;
+
+  mouth.scale.y=mode==="talk"
+    ?0.04+Math.abs(Math.sin(t*9))*0.10
+    :0.035;
+
+  wings.forEach(({wing,side})=>{
+    wing.rotation.z=Math.sin(t*12)*0.48*side;
+  });
+
+  if(birdFlying){
+    parrot.position.x=1.45+Math.sin(t*1.1)*1.25;
+    parrot.position.y=2.75+Math.sin(t*3)*0.25;
+  }else{
+    parrot.position.x=1.45;
+    parrot.position.y=2.45+Math.sin(t*2)*0.025;
+  }
+
+  parrot.rotation.z=birdFlying?Math.sin(t*1.1)*0.12:0;
+
+  renderer.render(scene,camera);
+}
+
+function resize(){
+  const width=stage.clientWidth;
+  const height=stage.clientHeight;
+
+  camera.aspect=width/height;
+  camera.updateProjectionMatrix();
+
+  renderer.setSize(width,height);
+}
+
+window.addEventListener("resize",resize);
+
+setMode("walk");
+animate();
+
+status.textContent="✅ 3D Animation Prototype Ready!";
+</script>
+</body>
+</html>
