@@ -1,0 +1,712 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Apna Creator AI - Story Generator</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;
+ background:#eef2f8;
+ color:#172033;
+ font-family:Arial,sans-serif;
+}
+.wrap{max-width:1050px;margin:auto;padding:20px}
+.header{
+ background:#172554;
+ color:white;
+ padding:25px;
+ border-radius:16px;
+ margin-bottom:18px;
+}
+.header h1{margin:0 0 8px;font-size:27px}
+.header p{margin:0;color:#dbeafe;line-height:1.5}
+.card{
+ background:white;
+ border-radius:14px;
+ padding:20px;
+ margin-bottom:16px;
+ box-shadow:0 4px 18px #14213d10;
+}
+h2{font-size:19px;margin:0 0 15px}
+label{
+ display:block;
+ font-size:13px;
+ font-weight:bold;
+ margin-bottom:7px;
+}
+textarea,select,input{
+ width:100%;
+ padding:12px;
+ border:1px solid #cbd5e1;
+ border-radius:8px;
+ background:#fff;
+ font-size:14px;
+ color:#172033;
+}
+textarea{min-height:115px;resize:vertical;line-height:1.5}
+.grid{
+ display:grid;
+ grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:14px;
+ margin-top:16px;
+}
+.field{min-width:0}
+button{
+ border:0;
+ border-radius:8px;
+ padding:12px 17px;
+ background:#2563eb;
+ color:white;
+ font-weight:bold;
+ cursor:pointer;
+}
+button:disabled{opacity:.5;cursor:not-allowed}
+.primary{background:#2563eb}
+.green{background:#15803d}
+.secondary{background:#475569}
+.controls{
+ display:flex;
+ flex-wrap:wrap;
+ gap:10px;
+ margin-top:17px;
+}
+#status{
+ margin-top:14px;
+ padding:13px;
+ background:#eff6ff;
+ border-radius:8px;
+ font-size:14px;
+ line-height:1.5;
+ white-space:pre-wrap;
+}
+#status.error{background:#fee2e2;color:#991b1b}
+#status.success{background:#dcfce7;color:#166534}
+.small{
+ color:#64748b;
+ font-size:12px;
+ line-height:1.5;
+}
+#counter{text-align:right;margin-top:5px}
+.scene{
+ border:1px solid #e2e8f0;
+ border-radius:10px;
+ padding:15px;
+ margin-top:12px;
+}
+.scene h3{
+ margin:0 0 12px;
+ color:#1d4ed8;
+ font-size:16px;
+}
+.sceneLabel{
+ font-size:12px;
+ font-weight:bold;
+ color:#64748b;
+ margin:10px 0 5px;
+}
+.sceneText{
+ line-height:1.55;
+ font-size:14px;
+ white-space:pre-wrap;
+}
+#characterLock{
+ background:#f8fafc;
+ border:1px solid #e2e8f0;
+ border-radius:9px;
+ padding:14px;
+ line-height:1.6;
+ font-size:14px;
+ white-space:pre-wrap;
+}
+.hidden{display:none!important}
+.packArea{
+ margin-top:15px;
+ padding-top:15px;
+ border-top:1px solid #e2e8f0;
+}
+#resultSection{display:none}
+@media(max-width:650px){
+ .wrap{padding:10px}
+ .header{padding:19px}
+ .header h1{font-size:23px}
+ .card{padding:15px}
+ .grid{grid-template-columns:1fr}
+ button{width:100%}
+}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+
+<div class="header">
+ <h1>🎬 Apna Creator AI</h1>
+ <p>Enter one story idea. AI will create the complete cartoon script and 8-scene storyboard.</p>
+</div>
+
+<div class="card">
+ <h2>✨ Create Your Story</h2>
+
+ <label for="storyIdea">Your Story Idea</label>
+ <textarea
+  id="storyIdea"
+  maxlength="4000"
+  placeholder="Example: A little rabbit gets lost in a jungle and a friendly elephant helps him find his home."
+ ></textarea>
+ <div class="small" id="counter">0 / 4000 characters</div>
+
+ <div class="grid">
+  <div class="field">
+   <label for="language">Story Language</label>
+   <select id="language">
+    <option value="Hindi">Hindi</option>
+    <option value="English">English</option>
+   </select>
+  </div>
+
+  <div class="field">
+   <label for="duration">Video Duration</label>
+   <select id="duration">
+    <option value="1 Minute">1 Minute (8 Scenes)</option>
+   </select>
+  </div>
+
+  <div class="field">
+   <label for="style">Cartoon Style</label>
+   <select id="style">
+    <option value="3D Cartoon">3D Cartoon</option>
+    <option value="2D Cartoon">2D Cartoon</option>
+    <option value="Kids Cartoon">Kids Cartoon</option>
+   </select>
+  </div>
+
+  <div class="field">
+   <label for="aspectRatio">Video Format</label>
+   <select id="aspectRatio">
+    <option value="16:9">16:9 - YouTube Long Video</option>
+    <option value="9:16">9:16 - YouTube Shorts</option>
+   </select>
+  </div>
+
+  <div class="field">
+   <label for="characterMode">Character Mode</label>
+   <select id="characterMode">
+    <option value="new">Create New Characters</option>
+    <option value="reuse">Reuse My Characters</option>
+   </select>
+  </div>
+
+  <div class="field hidden" id="savedPackField">
+   <label for="savedPack">Choose Saved Character</label>
+   <select id="savedPack">
+    <option value="">Select a character pack</option>
+   </select>
+  </div>
+ </div>
+
+ <p class="small">
+  Current development limit: 1 minute and 8 scenes. Longer videos will be added in later phases.
+ </p>
+
+ <div class="controls">
+  <button class="primary" id="generateBtn">✨ Generate AI Story</button>
+  <button class="secondary" id="clearBtn">Clear Form</button>
+ </div>
+
+ <div id="status">✅ Story Generator Ready. Enter your story idea.</div>
+</div>
+
+<div id="resultSection">
+
+ <div class="card">
+  <h2>🧑‍🎨 Character Design Lock</h2>
+  <p class="small">
+   These descriptions keep recurring characters visually consistent across scenes.
+  </p>
+  <div id="characterLock"></div>
+
+  <div class="packArea">
+   <label for="packName">Save This Character Pack</label>
+   <input
+    id="packName"
+    maxlength="60"
+    placeholder="Example: My Jungle Characters"
+   >
+   <div class="controls">
+    <button class="green" id="savePackBtn">💾 Save Character Pack</button>
+   </div>
+   <p class="small">
+    Saved packs are stored in this browser only. They are not uploaded to a server.
+   </p>
+  </div>
+ </div>
+
+ <div class="card">
+  <h2>📖 Generated Cartoon Story</h2>
+  <p class="small" id="storyInfo"></p>
+  <div id="scenes"></div>
+
+  <div class="controls">
+   <button class="primary" id="copyBtn">📋 Copy Complete Script</button>
+  </div>
+ </div>
+
+</div>
+
+<div class="card">
+ <h2>ℹ️ Current Development Stage</h2>
+ <p class="small">
+  This page generates a script and storyboard using the existing Cloudflare Worker.
+  It does not yet generate scene images, animate new characters, or export a video.
+  Those features will be connected in the next development stages.
+ </p>
+</div>
+
+</div>
+
+<script>
+"use strict";
+
+// =====================================
+// CONFIGURATION
+// =====================================
+
+const API_URL =
+ "https://apna-creator-ai.apnacreatorai.workers.dev";
+
+const PACKS_KEY = "apnaCreatorSavedCharacterPacksV1";
+
+// =====================================
+// ELEMENTS
+// =====================================
+
+const storyInput = document.getElementById("storyIdea");
+const languageInput = document.getElementById("language");
+const styleInput = document.getElementById("style");
+const ratioInput = document.getElementById("aspectRatio");
+const modeInput = document.getElementById("characterMode");
+const savedPackInput = document.getElementById("savedPack");
+
+const generateBtn = document.getElementById("generateBtn");
+const savePackBtn = document.getElementById("savePackBtn");
+const clearBtn = document.getElementById("clearBtn");
+const copyBtn = document.getElementById("copyBtn");
+
+const statusBox = document.getElementById("status");
+const resultSection = document.getElementById("resultSection");
+const characterLockBox = document.getElementById("characterLock");
+const scenesBox = document.getElementById("scenes");
+const storyInfo = document.getElementById("storyInfo");
+const savedPackField = document.getElementById("savedPackField");
+const packNameInput = document.getElementById("packName");
+const counter = document.getElementById("counter");
+
+let latestResult = null;
+let savedPacks = loadSavedPacks();
+
+// =====================================
+// SAVED CHARACTER PACKS
+// =====================================
+
+function loadSavedPacks() {
+ try {
+  const data = JSON.parse(localStorage.getItem(PACKS_KEY) || "[]");
+  return Array.isArray(data) ? data : [];
+ } catch (error) {
+  console.error("Character pack loading error:", error);
+  return [];
+ }
+}
+
+function storeSavedPacks() {
+ try {
+  localStorage.setItem(PACKS_KEY, JSON.stringify(savedPacks));
+  return true;
+ } catch (error) {
+  console.error("Character pack storage error:", error);
+  showStatus(
+   "Character pack save होऊ शकला नाही. Browser storage तपासा.",
+   "error"
+  );
+  return false;
+ }
+}
+
+function refreshPackList() {
+ const previousValue = savedPackInput.value;
+ savedPackInput.innerHTML = "";
+
+ const placeholder = document.createElement("option");
+ placeholder.value = "";
+ placeholder.textContent = savedPacks.length
+  ? "Select a character pack"
+  : "No saved characters yet";
+
+ savedPackInput.appendChild(placeholder);
+
+ savedPacks.forEach(pack => {
+  const option = document.createElement("option");
+  option.value = pack.id;
+  option.textContent = pack.name;
+  savedPackInput.appendChild(option);
+ });
+
+ if (savedPacks.some(pack => pack.id === previousValue)) {
+  savedPackInput.value = previousValue;
+ }
+
+ savedPackInput.disabled = savedPacks.length === 0;
+}
+
+function updateCharacterMode() {
+ const isReuse = modeInput.value === "reuse";
+
+ savedPackField.classList.toggle("hidden", !isReuse);
+
+ if (isReuse && savedPacks.length === 0) {
+  showStatus(
+   "Reuse करण्यासाठी आधी एक Character Pack तयार करून Save कर.",
+   "error"
+  );
+ }
+}
+
+modeInput.addEventListener("change", updateCharacterMode);
+
+// =====================================
+// STATUS AND INPUT
+// =====================================
+
+function showStatus(message, type = "") {
+ statusBox.textContent = message;
+ statusBox.className = type;
+}
+
+storyInput.addEventListener("input", () => {
+ counter.textContent =
+  storyInput.value.length + " / 4000 characters";
+});
+
+// =====================================
+// GENERATE STORY
+// =====================================
+
+async function generateStory() {
+ const idea = storyInput.value.trim();
+
+ if (!idea) {
+  showStatus("आधी तुझी Story Idea लिही.", "error");
+  storyInput.focus();
+  return;
+ }
+
+ if (idea.length > 4000) {
+  showStatus("Story Idea 4,000 characters पेक्षा कमी ठेव.", "error");
+  return;
+ }
+
+ const characterMode = modeInput.value;
+ let savedCharacterLock = "";
+
+ if (characterMode === "reuse") {
+  const selectedId = savedPackInput.value;
+  const selectedPack = savedPacks.find(pack => pack.id === selectedId);
+
+  if (!selectedPack) {
+   showStatus("कृपया Saved Character Pack निवड.", "error");
+   return;
+  }
+
+  savedCharacterLock = selectedPack.characterLock;
+ }
+
+ const requestData = {
+  action: "generate-story",
+  story: idea,
+  language: languageInput.value,
+  duration: "1 Minute",
+  style: styleInput.value,
+  aspectRatio: ratioInput.value,
+  characterMode: characterMode,
+  savedCharacterLock: savedCharacterLock
+ };
+
+ generateBtn.disabled = true;
+ generateBtn.textContent = "⏳ Generating Story...";
+ resultSection.style.display = "none";
+ latestResult = null;
+
+ showStatus(
+  "AI तुझी story लिहित आहे...\n" +
+  "Characters आणि 8 scenes तयार होत आहेत. कृपया request पुन्हा submit करू नकोस."
+ );
+
+ try {
+  const response = await fetch(API_URL, {
+   method: "POST",
+   headers: {
+    "Content-Type": "application/json",
+    "Accept": "application/json"
+   },
+   body: JSON.stringify(requestData)
+  });
+
+  const rawText = await response.text();
+  let data;
+
+  try {
+   data = JSON.parse(rawText);
+  } catch (error) {
+   throw new Error(
+    "Worker कडून valid JSON response मिळाला नाही. HTTP " +
+    response.status
+   );
+  }
+
+  if (!response.ok || !data.success) {
+   throw new Error(
+    data.error || ("Story generation failed. HTTP " + response.status)
+   );
+  }
+
+  if (
+   !Array.isArray(data.scenes) ||
+   data.scenes.length !== 8 ||
+   !data.characterLock
+  ) {
+   throw new Error(
+    "AI response अपूर्ण आहे. पुन्हा एकदा प्रयत्न कर."
+   );
+  }
+
+  latestResult = data;
+
+  renderResult(data);
+
+  showStatus(
+   "✅ AI Story तयार झाली!\n" +
+   "8 scenes आणि character descriptions मिळाले.",
+   "success"
+  );
+
+ } catch (error) {
+  console.error("STORY GENERATION ERROR:", error);
+
+  showStatus(
+   "❌ " + (error.message || "Unexpected error.") +
+   "\n\nCloudflare Worker URL, connection आणि AI daily quota तपास.",
+   "error"
+  );
+
+ } finally {
+  generateBtn.disabled = false;
+  generateBtn.textContent = "✨ Generate AI Story";
+ }
+}
+
+// =====================================
+// RENDER GENERATED STORY
+// =====================================
+
+function addTextElement(parent, tag, className, text) {
+ const element = document.createElement(tag);
+
+ if (className) {
+  element.className = className;
+ }
+
+ element.textContent = text || "";
+ parent.appendChild(element);
+
+ return element;
+}
+
+function renderResult(data) {
+ resultSection.style.display = "block";
+
+ characterLockBox.textContent = data.characterLock;
+
+ storyInfo.textContent =
+  data.language + " | " +
+  data.duration + " | " +
+  data.style + " | " +
+  data.aspectRatio + " | 8 Scenes";
+
+ scenesBox.innerHTML = "";
+
+ data.scenes.forEach(sceneData => {
+  const card = document.createElement("div");
+  card.className = "scene";
+
+  addTextElement(
+   card,
+   "h3",
+   "",
+   "🎬 Scene " + sceneData.number
+  );
+
+  addTextElement(
+   card,
+   "div",
+   "sceneLabel",
+   "VISUAL ACTION"
+  );
+
+  addTextElement(
+   card,
+   "div",
+   "sceneText",
+   sceneData.visual
+  );
+
+  addTextElement(
+   card,
+   "div",
+   "sceneLabel",
+   "VOICE / DIALOGUE"
+  );
+
+  addTextElement(
+   card,
+   "div",
+   "sceneText",
+   sceneData.voice
+  );
+
+  scenesBox.appendChild(card);
+ });
+}
+
+// =====================================
+// SAVE CHARACTER PACK
+// =====================================
+
+savePackBtn.addEventListener("click", () => {
+ if (!latestResult || !latestResult.characterLock) {
+  showStatus("आधी एक story generate कर.", "error");
+  return;
+ }
+
+ const name = packNameInput.value.trim();
+
+ if (!name) {
+  showStatus("Character Pack साठी नाव लिही.", "error");
+  packNameInput.focus();
+  return;
+ }
+
+ const pack = {
+  id: String(Date.now()) + "-" +
+   Math.random().toString(36).slice(2, 8),
+  name: name,
+  characterLock: latestResult.characterLock,
+  createdAt: new Date().toISOString()
+ };
+
+ savedPacks.push(pack);
+
+ if (!storeSavedPacks()) {
+  savedPacks.pop();
+  return;
+ }
+
+ refreshPackList();
+ packNameInput.value = "";
+
+ showStatus(
+  "✅ \"" + name + "\" Character Pack या browser मध्ये save झाला.",
+  "success"
+ );
+});
+
+// =====================================
+// COPY SCRIPT
+// =====================================
+
+function makeCompleteScript() {
+ if (!latestResult) return "";
+
+ const header =
+  "APNA CREATOR AI - GENERATED STORY\n" +
+  "Language: " + latestResult.language + "\n" +
+  "Duration: " + latestResult.duration + "\n" +
+  "Style: " + latestResult.style + "\n" +
+  "Aspect Ratio: " + latestResult.aspectRatio + "\n\n" +
+  "CHARACTER LOCK:\n" +
+  latestResult.characterLock + "\n\n";
+
+ const sceneText = latestResult.scenes.map(scene =>
+  "SCENE " + scene.number + "\n" +
+  "Visual: " + scene.visual + "\n" +
+  "Voice: " + scene.voice
+ ).join("\n\n");
+
+ return header + sceneText;
+}
+
+copyBtn.addEventListener("click", async () => {
+ if (!latestResult) {
+  showStatus("Copy करण्यासाठी आधी story generate कर.", "error");
+  return;
+ }
+
+ const text = makeCompleteScript();
+
+ try {
+  await navigator.clipboard.writeText(text);
+
+  showStatus(
+   "✅ Complete script clipboard मध्ये copy झाली.",
+   "success"
+  );
+
+ } catch (error) {
+  showStatus(
+   "Clipboard access मिळाला नाही. Page HTTPS वर उघडली आहे का तपास.",
+   "error"
+  );
+ }
+});
+
+// =====================================
+// CLEAR FORM
+// =====================================
+
+clearBtn.addEventListener("click", () => {
+ if (generateBtn.disabled) return;
+
+ storyInput.value = "";
+ counter.textContent = "0 / 4000 characters";
+
+ languageInput.value = "Hindi";
+ styleInput.value = "3D Cartoon";
+ ratioInput.value = "16:9";
+ modeInput.value = "new";
+
+ packNameInput.value = "";
+ resultSection.style.display = "none";
+ latestResult = null;
+
+ updateCharacterMode();
+
+ showStatus("✅ Form clear झाला. नवीन Story Idea लिही.");
+});
+
+// =====================================
+// INITIALIZE
+// =====================================
+
+refreshPackList();
+updateCharacterMode();
+
+showStatus(
+ "✅ Story Generator Ready.\n" +
+ "Enter your idea and click Generate AI Story."
+);
+</script>
+</body>
+</html>
