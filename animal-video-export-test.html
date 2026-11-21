@@ -36,6 +36,15 @@ label{font-size:13px;font-weight:bold}
 .line.speaking{background:#dcfce7;border:1px solid #86efac}
 .download{display:block;background:#dcfce7;color:#166534;font-weight:bold;padding:15px;border-radius:10px;text-align:center;text-decoration:none;margin-top:15px}
 .hidden{display:none!important}
+
+/* Only show the cartoon stage while recording the shared Chrome tab. */
+body.recording-mode{margin:0;overflow:hidden}
+body.recording-mode .wrap{width:100%;max-width:none;height:100vh;margin:0;padding:0}
+body.recording-mode .wrap>.card:first-child{position:fixed;inset:0;width:100vw;height:100vh;margin:0;padding:0;border-radius:0;box-shadow:none;background:#b7def5}
+body.recording-mode .wrap>.card:first-child>*:not(#stage){display:none!important}
+body.recording-mode .wrap>.card:not(:first-child){display:none!important}
+body.recording-mode #stage{position:fixed;inset:0;width:100vw;height:100vh;border-radius:0;z-index:9999}
+
 @media(max-width:600px){
  #stage{height:370px}
  .wrap{padding:8px}
@@ -110,7 +119,7 @@ label{font-size:13px;font-weight:bold}
 <div class="card">
 <h3>Video Export Information</h3>
 <p class="note">
-This prototype records the 3D canvas and browser tab audio.
+During export, the shared Chrome tab switches to a full-screen cartoon view and records its tab audio.
 Select the current Chrome tab and enable "Share tab audio".
 </p>
 <p class="note">
@@ -764,208 +773,214 @@ function restartStory(){
 }
 
 // =====================================
-// VIDEO RECORDING
+// VIDEO RECORDING - ROBUST TAB RECORDING
 // =====================================
 
-let recorder=null;
-let chunks=[];
-let displayStream=null;
-let canvasStream=null;
-let recordingStream=null;
-let downloadURL=null;
-let recordingStarted=false;
+const recordBtn = document.getElementById("recordBtn");
+const stopBtn = document.getElementById("stopBtn");
 
-function recorderType(){
- const options=[
-  "video/webm;codecs=vp9,opus",
-  "video/webm;codecs=vp8,opus",
-  "video/webm"
- ];
+let recorder = null;
+let chunks = [];
+let displayStream = null;
+let downloadURL = null;
+let stopPending = false;
 
- return options.find(type=>MediaRecorder.isTypeSupported(type))||"";
+function recorderType() {
+    const types = [
+        "video/webm;codecs=vp8,opus",
+        "video/webm;codecs=vp9,opus",
+        "video/webm"
+    ];
+
+    return types.find(type => MediaRecorder.isTypeSupported(type)) || "";
 }
 
-async function startRecording(){
- if(!navigator.mediaDevices?.getDisplayMedia){
-  setStatus("Screen/tab recording is not supported in this browser. Use updated Chrome.");
-  return;
- }
+function cleanupRecording() {
+    document.body.classList.remove("recording-mode");
 
- if(!HTMLCanvasElement.prototype.captureStream){
-  setStatus("Canvas recording is not supported in this browser.");
-  return;
- }
+    if (displayStream) {
+        displayStream.getTracks().forEach(track => track.stop());
+        displayStream = null;
+    }
 
- if(typeof MediaRecorder==="undefined"){
-  setStatus("MediaRecorder is not supported in this browser.");
-  return;
- }
-
- if(playing||paused){
-  setStatus("Stop or finish the current preview before recording.");
-  return;
- }
-
- const recordBtn=document.getElementById("recordBtn");
- recordBtn.disabled=true;
- downloadLink.classList.add("hidden");
-
- setStatus(
-  "Select Chrome Tab in the sharing window.\n"+
-  "IMPORTANT: Enable 'Share tab audio' and then click Share."
- );
-
- try{
-  // The user must select this Chrome tab and enable tab audio.
-  displayStream=await navigator.mediaDevices.getDisplayMedia({
-   video:true,
-   audio:true
-  });
-
-  const audioTracks=displayStream.getAudioTracks();
-
-  if(!audioTracks.length){
-   displayStream.getTracks().forEach(track=>track.stop());
-   displayStream=null;
-   throw new Error(
-    "Tab audio मिळाले नाही. पुन्हा Record करा आणि Chrome Tab निवडून 'Share tab audio' ON करा."
-   );
-  }
-
-  canvasStream=renderer.domElement.captureStream(30);
-
-  const videoTracks=canvasStream.getVideoTracks();
-
-  if(!videoTracks.length){
-   throw new Error("3D Canvas Video Track तयार झाला नाही.");
-  }
-
-  recordingStream=new MediaStream([
-   ...videoTracks,
-   ...audioTracks
-  ]);
-
-  chunks=[];
-
-  const mime=recorderType();
-
-  const options=mime?{
-   mimeType:mime,
-   videoBitsPerSecond:2500000,
-   audioBitsPerSecond:128000
-  }:{
-   videoBitsPerSecond:2500000
-  };
-
-  recorder=new MediaRecorder(recordingStream,options);
-
-  recorder.ondataavailable=event=>{
-   if(event.data&&event.data.size>0){
-    chunks.push(event.data);
-   }
-  };
-
-  recorder.onerror=event=>{
-   console.error("Recording error:",event.error);
-   setStatus("Video recording error. Check browser permissions.");
-  };
-
-  recorder.onstop=()=>{
-   const blob=new Blob(chunks,{
-    type:recorder.mimeType||"video/webm"
-   });
-
-   if(downloadURL){
-    URL.revokeObjectURL(downloadURL);
-   }
-
-   downloadURL=URL.createObjectURL(blob);
-
-   downloadLink.href=downloadURL;
-   downloadLink.download=
-    "apna-creator-ai-"+language.toLowerCase()+"-story.webm";
-
-   downloadLink.classList.remove("hidden");
-
-   const sizeMB=(blob.size/1024/1024).toFixed(2);
-
-   setStatus(
-    "✅ Recording completed!\n"+
-    "File size: "+sizeMB+" MB\n"+
-    "Format: WEBM\n"+
-    "Click the green Download button below."
-   );
-
-   if(displayStream){
-    displayStream.getTracks().forEach(track=>track.stop());
-    displayStream=null;
-   }
-
-   if(canvasStream){
-    canvasStream.getTracks().forEach(track=>track.stop());
-    canvasStream=null;
-   }
-
-   recordingStream=null;
-   recorder=null;
-   recordingStarted=false;
-   recordBtn.disabled=false;
-   document.getElementById("stopBtn").disabled=false;
-  };
-
-  recorder.start(500);
-  recordingStarted=true;
-
-  resetPlayback();
-  downloadLink.classList.add("hidden");
-
-  recordBtn.disabled=true;
-  document.getElementById("stopBtn").disabled=false;
-
-  setStatus(
-   "🔴 Recording started.\n"+
-   "Hindi/English Story is playing and being recorded."
-  );
-
-  startStory();
-
- }catch(error){
-  console.error("START RECORDING ERROR",error);
-
-  if(displayStream){
-   displayStream.getTracks().forEach(track=>track.stop());
-   displayStream=null;
-  }
-
-  if(canvasStream){
-   canvasStream.getTracks().forEach(track=>track.stop());
-   canvasStream=null;
-  }
-
-  if(recordingStream){
-   recordingStream.getTracks().forEach(track=>track.stop());
-   recordingStream=null;
-  }
-
-  recordBtn.disabled=false;
-
-  setStatus("❌ "+error.message);
- }
+    // Restore the normal preview layout and 3D canvas dimensions.
+    resize();
 }
 
-function stopRecording(){
- if(!recorder||recorder.state==="inactive")return;
+async function startRecording() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+        setStatus("Updated Chrome browser required for tab recording.");
+        return;
+    }
 
- setStatus("Finalizing video recording...");
- recorder.stop();
+    if (typeof MediaRecorder === "undefined") {
+        setStatus("This browser does not support video recording.");
+        return;
+    }
+
+    if (playing || paused || recorder) {
+        setStatus("Stop the current preview or recording before starting again.");
+        return;
+    }
+
+    recordBtn.disabled = true;
+    downloadLink.classList.add("hidden");
+    chunks = [];
+    stopPending = false;
+    resetPlayback();
+
+    setStatus(
+        "Chrome sharing window मध्ये 'Chrome Tab' निवड.\n" +
+        "हीच Apna Creator AI tab निवड आणि 'Share tab audio' ON कर.\n" +
+        "मग Share क्लिक कर."
+    );
+
+    try {
+        // Capture the selected Chrome tab directly: its video and tab audio.
+        displayStream = await navigator.mediaDevices.getDisplayMedia({
+            video: true,
+            audio: true
+        });
+
+        const videoTracks = displayStream.getVideoTracks();
+        const audioTracks = displayStream.getAudioTracks();
+
+        if (!videoTracks.length) {
+            throw new Error("Chrome tab video track मिळाला नाही. पुन्हा Chrome Tab share कर.");
+        }
+
+        if (!audioTracks.length) {
+            throw new Error(
+                "Tab audio मिळाले नाही. Chrome Tab निवडून 'Share tab audio' ON कर आणि पुन्हा प्रयत्न कर."
+            );
+        }
+
+        // The shared tab will display only the 3D cartoon during recording.
+        document.body.classList.add("recording-mode");
+        await new Promise(resolve => setTimeout(resolve, 350));
+        resize();
+
+        const mime = recorderType();
+        const options = mime ? {
+            mimeType: mime,
+            videoBitsPerSecond: 2500000,
+            audioBitsPerSecond: 128000
+        } : {
+            videoBitsPerSecond: 2500000,
+            audioBitsPerSecond: 128000
+        };
+
+        const activeRecorder = new MediaRecorder(displayStream, options);
+        recorder = activeRecorder;
+
+        activeRecorder.ondataavailable = event => {
+            if (event.data && event.data.size > 0) {
+                chunks.push(event.data);
+                console.log("Recording chunk:", event.data.size, "bytes");
+            }
+        };
+
+        activeRecorder.onerror = event => {
+            console.error("MediaRecorder error:", event.error || event);
+            setStatus("Recording error आला. Chrome tab पुन्हा share करून प्रयत्न कर.");
+        };
+
+        activeRecorder.onstart = () => {
+            setStatus("🔴 Recording started. Cartoon story is playing...");
+            resetPlayback();
+            startStory();
+        };
+
+        activeRecorder.onstop = () => {
+            const blob = new Blob(chunks, {
+                type: activeRecorder.mimeType || mime || "video/webm"
+            });
+
+            console.log("Final recording size:", blob.size, "bytes");
+            console.log("Total recording chunks:", chunks.length);
+
+            cleanupRecording();
+
+            recorder = null;
+            stopPending = false;
+            recordBtn.disabled = false;
+            stopBtn.disabled = false;
+
+            if (blob.size < 1024 || chunks.length === 0) {
+                downloadLink.classList.add("hidden");
+                setStatus(
+                    "❌ Recording save झाली नाही; video data मिळाला नाही.\n" +
+                    "पुन्हा Record कर आणि Chrome Tab + Share tab audio निवडल्याची खात्री कर."
+                );
+                return;
+            }
+
+            if (downloadURL) {
+                URL.revokeObjectURL(downloadURL);
+            }
+
+            downloadURL = URL.createObjectURL(blob);
+            downloadLink.href = downloadURL;
+            downloadLink.download =
+                "apna-creator-ai-" + language.toLowerCase() + "-story.webm";
+            downloadLink.classList.remove("hidden");
+
+            const sizeMB = (blob.size / 1024 / 1024).toFixed(2);
+            setStatus(
+                "✅ Recording completed!\n" +
+                "File size: " + sizeMB + " MB\n" +
+                "Format: WEBM\n" +
+                "Green Download button वर क्लिक कर."
+            );
+        };
+
+        // If the user ends tab sharing from Chrome, finish the recording safely.
+        videoTracks[0].addEventListener("ended", () => {
+            if (recorder && recorder.state === "recording") {
+                stopRecording();
+            }
+        });
+
+        activeRecorder.start(1000);
+
+    } catch (error) {
+        console.error("START RECORDING ERROR:", error);
+        cleanupRecording();
+        recorder = null;
+        stopPending = false;
+        recordBtn.disabled = false;
+        setStatus("❌ " + (error && error.message ? error.message : "Recording सुरू होऊ शकली नाही."));
+    }
 }
 
-function handleManualStop(){
- stopStory();
+function stopRecording() {
+    if (!recorder || recorder.state !== "recording" || stopPending) {
+        return;
+    }
 
- if(recorder&&recorder.state==="recording"){
-  stopRecording();
- }
+    stopPending = true;
+    setStatus("Video finalize आणि save होत आहे...");
+
+    try {
+        // Ask the browser to flush any buffered recording data first.
+        recorder.requestData();
+    } catch (error) {
+        console.warn("requestData warning:", error);
+    }
+
+    setTimeout(() => {
+        if (recorder && recorder.state === "recording") {
+            recorder.stop();
+        }
+    }, 500);
+}
+
+function handleManualStop() {
+    stopStory();
+
+    if (recorder && recorder.state === "recording") {
+        stopRecording();
+    }
 }
 
 // =====================================
