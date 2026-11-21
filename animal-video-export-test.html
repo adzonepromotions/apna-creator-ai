@@ -37,7 +37,7 @@ label{font-size:13px;font-weight:bold}
 .download{display:block;background:#dcfce7;color:#166534;font-weight:bold;padding:15px;border-radius:10px;text-align:center;text-decoration:none;margin-top:15px}
 .hidden{display:none!important}
 
-/* Cartoon-only view while recording */
+/* While recording, show only the cartoon stage on screen. */
 body.recording-mode{margin:0;overflow:hidden}
 body.recording-mode .wrap{width:100%;max-width:none;height:100vh;margin:0;padding:0}
 body.recording-mode .wrap>.card:first-child{position:fixed;inset:0;width:100vw;height:100vh;margin:0;padding:0;border-radius:0;box-shadow:none;background:#b7def5}
@@ -119,8 +119,7 @@ body.recording-mode #stage{position:fixed;inset:0;width:100vw;height:100vh;borde
 <div class="card">
 <h3>Video Export Information</h3>
 <p class="note">
-During export, the page records the laptop microphone while the browser voice plays through the laptop speakers.
-Keep laptop speakers ON, disconnect headphones, and allow microphone permission.
+During export, the live Three.js canvas is recorded as video and Windows Stereo Mix captures computer playback audio directly. The physical microphone is not included in the recording. Allow audio-input permission when Chrome asks.
 </p>
 <p class="note">
 The first export is WEBM, not MP4.
@@ -133,7 +132,9 @@ MP4 conversion, full AI-generated stories and professional lip-sync are future f
 <script type="module">
 import * as THREE from "three";
 
+// =====================================
 // THREE.JS SETUP
+// =====================================
 
 const stage=document.getElementById("stage");
 const status=document.getElementById("status");
@@ -169,7 +170,9 @@ sunlight.position.set(-4,9,6);
 sunlight.castShadow=true;
 scene.add(sunlight);
 
+// =====================================
 // MATERIALS AND HELPERS
+// =====================================
 
 const mat=color=>new THREE.MeshStandardMaterial({
  color,roughness:.82
@@ -242,7 +245,9 @@ function smooth(t){
  return t*t*(3-2*t);
 }
 
+// =====================================
 // JUNGLE
+// =====================================
 
 const ground=new THREE.Mesh(
  new THREE.PlaneGeometry(60,60),M.ground
@@ -266,7 +271,9 @@ addTree(4,-3,2.6);
 addTree(-4,-6,2.3);
 addTree(4.4,-7,2.2);
 
+// =====================================
 // TIGER
+// =====================================
 
 const tiger=new THREE.Group();
 tiger.position.set(-1.45,0,0);
@@ -336,7 +343,9 @@ tube(tigerTail,"tail",[
 
 sphere(tigerTail,"tail tip",[0,.48,-.62],[.075,.08,.09],M.stripe);
 
+// =====================================
 // MOUSE
+// =====================================
 
 const mouse=new THREE.Group();
 mouse.position.set(3.1,0,.02);
@@ -396,7 +405,9 @@ tube(mouseTail,"tail",[
  [0,0,0],[.10,-.02,-.23],[.18,.04,-.48],[.10,.18,-.68]
 ],.018,M.pink2);
 
+// =====================================
 // HINDI / ENGLISH STORY
+// =====================================
 
 const stories={
  Hindi:[
@@ -477,7 +488,9 @@ function selectScene(index){
  dialogueBox.append(title,line);
 }
 
+// =====================================
 // BROWSER VOICE
+// =====================================
 
 const speechSupported=
  "speechSynthesis" in window &&
@@ -527,7 +540,9 @@ if(speechSupported){
  speechSynthesis.addEventListener("voiceschanged",refreshVoices);
 }
 
+// =====================================
 // STORY PLAYBACK
+// =====================================
 
 const clock=new THREE.Clock();
 
@@ -756,300 +771,297 @@ function restartStory(){
  startStory();
 }
 
-// VIDEO RECORDING - MICROPHONE AUDIO MIX
+// =====================================
+// VIDEO RECORDING - CANVAS VIDEO + STEREO MIX AUDIO
+// =====================================
 
-const recordBtn=document.getElementById("recordBtn");
-const stopBtn=document.getElementById("stopBtn");
+const recordBtn = document.getElementById("recordBtn");
+const stopBtn = document.getElementById("stopBtn");
 
-let recorder=null;
-let chunks=[];
-let displayStream=null;
-let micStream=null;
-let recordingStream=null;
-let audioContext=null;
-let downloadURL=null;
-let stopPending=false;
+let recorder = null;
+let chunks = [];
+let stereoMixStream = null;
+let canvasStream = null;
+let recordingStream = null;
+let downloadURL = null;
+let stopPending = false;
 
-function recorderType(){
- const types=[
-  "video/webm;codecs=vp8,opus",
-  "video/webm;codecs=vp9,opus",
-  "video/webm"
- ];
- return types.find(type=>MediaRecorder.isTypeSupported(type))||"";
+function recorderType() {
+    const types = [
+        "video/webm;codecs=vp8,opus",
+        "video/webm;codecs=vp9,opus",
+        "video/webm"
+    ];
+    return types.find(type => MediaRecorder.isTypeSupported(type)) || "";
 }
 
-async function cleanupRecording(){
- document.body.classList.remove("recording-mode");
-
- if(displayStream){
-  displayStream.getTracks().forEach(track=>track.stop());
-  displayStream=null;
- }
-
- if(micStream){
-  micStream.getTracks().forEach(track=>track.stop());
-  micStream=null;
- }
-
- if(recordingStream){
-  recordingStream.getTracks().forEach(track=>track.stop());
-  recordingStream=null;
- }
-
- if(audioContext&&audioContext.state!=="closed"){
-  try{
-   await audioContext.close();
-  }catch(error){
-   console.warn("AudioContext close warning:",error);
-  }
- }
- audioContext=null;
-
- resize();
+function normalizeDeviceLabel(label) {
+    return String(label || "").toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 
-async function startRecording(){
- if(!navigator.mediaDevices||
-    !navigator.mediaDevices.getDisplayMedia||
-    !navigator.mediaDevices.getUserMedia){
-  setStatus("Updated Chrome browser with screen and microphone permissions is required.");
-  return;
- }
+async function getStereoMixStream() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !navigator.mediaDevices.enumerateDevices) {
+        throw new Error("या Chrome browser मध्ये audio-input device selection उपलब्ध नाही.");
+    }
 
- if(typeof MediaRecorder==="undefined"){
-  setStatus("This browser does not support video recording.");
-  return;
- }
-
- if(playing||paused||recorder){
-  setStatus("Stop the current preview or recording before starting again.");
-  return;
- }
-
- recordBtn.disabled=true;
- downloadLink.classList.add("hidden");
- chunks=[];
- stopPending=false;
- resetPlayback();
-
- setStatus(
-  "Step 1: Chrome Tab निवडून Share कर.\n"+
-  "Step 2: Microphone permission विचारल्यास Allow कर.\n"+
-  "Laptop speakers ON ठेव आणि headphones काढ."
- );
-
- try{
-  // Capture the cartoon image from the selected Chrome tab.
-  // Narration audio is recorded separately through the laptop microphone.
-  displayStream=await navigator.mediaDevices.getDisplayMedia({
-   video:true,
-   audio:false
-  });
-
-  const videoTracks=displayStream.getVideoTracks();
-
-  if(!videoTracks.length){
-   throw new Error("Chrome tab video track मिळाला नाही.");
-  }
-
-  setStatus(
-   "Microphone permission साठी Allow क्लिक कर.\n"+
-   "Laptop speakers ON ठेव. Headphones वापरू नकोस."
-  );
-
-  // Capture the sound played by laptop speakers through the microphone.
-  micStream=await navigator.mediaDevices.getUserMedia({
-   audio:{
-    echoCancellation:false,
-    noiseSuppression:false,
-    autoGainControl:false,
-    channelCount:1
-   },
-   video:false
-  });
-
-  if(!micStream.getAudioTracks().length){
-   throw new Error("Microphone audio track मिळाला नाही. Chrome microphone permission तपास.");
-  }
-
-  const AudioContextClass=window.AudioContext||window.webkitAudioContext;
-
-  if(!AudioContextClass){
-   throw new Error("या browser मध्ये Web Audio API उपलब्ध नाही.");
-  }
-
-  audioContext=new AudioContextClass();
-  await audioContext.resume();
-
-  const micSource=audioContext.createMediaStreamSource(micStream);
-  const micGain=audioContext.createGain();
-  const compressor=audioContext.createDynamicsCompressor();
-  const audioDestination=audioContext.createMediaStreamDestination();
-
-  micGain.gain.value=1.35;
-  compressor.threshold.value=-18;
-  compressor.knee.value=18;
-  compressor.ratio.value=3;
-  compressor.attack.value=.005;
-  compressor.release.value=.25;
-
-  micSource.connect(micGain);
-  micGain.connect(compressor);
-  compressor.connect(audioDestination);
-
-  const mixedAudioTracks=audioDestination.stream.getAudioTracks();
-
-  if(!mixedAudioTracks.length){
-   throw new Error("Recorded audio stream तयार झाला नाही.");
-  }
-
-  // Combine screen video and the processed microphone audio track.
-  recordingStream=new MediaStream([
-   videoTracks[0],
-   mixedAudioTracks[0]
-  ]);
-
-  document.body.classList.add("recording-mode");
-  await new Promise(resolve=>setTimeout(resolve,350));
-  resize();
-
-  const mime=recorderType();
-
-  const options=mime?{
-   mimeType:mime,
-   videoBitsPerSecond:2500000,
-   audioBitsPerSecond:128000
-  }:{
-   videoBitsPerSecond:2500000,
-   audioBitsPerSecond:128000
-  };
-
-  const activeRecorder=new MediaRecorder(recordingStream,options);
-  recorder=activeRecorder;
-
-  activeRecorder.ondataavailable=event=>{
-   if(event.data&&event.data.size>0){
-    chunks.push(event.data);
-    console.log("Recording chunk:",event.data.size,"bytes");
-   }
-  };
-
-  activeRecorder.onerror=event=>{
-   console.error("MediaRecorder error:",event.error||event);
-   setStatus("Recording error आला. पुन्हा प्रयत्न कर.");
-  };
-
-  activeRecorder.onstart=()=>{
-   setStatus(
-    "🔴 Recording सुरू आहे.\n"+
-    "Narration laptop microphone मधून record होत आहे."
-   );
-   resetPlayback();
-   startStory();
-  };
-
-  activeRecorder.onstop=async()=>{
-   const blob=new Blob(chunks,{
-    type:activeRecorder.mimeType||mime||"video/webm"
-   });
-
-   console.log("Final recording size:",blob.size,"bytes");
-   console.log("Total recording chunks:",chunks.length);
-
-   await cleanupRecording();
-
-   recorder=null;
-   stopPending=false;
-   recordBtn.disabled=false;
-   stopBtn.disabled=false;
-
-   if(blob.size<1024||chunks.length===0){
-    downloadLink.classList.add("hidden");
-    setStatus(
-     "❌ Recording save झाली नाही; video data मिळाला नाही.\n"+
-     "पुन्हा Record कर आणि microphone permission Allow कर."
+    // The browser must expose the Stereo Mix label before a source is selected.
+    // Do not open the default microphone as a fallback.
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const audioInputs = devices.filter(device => device.kind === "audioinput");
+    const stereoMixDevice = audioInputs.find(device =>
+        normalizeDeviceLabel(device.label).includes("stereomix")
     );
-    return;
-   }
 
-   if(downloadURL){
-    URL.revokeObjectURL(downloadURL);
-   }
+    if (!stereoMixDevice || !stereoMixDevice.deviceId) {
+        const available = audioInputs
+            .map(device => device.label || "Unnamed audio input")
+            .join(", ");
 
-   downloadURL=URL.createObjectURL(blob);
-   downloadLink.href=downloadURL;
-   downloadLink.download=
-    "apna-creator-ai-"+language.toLowerCase()+"-story.webm";
-   downloadLink.classList.remove("hidden");
+        throw new Error(
+            "Chrome ला Stereo Mix device दिसत नाही. Detected inputs: " +
+            (available || "No audio inputs listed") + "\n" +
+            "Chrome site settings मध्ये Microphone permission Allow कर, page reload कर, आणि Windows Recording मध्ये Stereo Mix enabled ठेव."
+        );
+    }
 
-   const sizeMB=(blob.size/1024/1024).toFixed(2);
+    // Request this exact device. No fallback to the physical microphone is allowed.
+    const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+            deviceId: { exact: stereoMixDevice.deviceId },
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false
+        },
+        video: false
+    });
 
-   setStatus(
-    "✅ Recording completed!\n"+
-    "File size: "+sizeMB+" MB\n"+
-    "Audio source: Laptop microphone\n"+
-    "Format: WEBM\n"+
-    "Green Download button वर क्लिक कर."
-   );
-  };
+    const audioTracks = stream.getAudioTracks();
+    if (!audioTracks.length) {
+        stream.getTracks().forEach(track => track.stop());
+        throw new Error("Stereo Mix audio track तयार झाला नाही.");
+    }
 
-  videoTracks[0].addEventListener("ended",()=>{
-   if(recorder&&recorder.state==="recording"){
-    stopRecording();
-   }
-  });
+    const actualDeviceId = audioTracks[0].getSettings().deviceId;
+    if (actualDeviceId && actualDeviceId !== stereoMixDevice.deviceId) {
+        stream.getTracks().forEach(track => track.stop());
+        throw new Error("Browser ने निवडलेला audio input Stereo Mix शी जुळत नाही. Recording थांबवली.");
+    }
 
-  activeRecorder.start(1000);
-
- }catch(error){
-  console.error("START RECORDING ERROR:",error);
-
-  await cleanupRecording();
-
-  recorder=null;
-  stopPending=false;
-  recordBtn.disabled=false;
-
-  setStatus(
-   "❌ "+(error&&error.message?error.message:"Recording सुरू होऊ शकली नाही.")+
-   "\nChrome site settings मध्ये Microphone permission Allow आहे का तपास."
-  );
- }
+    console.log("Selected recording audio input:", stereoMixDevice.label);
+    return { stream, label: stereoMixDevice.label };
 }
 
-function stopRecording(){
- if(!recorder||
-    recorder.state!=="recording"||
-    stopPending){
-  return;
- }
+async function cleanupRecording() {
+    document.body.classList.remove("recording-mode");
 
- stopPending=true;
- setStatus("Video आणि microphone audio finalize होत आहेत...");
+    if (canvasStream) {
+        canvasStream.getTracks().forEach(track => track.stop());
+        canvasStream = null;
+    }
 
- try{
-  recorder.requestData();
- }catch(error){
-  console.warn("requestData warning:",error);
- }
+    if (stereoMixStream) {
+        stereoMixStream.getTracks().forEach(track => track.stop());
+        stereoMixStream = null;
+    }
 
- setTimeout(()=>{
-  if(recorder&&recorder.state==="recording"){
-   recorder.stop();
-  }
- },500);
+    if (recordingStream) {
+        recordingStream.getTracks().forEach(track => track.stop());
+        recordingStream = null;
+    }
+
+    resize();
 }
 
-function handleManualStop(){
- stopStory();
+async function startRecording() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        setStatus("Updated Chrome browser with audio-input permission is required.");
+        return;
+    }
 
- if(recorder&&recorder.state==="recording"){
-  stopRecording();
- }
+    if (!HTMLCanvasElement.prototype.captureStream) {
+        setStatus("Canvas video recording is not supported in this browser.");
+        return;
+    }
+
+    if (typeof MediaRecorder === "undefined") {
+        setStatus("This browser does not support video recording.");
+        return;
+    }
+
+    if (playing || paused || recorder) {
+        setStatus("Stop the current preview or recording before starting again.");
+        return;
+    }
+
+    recordBtn.disabled = true;
+    downloadLink.classList.add("hidden");
+    chunks = [];
+    stopPending = false;
+    resetPlayback();
+
+    setStatus(
+        "Windows Stereo Mix शोधत आहे...\n" +
+        "Laptop speakers ON ठेव. Physical microphone audio record होणार नाही."
+    );
+
+    try {
+        const selectedAudio = await getStereoMixStream();
+        stereoMixStream = selectedAudio.stream;
+
+        // Switch the page to cartoon-only view before capturing the canvas.
+        document.body.classList.add("recording-mode");
+        await new Promise(resolve =>
+            requestAnimationFrame(() => requestAnimationFrame(resolve))
+        );
+        resize();
+        renderer.render(scene, camera);
+
+        // Capture the actual live Three.js canvas at 30 FPS.
+        canvasStream = renderer.domElement.captureStream(30);
+        const videoTracks = canvasStream.getVideoTracks();
+        const audioTracks = stereoMixStream.getAudioTracks();
+
+        if (!videoTracks.length) {
+            throw new Error("3D canvas video track तयार झाला नाही.");
+        }
+        if (!audioTracks.length) {
+            throw new Error("Stereo Mix audio track मिळाला नाही.");
+        }
+
+        // Combine canvas video with Stereo Mix only. No physical microphone track.
+        recordingStream = new MediaStream([
+            videoTracks[0],
+            audioTracks[0]
+        ]);
+
+        const mime = recorderType();
+        const options = mime ? {
+            mimeType: mime,
+            videoBitsPerSecond: 2500000,
+            audioBitsPerSecond: 128000
+        } : {
+            videoBitsPerSecond: 2500000,
+            audioBitsPerSecond: 128000
+        };
+
+        const activeRecorder = new MediaRecorder(recordingStream, options);
+        recorder = activeRecorder;
+
+        activeRecorder.ondataavailable = event => {
+            if (event.data && event.data.size > 0) {
+                chunks.push(event.data);
+                console.log("Recording chunk:", event.data.size, "bytes");
+            }
+        };
+
+        activeRecorder.onerror = event => {
+            console.error("MediaRecorder error:", event.error || event);
+            setStatus("Recording error आला. पुन्हा प्रयत्न कर.");
+        };
+
+        activeRecorder.onstart = () => {
+            setStatus(
+                "🔴 Recording सुरू आहे.\n" +
+                "Video: Live 3D canvas\n" +
+                "Audio: " + selectedAudio.label + " (computer audio only)"
+            );
+            resetPlayback();
+            startStory();
+        };
+
+        activeRecorder.onstop = async () => {
+            const blob = new Blob(chunks, {
+                type: activeRecorder.mimeType || mime || "video/webm"
+            });
+
+            console.log("Final recording size:", blob.size, "bytes");
+            console.log("Total recording chunks:", chunks.length);
+
+            await cleanupRecording();
+
+            recorder = null;
+            stopPending = false;
+            recordBtn.disabled = false;
+            stopBtn.disabled = false;
+
+            if (blob.size < 1024 || chunks.length === 0) {
+                downloadLink.classList.add("hidden");
+                setStatus(
+                    "❌ Recording save झाली नाही; video data मिळाला नाही.\n" +
+                    "Stereo Mix enabled आहे आणि Windows playback चे green level bars हलत आहेत याची खात्री कर."
+                );
+                return;
+            }
+
+            if (downloadURL) {
+                URL.revokeObjectURL(downloadURL);
+            }
+
+            downloadURL = URL.createObjectURL(blob);
+            downloadLink.href = downloadURL;
+            downloadLink.download =
+                "apna-creator-ai-" + language.toLowerCase() + "-story.webm";
+            downloadLink.classList.remove("hidden");
+
+            const sizeMB = (blob.size / 1024 / 1024).toFixed(2);
+            setStatus(
+                "✅ Recording completed!\n" +
+                "File size: " + sizeMB + " MB\n" +
+                "Video source: Live Three.js canvas\n" +
+                "Audio source: Windows Stereo Mix\n" +
+                "Physical microphone: Not recorded\n" +
+                "Format: WEBM\n" +
+                "Green Download button वर क्लिक कर."
+            );
+        };
+
+        activeRecorder.start(1000);
+
+    } catch (error) {
+        console.error("START RECORDING ERROR:", error);
+        await cleanupRecording();
+        recorder = null;
+        stopPending = false;
+        recordBtn.disabled = false;
+        setStatus(
+            "❌ " + (error && error.message ? error.message : "Recording सुरू होऊ शकली नाही.") +
+            "\nWindows Recording devices मध्ये Stereo Mix enabled आहे का तपास."
+        );
+    }
 }
 
+function stopRecording() {
+    if (!recorder || recorder.state !== "recording" || stopPending) {
+        return;
+    }
+
+    stopPending = true;
+    setStatus("Video आणि computer audio finalize होत आहेत...");
+
+    try {
+        recorder.requestData();
+    } catch (error) {
+        console.warn("requestData warning:", error);
+    }
+
+    setTimeout(() => {
+        if (recorder && recorder.state === "recording") {
+            recorder.stop();
+        }
+    }, 500);
+}
+
+function handleManualStop() {
+    stopStory();
+
+    if (recorder && recorder.state === "recording") {
+        stopRecording();
+    }
+}
+
+// =====================================
 // LANGUAGE SELECTION
+// =====================================
 
 languageSelect.addEventListener("change",event=>{
  if(playing||paused){
@@ -1068,14 +1080,18 @@ languageSelect.addEventListener("change",event=>{
  setStatus("Language changed to "+language+".");
 });
 
+// =====================================
 // BUTTONS
+// =====================================
 
 document.getElementById("playBtn").onclick=startStory;
 document.getElementById("pauseBtn").onclick=pauseStory;
 document.getElementById("stopBtn").onclick=handleManualStop;
 document.getElementById("recordBtn").onclick=startRecording;
 
+// =====================================
 // ANIMATION
+// =====================================
 
 function updateSceneMotion(time){
  if(sceneNumber<0)return;
@@ -1167,7 +1183,9 @@ function animate(){
  renderer.render(scene,camera);
 }
 
+// =====================================
 // INIT
+// =====================================
 
 function resize(){
  const width=stage.clientWidth;
