@@ -1,50 +1,578 @@
+
 <!DOCTYPE html>
 <html lang="mr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Apna Creator AI</title>
 <style>
-:root{color-scheme:light}*{box-sizing:border-box}body{margin:0;background:#f3f6fb;color:#182235;font-family:Arial,sans-serif}.container{width:min(100% - 24px,900px);margin:24px auto}.card{background:#fff;border-radius:16px;padding:20px;margin:0 0 16px;box-shadow:0 4px 18px #16243a12}h1{font-size:26px;margin:0 0 8px}h2{font-size:21px;margin:0 0 12px}p{line-height:1.55}.muted{color:#64748b;font-size:13px}label{display:block;font-weight:700;margin:14px 0 6px}textarea,select{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:9px;font:inherit;background:white}textarea{min-height:130px;resize:vertical}button{border:0;border-radius:9px;padding:11px 15px;font-weight:700;cursor:pointer}button:disabled{opacity:.55;cursor:not-allowed}.primary{width:100%;margin-top:16px;background:#2563eb;color:#fff}.status{margin-top:14px;background:#eff5ff;border-radius:9px;padding:12px;white-space:pre-wrap;line-height:1.5}.status.success,.ok{background:#ecfdf5;color:#166534}.status.error,.bad{background:#fff1f2;color:#9f1239}.progress{margin-top:12px;height:9px;background:#e2e8f0;border-radius:20px;overflow:hidden}.progress-bar{height:100%;width:0;background:#2563eb;transition:width .25s}pre{white-space:pre-wrap;word-break:break-word;line-height:1.55;font:inherit}.scene{border:1px solid #dce4ef;border-radius:13px;padding:15px;margin:14px 0;background:#fff}.scene h3{margin:0 0 10px}.scene p{margin:8px 0}.image-box{min-height:150px;margin-top:12px;border-radius:10px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;overflow:hidden;color:#64748b;text-align:center}.image-box img{display:block;width:100%;height:auto}.image-status,.voice-status{margin-top:9px;padding:9px;border-radius:8px;background:#f8fafc;font-size:13px;white-space:pre-wrap}.voice-controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.play-btn{background:#16a34a;color:white}.stop-btn{background:#dc2626;color:white}.download-btn{background:#7c3aed;color:white;text-decoration:none;display:inline-block;border-radius:9px;padding:11px 14px;font-weight:700}.loading{padding:20px;color:#2563eb;font-weight:700;text-align:center}audio{display:block;width:100%;margin-top:10px}@media(max-width:600px){.container{width:min(100% - 14px,900px);margin:10px auto}.card{padding:14px}.scene{padding:11px}h1{font-size:22px}}
+*{box-sizing:border-box}
+body{margin:0;background:#f3f6fc;color:#172033;font-family:Arial,sans-serif}
+.container{max-width:850px;margin:auto;padding:18px}
+.card{background:white;padding:22px;border-radius:16px;margin-bottom:18px;box-shadow:0 3px 14px #15264b12}
+h1{font-size:27px;margin:0 0 8px}
+h2{font-size:20px}
+label{display:block;font-weight:bold;margin:15px 0 7px}
+input,textarea,select{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:9px;font-size:15px;background:white}
+textarea{min-height:110px;resize:vertical}
+button{border:0;border-radius:9px;padding:12px 16px;font-weight:bold;cursor:pointer}
+button:disabled{opacity:.5;cursor:not-allowed}
+.primary{background:#2563eb;color:white;width:100%;margin-top:18px}
+.secondary{background:#e8efff;color:#1d4ed8}
+.green{background:#16a34a;color:white}
+.red{background:#dc2626;color:white}
+.status{background:#eff4ff;padding:13px;border-radius:9px;margin-top:12px;white-space:pre-wrap;line-height:1.5}
+.success{background:#e9f9ef;color:#166534}
+.error{background:#fff0f0;color:#991b1b}
+.progress{height:9px;background:#e2e8f0;border-radius:20px;margin-top:12px;overflow:hidden}
+.bar{height:100%;width:0;background:#2563eb;transition:width .3s}
+.row{display:flex;gap:12px;flex-wrap:wrap}
+.row>*{flex:1;min-width:130px}
+.option{border:1px solid #dbe3ef;border-radius:10px;padding:12px;display:flex;align-items:center;gap:9px;cursor:pointer;margin-top:8px}
+.option input{width:auto}
+.scene{border:1px solid #dbe3ef;border-radius:12px;padding:15px;margin:15px 0}
+.scene img{display:block;width:100%;height:auto;border-radius:9px;margin-top:12px}
+.scene p{line-height:1.5}
+.small{font-size:13px;color:#64748b}
+.tag{display:inline-block;padding:5px 9px;background:#eff4ff;border-radius:7px;font-size:12px;margin:3px}
+.hidden{display:none}
+button:focus,input:focus,textarea:focus,select:focus{outline:2px solid #93b4ff;outline-offset:2px}
 </style>
 </head>
 <body>
 <div class="container">
-  <section class="card">
-    <h1>🎬 Apna Creator AI</h1>
-    <p class="muted">तुमची Story द्या → 8 connected scenes → 8 Cartoon Images + Voice.</p>
-    <label for="story">तुमची Story</label>
-    <textarea id="story" placeholder="उदा. एका छोट्या गावात मोनू नावाचा मुलगा राहत होता..."></textarea>
-    <label for="language">Language</label>
-    <select id="language"><option>Marathi</option><option>Hindi</option><option>English</option></select>
-    <label for="duration">Duration</label>
-    <select id="duration"><option>1 Minute</option><option>2 Minutes</option><option>3 Minutes</option></select>
-    <label for="style">Cartoon Style</label>
-    <select id="style"><option>3D Cartoon</option><option>2D Cartoon</option><option>Kids Cartoon</option></select>
-    <button id="createBtn" class="primary" type="button">🎬 CREATE STORY</button>
-    <div id="status" class="status">Ready.</div>
-    <div class="progress"><div id="progressBar" class="progress-bar"></div></div>
-  </section>
-  <section class="card"><h2>📖 Generated Story</h2><pre id="storyOutput">Story येथे दिसेल.</pre></section>
-  <section class="card"><h2>🎨 Scenes + Images + Voice</h2><div id="scenesOutput"><p class="muted">CREATE STORY दाबल्यानंतर 8 scenes येथे दिसतील.</p></div></section>
+
+<div class="card">
+<h1>🎬 Apna Creator AI</h1>
+<p class="small">Your Story Idea → Complete Script → Cartoon Scenes</p>
+
+<label for="story">तुझ्या Story ची कल्पना लिही</label>
+<textarea id="story" placeholder="उदा. एका छोट्या गावात मोनू नावाचा मुलगा राहत होता. एक दिवस त्याला जंगलात जादुई पोपट भेटला..."></textarea>
+
+<div class="row">
+<div>
+<label for="language">Video Language</label>
+<select id="language">
+<option value="Marathi">Marathi</option>
+<option value="Hindi">Hindi</option>
+<option value="English">English</option>
+</select>
 </div>
+<div>
+<label for="duration">Video Duration</label>
+<select id="duration">
+<option value="1 Minute">1 Minute</option>
+<option disabled>3 Minutes – Coming Soon</option>
+<option disabled>5 Minutes – Coming Soon</option>
+<option disabled>10 Minutes – Coming Soon</option>
+<option disabled>15–20 Minutes – Coming Soon</option>
+</select>
+</div>
+</div>
+
+<label for="style">Cartoon Style</label>
+<select id="style">
+<option value="3D Cartoon">3D Cartoon</option>
+<option value="2D Cartoon">2D Cartoon</option>
+</select>
+
+<label>Video Aspect Ratio</label>
+<label class="option">
+<input type="radio" name="ratio" value="16:9" checked>
+<span>🖥️ 16:9 – YouTube Long Video</span>
+</label>
+<label class="option">
+<input type="radio" name="ratio" value="9:16">
+<span>📱 9:16 – YouTube Shorts</span>
+</label>
+
+<label for="characterMode">Character Mode</label>
+<select id="characterMode">
+<option value="new">✨ Create New Characters</option>
+<option value="reuse">♻️ Reuse My Characters</option>
+</select>
+
+<div id="reuseBox" class="hidden">
+<label for="savedCharacters">My Saved Characters</label>
+<select id="savedCharacters">
+<option value="">Select Character Pack</option>
+</select>
+<p class="small">Saved Characters या Browser मध्ये साठवले जातील.</p>
+</div>
+
+<button id="createBtn" class="primary">🎬 CREATE STORY</button>
+
+<div id="status" class="status">Ready. तुझी Story Idea लिही.</div>
+<div class="progress"><div id="bar" class="bar"></div></div>
+</div>
+
+<div id="storyCard" class="card hidden">
+<h2>📖 Generated Complete Script</h2>
+<div id="scriptOutput"></div>
+<div style="margin-top:15px">
+<label for="packName">Character Pack चे नाव</label>
+<input id="packName" placeholder="उदा. Monu Cartoon Series">
+<button id="savePack" class="secondary" style="margin-top:10px">💾 Save My Characters</button>
+<p id="saveStatus" class="small"></p>
+</div>
+</div>
+
+<div class="card">
+<h2>🎨 Scenes + Images</h2>
+<p class="small">पहिल्या टप्प्यात 8 Story Scenes आणि Cartoon Images तयार होतील.</p>
+<div id="scenesOutput">
+<p class="small">CREATE STORY केल्यानंतर Scenes येथे दिसतील.</p>
+</div>
+</div>
+
+</div>
+
 <script>
 "use strict";
-const BACKEND_URL="https://apna-creator-ai.apnacreatorai.workers.dev";
-const $=id=>document.getElementById(id);
-const storyInput=$("story"),languageInput=$("language"),durationInput=$("duration"),styleInput=$("style"),createBtn=$("createBtn"),statusBox=$("status"),storyOutput=$("storyOutput"),scenesOutput=$("scenesOutput"),progressBar=$("progressBar");
-function setStatus(message,type="normal"){statusBox.textContent=message;statusBox.className="status"+(type==="success"?" success":type==="error"?" error":"")}
-function setProgress(done,total=8){progressBar.style.width=total?Math.round(done/total*100)+"%":"0%"}
-async function readError(response,kind){const body=await response.text();try{const data=JSON.parse(body);return data.error||`${kind} failed (HTTP ${response.status})`}catch{return `${kind} failed (HTTP ${response.status}): ${body.slice(0,350)}`} }
-function parseScenes(text){const source=String(text||"").replace(/\r/g,"").trim();const re=/SCENE\s*([1-8])\s*:?\s*\n\s*Visual\s*:\s*([\s\S]*?)\n\s*Voice\s*:\s*([\s\S]*?)(?=\n\s*SCENE\s*[1-8]\b|$)/gi;const map=new Map();let m;while((m=re.exec(source))!==null){const scene={number:Number(m[1]),visual:m[2].trim().replace(/\s+/g," "),voice:m[3].trim().replace(/\s+/g," ")};if(scene.visual&&scene.voice)map.set(scene.number,scene)}return [...map.values()].sort((a,b)=>a.number-b.number)}
-function createSceneElements(scene){const card=document.createElement("article");card.className="scene";const title=document.createElement("h3");title.textContent=`🎬 SCENE ${scene.number}`;const visual=document.createElement("p");visual.textContent=`Visual: ${scene.visual}`;const voice=document.createElement("p");voice.textContent=`Voice: ${scene.voice}`;const imageBox=document.createElement("div");imageBox.className="image-box";imageBox.textContent="Image तयार होत आहे...";const imageStatus=document.createElement("div");imageStatus.className="image-status";imageStatus.textContent="Waiting for image";const voiceStatus=document.createElement("div");voiceStatus.className="voice-status";voiceStatus.textContent="Waiting for voice";const controls=document.createElement("div");controls.className="voice-controls";const playBtn=document.createElement("button");playBtn.type="button";playBtn.className="play-btn";playBtn.textContent="▶ Play Voice";playBtn.disabled=true;const stopBtn=document.createElement("button");stopBtn.type="button";stopBtn.className="stop-btn";stopBtn.textContent="■ Stop";stopBtn.disabled=true;const downloadBtn=document.createElement("a");downloadBtn.className="download-btn";downloadBtn.textContent="⬇ Download MP3";downloadBtn.style.display="none";downloadBtn.download=`scene-${scene.number}.mp3`;const audio=document.createElement("audio");audio.controls=true;audio.style.display="none";controls.append(playBtn,stopBtn,downloadBtn);card.append(title,visual,voice,imageBox,imageStatus,voiceStatus,controls,audio);scenesOutput.appendChild(card);return{imageBox,imageStatus,voiceStatus,playBtn,stopBtn,downloadBtn,audio}}
-async function blobToSmallReference(blob){const bitmap=await createImageBitmap(blob);const max=480;const scale=Math.min(max/bitmap.width,max/bitmap.height,1);const canvas=document.createElement("canvas");canvas.width=Math.max(1,Math.round(bitmap.width*scale));canvas.height=Math.max(1,Math.round(bitmap.height*scale));const context=canvas.getContext("2d");context.drawImage(bitmap,0,0,canvas.width,canvas.height);bitmap.close();const small=await new Promise((resolve,reject)=>canvas.toBlob(value=>value?resolve(value):reject(new Error("Reference image resize failed")),"image/jpeg",0.82));const bytes=new Uint8Array(await small.arrayBuffer());let binary="";for(let i=0;i<bytes.length;i+=0x8000)binary+=String.fromCharCode(...bytes.subarray(i,i+0x8000));return `data:image/jpeg;base64,${btoa(binary)}`}
-async function generateImage(scene,el,story,characterLock,referenceImage){el.imageStatus.className="image-status";el.imageStatus.textContent=`Scene ${scene.number}: generating image...`;el.imageBox.innerHTML="";const loading=document.createElement("div");loading.className="loading";loading.textContent="🎨 Image तयार होत आहे...";el.imageBox.appendChild(loading);try{const response=await fetch(BACKEND_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"generate-image",story,visual:scene.visual,characterLock,style:styleInput.value,sceneNumber:scene.number,referenceImage})});if(!response.ok)throw new Error(await readError(response,"Image generation"));const contentType=response.headers.get("content-type")||"";if(!contentType.startsWith("image/"))throw new Error("Worker ने image ऐवजी वेगळा response दिला.");const blob=await response.blob();if(!blob.size)throw new Error("Image file रिकामी आहे.");const url=URL.createObjectURL(blob);const img=document.createElement("img");img.src=url;img.alt=`Scene ${scene.number} illustration`;el.imageBox.replaceChildren(img);el.imageStatus.className="image-status ok";el.imageStatus.textContent="✅ Image तयार झाली.";return{ok:true,reference:referenceImage||await blobToSmallReference(blob)}}catch(error){el.imageBox.textContent="❌ Image तयार झाली नाही.";el.imageStatus.className="image-status bad";el.imageStatus.textContent=error.message||String(error);console.error("IMAGE ERROR",error);return{ok:false,reference:referenceImage}}}
-async function generateVoice(scene,el){el.voiceStatus.className="voice-status";el.voiceStatus.textContent=`Scene ${scene.number}: voice तयार होत आहे...`;el.playBtn.disabled=true;el.stopBtn.disabled=true;el.downloadBtn.style.display="none";try{const response=await fetch(BACKEND_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"generate-voice",text:scene.voice,language:languageInput.value})});if(!response.ok)throw new Error(await readError(response,"Voice generation"));const type=response.headers.get("content-type")||"";if(!type.includes("audio"))throw new Error("Worker ने audio file ऐवजी वेगळा response दिला.");const blob=await response.blob();if(!blob.size)throw new Error("Audio file रिकामी आहे.");const url=URL.createObjectURL(blob);el.audio.src=url;el.playBtn.disabled=false;el.stopBtn.disabled=false;el.downloadBtn.href=url;el.downloadBtn.style.display="inline-block";el.playBtn.onclick=async()=>{try{await el.audio.play()}catch(error){el.voiceStatus.textContent=`Play error: ${error.message||error}`}};el.stopBtn.onclick=()=>{el.audio.pause();el.audio.currentTime=0};el.voiceStatus.className="voice-status ok";el.voiceStatus.textContent="✅ Voice तयार झाली.";return true}catch(error){el.voiceStatus.className="voice-status bad";el.voiceStatus.textContent=error.message||String(error);console.error("VOICE ERROR",error);return false}}
-async function generateAll(scenes,elements,story,characterLock){let images=0,voices=0,failures=0,referenceImage="";for(let i=0;i<scenes.length;i++){const scene=scenes[i],el=elements[i];setStatus(`Generating scene ${scene.number}/8\nImages: ${images}/8\nVoices: ${voices}/8`);const imageResult=await generateImage(scene,el,story,characterLock,referenceImage);if(imageResult.ok){images++;if(!referenceImage)referenceImage=imageResult.reference}else failures++;if(await generateVoice(scene,el))voices++;else failures++;setProgress(i+1,scenes.length)}if(images===8&&voices===8)setStatus("🎉 पूर्ण झाले! 8 Images आणि 8 Voices तयार झाले.","success");else setStatus(`Generation पूर्ण.\nImages: ${images}/8\nVoices: ${voices}/8\nFailed tasks: ${failures}\nVoice error असल्यास Cloudflare मधील SPEECH_KEY आणि SPEECH_REGION तपासा.`,failures?"error":"normal")}
-async function createStory(){const story=storyInput.value.trim();if(!story){setStatus("कृपया आधी Story लिहा.","error");storyInput.focus();return}createBtn.disabled=true;createBtn.textContent="⏳ तयार होत आहे...";storyOutput.textContent="Story तयार होत आहे...";scenesOutput.replaceChildren();setProgress(0);setStatus("🤖 Story AI कडे पाठवत आहे...");try{const response=await fetch(BACKEND_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"generate-story",story,language:languageInput.value,duration:durationInput.value,style:styleInput.value})});if(!response.ok)throw new Error(await readError(response,"Story generation"));const data=await response.json();if(!data.success)throw new Error(data.error||"Story generation failed");const scenes=Array.isArray(data.scenes)?data.scenes:parseScenes(data.story);const characterLock=String(data.characterLock||"").trim();if(scenes.length!==8)throw new Error(`AI ने ${scenes.length}/8 scenes दिले. पुन्हा प्रयत्न करा.`);if(!characterLock)throw new Error("AI ने Character Lock तयार केला नाही. पुन्हा प्रयत्न करा.");storyOutput.textContent=data.story||scenes.map(s=>`SCENE ${s.number}\nVisual: ${s.visual}\nVoice: ${s.voice}`).join("\n\n");const elements=scenes.map(createSceneElements);setStatus("✅ 8 scenes तयार झाले. आता Images आणि Voice तयार होत आहेत...");await generateAll(scenes,elements,story,characterLock)}catch(error){storyOutput.textContent="Story तयार झाली नाही.";scenesOutput.textContent="❌ Scenes तयार झाले नाहीत.";setProgress(0);setStatus(`❌ ${error.message||error}`,"error");console.error("CREATE STORY ERROR",error)}finally{createBtn.disabled=false;createBtn.textContent="🎬 CREATE STORY"}}
+
+const BACKEND_URL =
+"https://apna-creator-ai.apnacreatorai.workers.dev";
+
+const $ = id => document.getElementById(id);
+
+const storyInput = $("story");
+const languageInput = $("language");
+const durationInput = $("duration");
+const styleInput = $("style");
+const modeInput = $("characterMode");
+const ratioInputs = document.querySelectorAll('input[name="ratio"]');
+const createBtn = $("createBtn");
+const statusBox = $("status");
+const bar = $("bar");
+const scenesOutput = $("scenesOutput");
+const scriptOutput = $("scriptOutput");
+
+let currentCharacterLock = "";
+let currentScenes = [];
+let imageURLs = [];
+let firstReferenceImage = "";
+let activeAudio = null;
+
+function setStatus(message, type="normal") {
+  statusBox.textContent = message;
+  statusBox.className = "status";
+  if(type==="success") statusBox.classList.add("success");
+  if(type==="error") statusBox.classList.add("error");
+}
+
+function setProgress(value) {
+  bar.style.width = Math.max(0,Math.min(100,value))+"%";
+}
+
+function getRatio() {
+  return document.querySelector('input[name="ratio"]:checked').value;
+}
+
+function getPacks() {
+  try {
+    return JSON.parse(localStorage.getItem("apnaCharacterPacks") || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function renderCharacterPacks() {
+  const select = $("savedCharacters");
+  const packs = getPacks();
+  const previous = select.value;
+
+  select.innerHTML = '<option value="">Select Character Pack</option>';
+
+  packs.forEach(pack => {
+    const option = document.createElement("option");
+    option.value = pack.id;
+    option.textContent = pack.name;
+    select.appendChild(option);
+  });
+
+  if(packs.some(p=>p.id===previous)) select.value=previous;
+}
+
+function getSelectedPack() {
+  return getPacks().find(p=>p.id===$("savedCharacters").value);
+}
+
+modeInput.addEventListener("change",()=>{
+  $("reuseBox").classList.toggle(
+    "hidden",
+    modeInput.value!=="reuse"
+  );
+});
+
+renderCharacterPacks();
+
+async function postJSON(payload) {
+  const response = await fetch(BACKEND_URL,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(payload)
+  });
+
+  const contentType = response.headers.get("content-type") || "";
+
+  if(!contentType.includes("application/json")){
+    throw new Error("Worker ने JSON ऐवजी चुकीचा Response दिला.");
+  }
+
+  const data = await response.json();
+
+  if(!response.ok || data.success===false){
+    throw new Error(data.error || "Backend Error: "+response.status);
+  }
+
+  return data;
+}
+
+function makeElement(tag, text, className) {
+  const element=document.createElement(tag);
+  if(text!==undefined) element.textContent=text;
+  if(className) element.className=className;
+  return element;
+}
+
+function clearOldImages() {
+  imageURLs.forEach(url=>URL.revokeObjectURL(url));
+  imageURLs=[];
+  firstReferenceImage="";
+}
+
+function renderScript(data) {
+  scriptOutput.innerHTML="";
+
+  if(data.characterLock){
+    const heading=makeElement("h3","🔒 Character Design");
+    const details=makeElement("pre",data.characterLock,"small");
+    scriptOutput.append(heading,details);
+  }
+
+  (data.scenes||[]).forEach(scene=>{
+    const div=makeElement("div",undefined,"scene");
+    div.appendChild(makeElement("h3","SCENE "+scene.number));
+    div.appendChild(makeElement("p","Visual: "+scene.visual));
+    div.appendChild(makeElement("p","Voice: "+scene.voice));
+    scriptOutput.appendChild(div);
+  });
+
+  $("storyCard").classList.remove("hidden");
+}
+
+function renderScenes(scenes) {
+  scenesOutput.innerHTML="";
+
+  return scenes.map(scene=>{
+    const card=makeElement("div",undefined,"scene");
+
+    card.appendChild(makeElement("h3","🎬 SCENE "+scene.number));
+    card.appendChild(makeElement("p","Visual: "+scene.visual));
+    card.appendChild(makeElement("p","Voice: "+scene.voice));
+
+    const imageStatus=makeElement("p","Waiting for image...","small");
+    const imageBox=makeElement("div","Image generating...");
+    const voiceButton=makeElement("button","🔊 Listen Narration","green");
+    voiceButton.type="button";
+
+    voiceButton.addEventListener("click",()=>{
+      if(!("speechSynthesis" in window)){
+        imageStatus.textContent="या Browser मध्ये Voice Preview उपलब्ध नाही.";
+        return;
+      }
+
+      window.speechSynthesis.cancel();
+
+      const utterance=new SpeechSynthesisUtterance(scene.voice);
+      utterance.lang={
+        Marathi:"mr-IN",
+        Hindi:"hi-IN",
+        English:"en-IN"
+      }[languageInput.value];
+
+      utterance.rate=0.95;
+      activeAudio=utterance;
+
+      window.speechSynthesis.speak(utterance);
+    });
+
+    const stopButton=makeElement("button","⏹ Stop","red");
+    stopButton.type="button";
+    stopButton.style.marginLeft="8px";
+    stopButton.addEventListener("click",()=>{
+      if("speechSynthesis" in window) window.speechSynthesis.cancel();
+    });
+
+    card.append(
+      imageBox,
+      imageStatus,
+      voiceButton,
+      stopButton
+    );
+
+    scenesOutput.appendChild(card);
+
+    return {card,imageStatus,imageBox};
+  });
+}
+
+/*
+  FLUX reference images must be smaller than 512x512.
+  Create a compressed thumbnail while keeping the image ratio.
+*/
+async function createReferenceThumbnail(blob) {
+  const bitmap=await createImageBitmap(blob);
+
+  const scale=Math.min(500/bitmap.width,500/bitmap.height,1);
+  const width=Math.max(1,Math.floor(bitmap.width*scale));
+  const height=Math.max(1,Math.floor(bitmap.height*scale));
+
+  const canvas=document.createElement("canvas");
+  canvas.width=width;
+  canvas.height=height;
+
+  const context=canvas.getContext("2d");
+  context.drawImage(bitmap,0,0,width,height);
+  bitmap.close();
+
+  return canvas.toDataURL("image/jpeg",0.72);
+}
+
+async function generateOneImage(scene,ui,index) {
+  ui.imageStatus.textContent="🎨 Scene "+scene.number+" Image तयार होत आहे...";
+
+  ui.imageBox.textContent="कृपया थांबा...";
+
+  try{
+    const data=await postJSON({
+      action:"generate-image",
+      visual:scene.visual,
+      story:storyInput.value.trim(),
+      characterLock:currentCharacterLock,
+      style:styleInput.value,
+      aspectRatio:getRatio(),
+      sceneNumber:scene.number,
+      referenceImage:index===0?"":firstReferenceImage
+    });
+
+    return data;
+  }catch(error){
+    throw error;
+  }
+}
+
+async function loadImage(scene,ui,index) {
+  try{
+    const response=await fetch(BACKEND_URL,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        action:"generate-image",
+        visual:scene.visual,
+        story:storyInput.value.trim(),
+        characterLock:currentCharacterLock,
+        style:styleInput.value,
+        aspectRatio:getRatio(),
+        sceneNumber:scene.number,
+        referenceImage:index===0?"":firstReferenceImage
+      })
+    });
+
+    if(!response.ok){
+      let message="Image HTTP "+response.status;
+      try {
+        const errorData=await response.json();
+        message=errorData.error||message;
+      } catch {}
+      throw new Error(message);
+    }
+
+    const type=response.headers.get("content-type")||"";
+    if(!type.includes("image")){
+      throw new Error("Worker ने Image ऐवजी दुसरा Response दिला.");
+    }
+
+    const blob=await response.blob();
+    if(!blob.size) throw new Error("Image file रिकामी आहे.");
+
+    const url=URL.createObjectURL(blob);
+    imageURLs.push(url);
+
+    const img=document.createElement("img");
+    img.src=url;
+    img.alt="Scene "+scene.number;
+
+    ui.imageBox.innerHTML="";
+    ui.imageBox.appendChild(img);
+
+    ui.imageStatus.textContent="✅ Scene "+scene.number+" Image तयार झाली.";
+
+    if(index===0){
+      try{
+        firstReferenceImage=await createReferenceThumbnail(blob);
+      }catch(error){
+        console.warn("Reference thumbnail not created:",error);
+      }
+    }
+
+    return true;
+
+  }catch(error){
+    console.error("IMAGE ERROR",scene.number,error);
+    ui.imageBox.textContent="Image तयार झाली नाही.";
+    ui.imageStatus.textContent="❌ "+error.message;
+    return false;
+  }
+}
+
+async function generateAllImages(scenes,uis) {
+  let success=0;
+  let failed=0;
+
+  for(let i=0;i<scenes.length;i++){
+    setStatus(
+      "🎨 Cartoon Images तयार होत आहेत...\n"+
+      "Scene: "+(i+1)+" / "+scenes.length+"\n"+
+      "Images तयार: "+success+" / 8"
+    );
+
+    const ok=await loadImage(scenes[i],uis[i],i);
+
+    if(ok) success++;
+    else failed++;
+
+    setProgress(15+Math.round(((i+1)/scenes.length)*85));
+  }
+
+  if(failed===0){
+    setStatus("🎉 सर्व 8 Cartoon Images तयार झाल्या!","success");
+  }else{
+    setStatus(
+      "Generation पूर्ण झाली.\n"+
+      "Images: "+success+" / 8\n"+
+      "Failed: "+failed,
+      "error"
+    );
+  }
+}
+
+async function createStory() {
+  const story=storyInput.value.trim();
+
+  if(!story){
+    setStatus("कृपया Story Idea लिही.","error");
+    storyInput.focus();
+    return;
+  }
+
+  const characterMode=modeInput.value;
+  let savedCharacterLock="";
+
+  if(characterMode==="reuse"){
+    const pack=getSelectedPack();
+
+    if(!pack){
+      setStatus("Reuse My Characters साठी आधी Character Pack निवड.","error");
+      return;
+    }
+
+    savedCharacterLock=pack.characterLock;
+  }
+
+  clearOldImages();
+  $("storyCard").classList.add("hidden");
+  scenesOutput.innerHTML="";
+  setProgress(0);
+
+  createBtn.disabled=true;
+  createBtn.textContent="⏳ Creating...";
+
+  try{
+    setStatus("🤖 AI पूर्ण Story Script तयार करत आहे...");
+
+    const data=await postJSON({
+      action:"generate-story",
+      story,
+      language:languageInput.value,
+      duration:"1 Minute",
+      style:styleInput.value,
+      aspectRatio:getRatio(),
+      characterMode,
+      savedCharacterLock
+    });
+
+    if(!Array.isArray(data.scenes)||data.scenes.length!==8){
+      throw new Error("AI ने पूर्ण 8 Scenes तयार केले नाहीत.");
+    }
+
+    if(!data.characterLock){
+      throw new Error("Character Lock तयार झाला नाही.");
+    }
+
+    currentScenes=data.scenes;
+    currentCharacterLock=data.characterLock;
+
+    renderScript(data);
+    const uis=renderScenes(data.scenes);
+
+    $("packName").value="My Cartoon Characters";
+    $("saveStatus").textContent="";
+
+    setProgress(15);
+    setStatus("✅ Script तयार झाली. आता Images तयार होत आहेत.");
+
+    await generateAllImages(data.scenes,uis);
+
+  }catch(error){
+    console.error("CREATE STORY ERROR",error);
+    setStatus("❌ "+error.message,"error");
+  }finally{
+    createBtn.disabled=false;
+    createBtn.textContent="🎬 CREATE STORY";
+  }
+}
+
+function saveCharacterPack() {
+  if(!currentCharacterLock){
+    $("saveStatus").textContent="आधी एक Story Generate कर.";
+    return;
+  }
+
+  const name=$("packName").value.trim();
+
+  if(!name){
+    $("saveStatus").textContent="Character Pack चे नाव लिही.";
+    return;
+  }
+
+  const packs=getPacks();
+  const id=String(Date.now());
+
+  packs.push({
+    id,
+    name,
+    characterLock:currentCharacterLock,
+    createdAt:new Date().toISOString()
+  });
+
+  try{
+    localStorage.setItem(
+      "apnaCharacterPacks",
+      JSON.stringify(packs.slice(-20))
+    );
+    renderCharacterPacks();
+    $("savedCharacters").value=id;
+    $("saveStatus").textContent="✅ Character Pack या Browser मध्ये Save झाला.";
+  }catch(error){
+    $("saveStatus").textContent="Save करता आले नाही. Browser Storage तपासा.";
+  }
+}
+
 createBtn.addEventListener("click",createStory);
-console.log("Apna Creator AI ready");
+$("savePack").addEventListener("click",saveCharacterPack);
+
+console.log("Apna Creator AI Phase 1 ready.");
 </script>
 </body>
 </html>
