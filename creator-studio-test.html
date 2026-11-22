@@ -173,7 +173,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
  <section class="card">
   <h2>Current MVP Limits</h2>
   <p class="small">
-   This build uses the procedural Rabbit and the rigged Rukh3D Elephant GLB with its included animation clips. Elephant actions are selected from each scene's Visual description (for example, idle, walk, run and trumpet). During recording, mouth movement follows audio activity measured from the actual Stereo Mix input; it is approximate, not phoneme-synced. Export is WEBM, not MP4. Each scene includes a speaker label and Rabbit/Elephant use different voice pitch settings. Scene images and arbitrary new 3D models are not generated yet.
+   This build uses the procedural Rabbit and the rigged Rukh3D Elephant GLB with its included animation clips. Elephant actions are selected from each scene's Visual description (idle, walk, run, eating, sleep, wakeup, pick, drop, attack and trumpet where the story calls for them). During recording, mouth movement follows audio activity measured from the actual Stereo Mix input; it is approximate, not phoneme-synced. Export is WEBM, not MP4. Each scene includes a speaker label and Rabbit/Elephant use different voice pitch settings. Scene images and arbitrary new 3D models are not generated yet.
     <br><br><b>Elephant model credit:</b> “Elephant” by Rukh3D, licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">Creative Commons Attribution 4.0</a>. Source: <a href="https://sketchfab.com/3d-models/elephant-4ae161372d6a4219a87340339d1ffe03" target="_blank" rel="noopener">Sketchfab</a>.
   </p>
  </section>
@@ -648,17 +648,35 @@ let elephantJawBone = null;
 let elephantJawBaseQuaternion = null;
 const elephantModelStatus = $("elephantModelStatus");
 
+function normalizedClipName(value) {
+ return String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+
 function findElephantClip(actionName) {
  const name = String(actionName || "idle").toLowerCase();
+ const exact = suffix => {
+  const wanted = normalizedClipName(suffix);
+  return elephantClips.find(c => normalizedClipName(c.name).endsWith(wanted));
+ };
  const matches = pattern => elephantClips.find(c => pattern.test(c.name.toLowerCase()));
- if (name === "walk") return matches(/walk/);
- if (name === "run") return matches(/run(?!.*attack)/);
- if (name === "jump") return matches(/drop2?/);
- if (name === "help") return matches(/pick[_ ]?stand|pick/);
- if (name === "sit") return matches(/sit|rest/);
- if (name === "trumpet") return matches(/idle trumpet|trumped|trumpet/);
- // Avoid choosing the special trumpet idle when a neutral idle is requested.
- return matches(/(^|[| _])idle$/) || matches(/end idle/i) || matches(/idle(?!.*trumpet|.*trumped)/);
+
+ // Prefer the exact source clips. This prevents "run attack" or "idle Trumped"
+ // from being selected when the normal run or trumpet clip is requested.
+ if (name === "walk") return exact("TRS|walk") || matches(/walk/);
+ if (name === "run") return exact("TRS|run") || matches(/^TRS\|run$/i) || matches(/run(?!.*attack)/);
+ if (name === "eating") return exact("TRS|eating") || matches(/eating|eat/);
+ if (name === "sleep") return exact("TRS|sleep") || matches(/sleep/);
+ if (name === "wakeup") return exact("TRS|wakeup") || matches(/wake.?up/);
+ if (name === "attack") return exact("TRS|attack") || matches(/attack/);
+ if (name === "fight") return exact("TRS|fight") || matches(/^TRS\|fight$/i) || matches(/fight idle/);
+ if (name === "drop") return exact("TRS|drop") || matches(/drop2?/);
+ if (name === "jump") return exact("TRS|drop2") || exact("TRS|drop") || matches(/drop2?/);
+ if (name === "pick") return exact("TRS|pick") || matches(/pick/);
+ if (name === "help") return exact("TRS|pick_STAND") || exact("TRS|pick") || matches(/pick[_ ]?stand|pick/);
+ if (name === "sit") return exact("TRS|rest") || matches(/sit|rest/);
+ if (name === "trumpet") return exact("TRS|idle trumpet") || exact("TRS|idle Trumped") || matches(/trumpet|trumped/);
+ // Neutral idle must never select the special trumpet clip.
+ return exact("TRS|idle") || matches(/(^|[| _])idle$/) || exact("TRS|end idle") || matches(/idle(?!.*trumpet|.*trumped)/);
 }
 
 function playElephantAnimation(actionName = "idle") {
@@ -672,11 +690,12 @@ function playElephantAnimation(actionName = "idle") {
  next.setEffectiveTimeScale(1);
  next.setEffectiveWeight(1);
  next.setLoop(THREE.LoopRepeat, Infinity);
- if (activeElephantAction) {
-  activeElephantAction.crossFadeTo(next, 0.22, false);
- }
+ if (activeElephantAction) activeElephantAction.crossFadeTo(next, 0.22, false);
  next.play();
  activeElephantAction = next;
+ if (elephantModelStatus && elephantClips.length) {
+  elephantModelStatus.textContent = "✅ Real Rukh3D Elephant loaded · " + elephantClips.length + " animations · playing: " + clip.name;
+ }
 }
 
 function loadRiggedElephant() {
@@ -759,10 +778,17 @@ function inferAction(v, i) {
  const t = String(v || "").toLowerCase();
 
  if (/trumpet|trumpeting|trunk up|raises? (?:its )?trunk|roar|चिंघाड|चिंघाडतो|सोंड उचल/.test(t)) return "trumpet";
+ if (/sleep|sleeping|sleeps|resting|सोता|सोती|नींद|झोप/.test(t)) return "sleep";
+ if (/wake(?:s|d)? up|wakes|wakeup|awakes?|जाग|उठता|उठती/.test(t)) return "wakeup";
+ if (/eat|eating|eats|chew|खा रहा|खा रही|खाता|खाती|खाने/.test(t)) return "eating";
+ if (/attack|attacks|fighting|fight|chase|हमला|लड़ता|लड़ती|पीछा करता/.test(t)) return "attack";
+ if (/drop|drops|dropped|falls?|falling|गिराता|गिरती|गिरता|छोड़ देता/.test(t)) return "drop";
+ if (/lift|lifts|pick(?:s)? up|picks|उठाता|उठाती|उचल|चीज उठ/.test(t)) return "pick";
  if (/jump|hop|leap|कूद|उछल/.test(t)) return "jump";
  if (/run|running|rush|दौड़|भाग/.test(t)) return "run";
  if (/walk|walking|approach|moves toward|चल|आता है|आती है/.test(t)) return "walk";
- if (/help|rescue|carry|मदद|बचाता|सहायता/.test(t)) return "help";
+ if (/nod|nods|nodding|shakes? (?:its )?head|सिर हिल|सिर झुक|सिर हिलाता/.test(t)) return "nod";
+ if (/help|rescue|carry|मदद|बचाता|सहायता|touch(?:es)? gently|gently touches/.test(t)) return "help";
  if (/hug|friend|together|smile|दोस्त|गले|मुस्कुर/.test(t)) return "friends";
  if (/point|show|दिख|इशारा/.test(t)) return "point";
  if (/sit|sits|बैठ/.test(t)) return "sit";
@@ -825,6 +851,15 @@ function updatePose(dt) {
  if (currentAction === "trumpet") {
   elephant.position.x = 1.45;
   rabbitHead.rotation.y = .18;
+ }
+
+ if (currentAction === "nod") {
+  elephantHead.rotation.x = Math.sin(t * 2.4) * .14;
+  rabbitHead.rotation.y = .12;
+ }
+
+ if (currentAction === "pick" || currentAction === "drop") {
+  rabbitHead.rotation.y = .16;
  }
 
  if (currentAction === "talk") {
