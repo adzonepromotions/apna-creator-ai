@@ -1,0 +1,332 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Apna Creator AI - Story Animation Test</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#eef2f8;color:#172033;font-family:Arial,sans-serif}.wrap{max-width:1100px;margin:auto;padding:16px}.hero{background:#172554;color:#fff;padding:22px;border-radius:15px;margin-bottom:16px}.hero h1{margin:0 0 7px}.hero p{margin:0;color:#dbeafe;line-height:1.5}.card{background:#fff;padding:18px;border-radius:13px;margin-bottom:15px;box-shadow:0 4px 15px #14213d12}h2{font-size:19px;margin:0 0 13px}label{display:block;font-size:13px;font-weight:bold;margin:0 0 7px}textarea,select{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:8px;font:14px Arial,sans-serif}textarea{min-height:180px;resize:vertical;line-height:1.5}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:13px}.controls{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}button{padding:12px 16px;border:0;border-radius:8px;background:#2563eb;color:#fff;font-weight:bold;cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}.green{background:#15803d}.dark{background:#475569}.red{background:#b91c1c}#stage{height:490px;width:100%;overflow:hidden;border-radius:12px;background:#b7def5}#stage canvas{display:block;width:100%;height:100%}#status{margin-top:12px;padding:12px;border-radius:8px;background:#eff6ff;white-space:pre-wrap;font-size:14px;line-height:1.5}.scene{padding:12px;border:1px solid #e2e8f0;border-radius:9px;margin-top:9px}.scene.active{border-color:#2563eb;background:#eff6ff}.scene h3{margin:0 0 8px;color:#1d4ed8;font-size:15px}.meta{font-size:12px;color:#64748b;font-weight:bold;margin:8px 0 4px}.scene p{font-size:14px;line-height:1.5;margin:0;white-space:pre-wrap}.small{font-size:12px;color:#64748b;line-height:1.5}.progress{height:8px;border-radius:20px;background:#e2e8f0;overflow:hidden;margin-top:13px}.progress div{height:100%;width:0;background:#2563eb}.hidden{display:none!important}@media(max-width:650px){.wrap{padding:9px}.grid{grid-template-columns:1fr}#stage{height:360px}button{flex:1}}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js"}}</script>
+</head>
+<body>
+<div class="wrap">
+ <div class="hero"><h1>🎬 Apna Creator AI – Story Animation Test</h1><p>Paste your AI-generated 8-scene script. The prototype will parse the scenes, show a 3D rabbit and elephant, and play the scene narration.</p></div>
+ <div class="card">
+  <h2>1. Import Your AI Story</h2>
+  <label for="scriptInput">Paste the complete script copied from Notepad</label>
+  <textarea id="scriptInput" placeholder="Paste CHARACTER_LOCK and SCENE 1 to SCENE 8 here..."></textarea>
+  <div class="grid">
+   <div><label for="language">Narration Language</label><select id="language"><option value="Hindi">Hindi</option><option value="English">English</option></select></div>
+   <div><label for="voiceSelect">Browser Voice</label><select id="voiceSelect"><option value="">Auto Select</option></select></div>
+  </div>
+  <div class="controls"><button id="loadBtn">Load 8 Scenes</button><button id="exampleBtn" class="dark">Load Rabbit–Elephant Example</button></div>
+  <p class="small">This prototype currently has simple procedural 3D rabbit and elephant characters. It does not yet create arbitrary 3D character models from every character description.</p>
+  <div id="status">Ready. Paste your saved AI script and click Load 8 Scenes.</div>
+ </div>
+ <div class="card">
+  <h2>2. 3D Animation Preview</h2>
+  <div id="stage"></div>
+  <div class="controls">
+   <button id="playBtn" class="green" disabled>▶ Play Story</button>
+   <button id="pauseBtn" class="dark" disabled>⏸ Pause</button>
+   <button id="stopBtn" class="red" disabled>⏹ Stop</button>
+   <button id="nextBtn" disabled>Next Scene →</button>
+  </div>
+  <div class="progress"><div id="bar"></div></div>
+  <p class="small">Animation actions are inferred from scene Visual descriptions (walk, run, jump, help, hug, talk). Speech uses your browser's Hindi or English voice.</p>
+ </div>
+ <div class="card">
+  <h2>3. Character Design</h2>
+  <div id="characterLock" class="small">Character descriptions will appear here after loading the script.</div>
+ </div>
+ <div class="card">
+  <h2>4. Scene Timeline</h2>
+  <div id="sceneList" class="small">No scenes loaded yet.</div>
+ </div>
+</div>
+<script type="module">
+import * as THREE from "three";
+
+// ----- Basic Three.js scene -----
+const stage=document.getElementById("stage");
+const statusBox=document.getElementById("status");
+const bar=document.getElementById("bar");
+const sceneList=document.getElementById("sceneList");
+const characterLockBox=document.getElementById("characterLock");
+const scriptInput=document.getElementById("scriptInput");
+const languageSelect=document.getElementById("language");
+const voiceSelect=document.getElementById("voiceSelect");
+const loadBtn=document.getElementById("loadBtn");
+const playBtn=document.getElementById("playBtn");
+const pauseBtn=document.getElementById("pauseBtn");
+const stopBtn=document.getElementById("stopBtn");
+const nextBtn=document.getElementById("nextBtn");
+const exampleBtn=document.getElementById("exampleBtn");
+
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:"low-power"});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));
+renderer.setSize(stage.clientWidth,stage.clientHeight);
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.shadowMap.enabled=true;
+stage.appendChild(renderer.domElement);
+
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0xb7def5);
+scene.fog=new THREE.Fog(0xb7def5,18,42);
+const camera=new THREE.PerspectiveCamera(38,stage.clientWidth/stage.clientHeight,.1,100);
+camera.position.set(0,3.6,10.8);
+camera.lookAt(0,1.35,0);
+scene.add(new THREE.HemisphereLight(0xffffff,0x64744d,2));
+const sunlight=new THREE.DirectionalLight(0xffffff,2.2);
+sunlight.position.set(-4,9,6);
+sunlight.castShadow=true;
+scene.add(sunlight);
+
+const mat=(color,roughness=.82)=>new THREE.MeshStandardMaterial({color,roughness});
+const mats={ground:mat(0x7eae64),trunk:mat(0x76502f),leaf:mat(0x38864c),leaf2:mat(0x4a9955),rabbit:mat(0xf2e5d2),rabbitShade:mat(0xd9c8b3),pink:mat(0xe994a9),black:mat(0x201915),white:mat(0xffffff),nose:mat(0xb96c70),elephant:mat(0x8999ad),elephantLight:mat(0xb5c0ce),innerEar:mat(0xc78d9d),tusk:mat(0xffe8b3)};
+function sphere(parent,name,pos,scale,material){const m=new THREE.Mesh(new THREE.SphereGeometry(1,20,16),material);m.name=name;m.position.set(...pos);m.scale.set(...scale);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;}
+function cylinder(parent,name,pos,r1,r2,h,material){const m=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,14),material);m.name=name;m.position.set(...pos);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;}
+function tube(parent,name,points,radius,material){const c=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));const m=new THREE.Mesh(new THREE.TubeGeometry(c,18,radius,8,false),material);m.name=name;m.castShadow=true;parent.add(m);return m;}
+
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(60,60),mats.ground);
+ground.rotation.x=-Math.PI/2;ground.position.y=-.04;ground.receiveShadow=true;scene.add(ground);
+function addTree(x,z,h){const g=new THREE.Group();g.position.set(x,0,z);scene.add(g);cylinder(g,"tree trunk",[0,h/2,0],.13,.18,h,mats.trunk);sphere(g,"tree crown",[0,h+.25,0],[.78,1,.75],mats.leaf);sphere(g,"tree leaves",[.37,h+.07,.03],[.5,.62,.5],mats.leaf2);}
+addTree(-4,-2,2.1);addTree(4,-3,2.5);addTree(-4,-6,2.3);addTree(4.3,-7,2.2);
+
+// ----- Rabbit character -----
+const rabbit=new THREE.Group();rabbit.position.set(-1.65,0,0);scene.add(rabbit);
+const rabbitBody=new THREE.Group();rabbit.add(rabbitBody);
+sphere(rabbitBody,"rabbit body",[0,.91,0],[.43,.48,.62],mats.rabbit);
+sphere(rabbitBody,"rabbit belly",[0,.78,.43],[.30,.32,.20],mats.white);
+const rabbitHead=new THREE.Group();rabbitHead.position.set(0,1.45,.48);rabbit.add(rabbitHead);
+sphere(rabbitHead,"rabbit head",[0,0,0],[.39,.37,.35],mats.rabbit);
+const rabbitEars=new THREE.Group();rabbitEars.position.set(0,.25,-.02);rabbitHead.add(rabbitEars);
+for(const side of [-1,1]){const ear=sphere(rabbitEars,"ear",[side*.16,.32,0],[.105,.39,.09],mats.rabbit);ear.rotation.z=side*-.12;sphere(rabbitEars,"inner ear",[side*.16,.32,.075],[.063,.30,.025],mats.pink);sphere(rabbitHead,"eye",[side*.14,.06,.31],[.055,.07,.035],mats.black);}
+sphere(rabbitHead,"muzzle",[0,-.13,.31],[.19,.12,.11],mats.white);
+sphere(rabbitHead,"nose",[0,-.09,.42],[.06,.045,.035],mats.nose);
+const rabbitMouth=sphere(rabbitHead,"mouth",[0,-.23,.40],[.07,.018,.018],mats.black);
+sphere(rabbitBody,"tail",[0,.88,-.62],[.16,.16,.16],mats.white);
+const rabbitLegs=[];
+for(const x of [-.25,.25]){for(const z of [-.36,.38]){const hip=new THREE.Group();hip.position.set(x,.72,z);rabbit.add(hip);cylinder(hip,"rabbit leg",[0,-.20,0],.095,.11,.40,mats.rabbitShade);sphere(hip,"rabbit foot",[0,-.40,.07],[.13,.08,.19],mats.rabbit);rabbitLegs.push(hip);}}
+
+// ----- Elephant character -----
+const elephant=new THREE.Group();elephant.position.set(1.75,0,0);scene.add(elephant);
+const elephantBody=new THREE.Group();elephant.add(elephantBody);
+sphere(elephantBody,"elephant body",[0,1.02,0],[.62,.68,.78],mats.elephant);
+sphere(elephantBody,"elephant belly",[0,.82,.48],[.40,.40,.17],mats.elephantLight);
+const elephantHead=new THREE.Group();elephantHead.position.set(0,1.55,.58);elephant.add(elephantHead);
+sphere(elephantHead,"elephant head",[0,0,0],[.49,.48,.43],mats.elephant);
+for(const side of [-1,1]){sphere(elephantHead,"ear",[side*.48,.05,-.08],[.43,.40,.13],mats.elephantLight);sphere(elephantHead,"inner ear",[side*.49,.05,.035],[.32,.30,.035],mats.innerEar);sphere(elephantHead,"eye",[side*.20,.10,.39],[.06,.075,.04],mats.black);const tusk=sphere(elephantHead,"tusk",[side*.16,-.30,.40],[.075,.19,.08],mats.tusk);tusk.rotation.z=side*.20;}
+const trunk=new THREE.Group();trunk.position.set(0,-.20,.38);elephantHead.add(trunk);
+tube(trunk,"elephant trunk",[[0,.02,0],[0,-.20,.12],[0,-.44,.16],[0,-.60,.08],[0,-.58,-.02]],.105,mats.elephant);
+sphere(trunk,"trunk tip",[0,-.57,-.015],[.11,.08,.11],mats.elephantLight);
+const elephantMouth=sphere(elephantHead,"mouth",[0,-.40,.40],[.12,.025,.025],mats.black);
+const elephantLegs=[];
+for(const x of [-.37,.37]){for(const z of [-.48,.48]){const hip=new THREE.Group();hip.position.set(x,.68,z);elephant.add(hip);cylinder(hip,"elephant leg",[0,-.22,0],.16,.18,.44,mats.elephant);sphere(hip,"elephant foot",[0,-.44,.04],[.18,.08,.19],mats.elephantLight);elephantLegs.push(hip);}}
+const elephantTail=new THREE.Group();elephantTail.position.set(0,1.30,-.72);elephant.add(elephantTail);tube(elephantTail,"tail",[[0,0,0],[0,-.12,-.18],[0,-.32,-.28]],.035,mats.elephant);sphere(elephantTail,"tail tip",[0,-.32,-.28],[.07,.10,.07],mats.elephant);
+
+// ----- Script parser -----
+let scenes=[];
+let characterLock="";
+let currentIndex=-1;
+let currentAction="idle";
+let playing=false;
+let paused=false;
+let waiting=false;
+let runToken=0;
+let nextTimer=null;
+let availableVoices=[];
+let rabbitTalking=false;
+let elephantTalking=false;
+const clock=new THREE.Clock();
+let elapsed=0;
+
+function showStatus(message,type=""){statusBox.textContent=message;statusBox.style.background=type==="error"?"#fee2e2":type==="success"?"#dcfce7":"#eff6ff";statusBox.style.color=type==="error"?"#991b1b":type==="success"?"#166534":"#172033";}
+function parseScript(raw){
+ const text=String(raw||"").replace(/\r/g,"").trim();
+ const lockMatch=text.match(/CHARACTER[ _]LOCK\s*:\s*([\s\S]*?)(?=\n\s*SCENE\s*1\b)/i);
+ const lock=lockMatch?lockMatch[1].trim():"Character details were not found in the pasted script.";
+ const regex=/SCENE\s*(\d+)\s*:?\s*\n([\s\S]*?)(?=\n\s*SCENE\s*\d+\b|$)/gi;
+ const found=[];let m;
+ while((m=regex.exec(text))!==null){
+  const num=Number(m[1]);const body=m[2];
+  const vm=body.match(/Visual\s*:\s*([\s\S]*?)(?=\n\s*Voice\s*:|$)/i);
+  const voiceMatch=body.match(/Voice\s*:\s*([\s\S]*)/i);
+  const visual=vm?vm[1].trim():"";const voice=voiceMatch?voiceMatch[1].trim():"";
+  if(num>=1&&num<=8&&visual&&voice)found.push({number:num,visual,voice});
+ }
+ return {scenes:found.sort((a,b)=>a.number-b.number),lock};
+}
+function inferAction(visual,index){
+ const t=visual.toLowerCase();
+ if(/jump|jumps|jumping|leap|leaps|hop|hops|कूद|उछल/.test(t))return "jump";
+ if(/run|runs|running|rush|chase|दौड़|भाग/.test(t))return "run";
+ if(/walk|walks|walking|approach|approaches|moves toward|come closer|चल|आता है|आती है/.test(t))return "walk";
+ if(/help|helps|rescue|rescues|lift|carr(y|ies)|बचाता|मदद|सहायता/.test(t))return "help";
+ if(/hug|hugs|embrace|friend|friends|together|smile|smiles|गले|दोस्त|मुस्कुर/.test(t))return "friends";
+ if(/talk|talks|speaks|speaking|say|says|dialogue|बात|कहता|कहती/.test(t))return "talk";
+ return ["idle","walk","talk","jump","help","friends","walk","friends"][index]||"idle";
+}
+function renderScenes(){
+ sceneList.innerHTML="";
+ scenes.forEach((item,i)=>{
+  const box=document.createElement("div");box.className="scene";box.id="scene-card-"+i;
+  const h=document.createElement("h3");h.textContent="Scene "+item.number;box.appendChild(h);
+  const v=document.createElement("div");v.className="meta";v.textContent="VISUAL ACTION";box.appendChild(v);
+  const vp=document.createElement("p");vp.textContent=item.visual;box.appendChild(vp);
+  const a=document.createElement("div");a.className="meta";a.textContent="VOICE / NARRATION";box.appendChild(a);
+  const ap=document.createElement("p");ap.textContent=item.voice;box.appendChild(ap);
+  sceneList.appendChild(box);
+ });
+}
+function resetPoses(){
+ rabbit.position.set(-1.65,0,0);elephant.position.set(1.75,0,0);
+ rabbitHead.rotation.set(0,0,0);rabbitEars.rotation.set(0,0,0);rabbitMouth.scale.y=.018;
+ elephantHead.rotation.set(0,0,0);trunk.rotation.set(0,0,0);elephantMouth.scale.y=.025;elephantTail.rotation.set(0,0,0);
+ rabbitLegs.forEach(l=>l.rotation.set(0,0,0));elephantLegs.forEach(l=>l.rotation.set(0,0,0));
+}
+function selectScene(index){
+ currentIndex=index;
+ scenes.forEach((s,i)=>document.getElementById("scene-card-"+i)?.classList.toggle("active",i===index));
+ bar.style.width=((index+1)/scenes.length*100)+"%";
+}
+function updateCharacters(action,time){
+ resetSceneTransforms();
+ const walkSpeed=action==="run"?13:7;
+ if(action==="walk"||action==="run"){
+  rabbitLegs.forEach((l,i)=>l.rotation.x=Math.sin(time*walkSpeed+i*Math.PI)*.48);
+  elephantLegs.forEach((l,i)=>l.rotation.x=Math.sin(time*(walkSpeed*.75)+i*Math.PI)*.28);
+  rabbit.position.x=-1.65+Math.sin(time*1.4)*.38;
+  elephant.position.x=1.75-Math.sin(time*1.4)*.25;
+ }
+ if(action==="jump"){
+  rabbit.position.y=Math.abs(Math.sin(time*4.5))*.65;
+  rabbitLegs.forEach(l=>l.rotation.x=-.35);
+  elephantHead.rotation.x=Math.sin(time*2)*.08;
+ }
+ if(action==="help"){
+  rabbit.position.x=-1.25;
+  elephant.position.x=1.1;
+  trunk.rotation.x=-.48+Math.sin(time*2)*.12;
+  elephantHead.rotation.x=-.08;
+ }
+ if(action==="friends"){
+  rabbit.position.x=-.85;elephant.position.x=.85;
+  rabbitHead.rotation.y=.12;elephantHead.rotation.y=-.12;
+  trunk.rotation.x=-.25+Math.sin(time*2)*.06;
+ }
+ if(action==="talk"){
+  rabbitHead.rotation.x=Math.sin(time*2.8)*.06;
+  elephantHead.rotation.x=Math.sin(time*2.2)*.05;
+  trunk.rotation.x=Math.sin(time*2)*.12;
+ }
+ rabbit.position.y+=Math.sin(time*2)*.025;
+ elephant.position.y+=Math.sin(time*1.6+1)*.02;
+ rabbitEars.rotation.z=Math.sin(time*2.5)*.10;
+ elephantTail.rotation.x=Math.sin(time*2)*.25;
+ if(rabbitTalking)rabbitMouth.scale.y=.018+Math.abs(Math.sin(time*12))*.075;
+ if(elephantTalking)elephantMouth.scale.y=.025+Math.abs(Math.sin(time*10))*.06;
+}
+function resetSceneTransforms(){
+ rabbit.position.x=-1.65;elephant.position.x=1.75;
+ rabbit.position.y=0;elephant.position.y=0;
+ rabbitLegs.forEach(l=>l.rotation.x=0);elephantLegs.forEach(l=>l.rotation.x=0);
+ rabbitHead.rotation.set(0,0,0);elephantHead.rotation.set(0,0,0);trunk.rotation.set(0,0,0);
+}
+function getVoice(){const name=voiceSelect.value;return availableVoices.find(v=>v.name===name)||null;}
+function refreshVoices(){
+ availableVoices=speechSynthesis.getVoices();const prefix=languageSelect.value==="Hindi"?"hi":"en";const matches=availableVoices.filter(v=>v.lang.toLowerCase().startsWith(prefix));const old=voiceSelect.value;voiceSelect.innerHTML="";
+ const auto=document.createElement("option");auto.value="";auto.textContent="Auto Select";voiceSelect.appendChild(auto);
+ matches.forEach(v=>{const o=document.createElement("option");o.value=v.name;o.textContent=v.name+" ("+v.lang+")";voiceSelect.appendChild(o);});
+ if(matches.some(v=>v.name===old))voiceSelect.value=old;
+}
+speechSynthesis.addEventListener("voiceschanged",refreshVoices);refreshVoices();
+function stopPlaybackOnly(){runToken++;clearTimeout(nextTimer);speechSynthesis.cancel();playing=false;paused=false;waiting=false;rabbitTalking=false;elephantTalking=false;rabbitMouth.scale.y=.018;elephantMouth.scale.y=.025;currentIndex=-1;currentAction="idle";elapsed=0;bar.style.width="0%";resetPoses();playBtn.disabled=scenes.length===0;pauseBtn.disabled=true;stopBtn.disabled=true;nextBtn.disabled=scenes.length===0;}
+function finishPlayback(){playing=false;paused=false;waiting=false;rabbitTalking=false;elephantTalking=false;rabbitMouth.scale.y=.018;elephantMouth.scale.y=.025;setStatusEnd();playBtn.disabled=false;pauseBtn.disabled=true;stopBtn.disabled=true;nextBtn.disabled=false;}
+function setStatusEnd(){showStatus("✅ Story playback completed.","success");}
+function speakScene(index,token){
+ if(token!==runToken||!playing)return;
+ if(index>=scenes.length){finishPlayback();return;}
+ const item=scenes[index];selectScene(index);elapsed=0;currentAction=inferAction(item.visual,index);
+ const words=item.voice;
+ const utterance=new SpeechSynthesisUtterance(words);
+ utterance.lang=languageSelect.value==="Hindi"?"hi-IN":"en-IN";
+ utterance.rate=.92;const voice=getVoice();if(voice)utterance.voice=voice;
+ rabbitTalking=true;elephantTalking=true;
+ showStatus("▶ Scene "+item.number+" / "+scenes.length+" — "+currentAction+"\n"+words.slice(0,260)+(words.length>260?"…":""));
+ utterance.onend=()=>{if(token!==runToken||!playing)return;rabbitTalking=false;elephantTalking=false;waiting=true;nextTimer=setTimeout(()=>{if(token===runToken&&playing){waiting=false;speakScene(index+1,token);}},700);};
+ utterance.onerror=e=>{if(token!==runToken)return;if(e.error==="canceled"||e.error==="interrupted")return;rabbitTalking=false;elephantTalking=false;showStatus("Voice error: "+e.error,"error");waiting=true;nextTimer=setTimeout(()=>{if(token===runToken&&playing){waiting=false;speakScene(index+1,token);}},900);};
+ speechSynthesis.speak(utterance);
+}
+function startPlayback(){
+ if(!scenes.length){showStatus("आधी AI script load कर.","error");return;}
+ if(paused){paused=false;playing=true;playBtn.disabled=true;pauseBtn.disabled=false;stopBtn.disabled=false;if(waiting){clearTimeout(nextTimer);waiting=false;speakScene(currentIndex+1,runToken);}else{speechSynthesis.resume();}return;}
+ if(playing)return;
+ if(currentIndex>=scenes.length-1){currentIndex=-1;resetPoses();}
+ const startIndex=currentIndex<0?0:currentIndex;
+ playing=true;paused=false;runToken++;playBtn.disabled=true;pauseBtn.disabled=false;stopBtn.disabled=false;nextBtn.disabled=true;speakScene(startIndex,runToken);
+}
+function pausePlayback(){if(!playing)return;playing=false;paused=true;speechSynthesis.pause();clearTimeout(nextTimer);waiting=false;playBtn.disabled=false;pauseBtn.disabled=true;showStatus("⏸ Playback paused.");}
+function nextScene(){if(!scenes.length)return;if(playing||paused){runToken++;speechSynthesis.cancel();clearTimeout(nextTimer);playing=false;paused=false;}const next=currentIndex+1;if(next>=scenes.length){selectScene(scenes.length-1);currentAction="friends";showStatus("✅ Last scene selected.");}else{const item=scenes[next];selectScene(next);currentAction=inferAction(item.visual,next);elapsed=0;showStatus("Scene "+item.number+" selected. Press Play Story to hear narration.");}playBtn.disabled=false;pauseBtn.disabled=true;stopBtn.disabled=false;nextBtn.disabled=false;}
+function loadScript(){const parsed=parseScript(scriptInput.value);if(parsed.scenes.length!==8||parsed.scenes.some((s,i)=>s.number!==i+1)){showStatus("❌ पूर्ण 8 scenes parse झाले नाहीत. Notepad मधून CHARACTER_LOCK आणि SCENE 1 ते SCENE 8 यांचा पूर्ण मजकूर paste कर.","error");return;}
+ stopPlaybackOnly();scenes=parsed.scenes;characterLock=parsed.lock;characterLockBox.textContent=characterLock;
+ renderScenes();playBtn.disabled=false;nextBtn.disabled=false;pauseBtn.disabled=true;stopBtn.disabled=true;
+ const longScenes=scenes.filter(s=>s.voice.length>450).map(s=>s.number);
+ let msg="✅ 8 scenes successfully loaded. Rabbit and Elephant animation is ready.";
+ if(longScenes.length)msg+="\nNote: Scene(s) "+longScenes.join(", ")+" contain long narration. The generator's scene-length prompt should be tightened in a later fix.";
+ showStatus(msg,"success");
+}
+loadBtn.addEventListener("click",loadScript);
+playBtn.addEventListener("click",startPlayback);
+pauseBtn.addEventListener("click",pausePlayback);
+stopBtn.addEventListener("click",()=>{stopPlaybackOnly();showStatus("⏹ Story stopped.");});
+nextBtn.addEventListener("click",nextScene);
+languageSelect.addEventListener("change",()=>{refreshVoices();if(playing||paused){stopPlaybackOnly();showStatus("Language changed. Press Play Story to start again.");}});
+exampleBtn.addEventListener("click",()=>{scriptInput.value=`CHARACTER_LOCK:
+Character 1: A small cream-white rabbit with long pink inner ears, round face, large expressive eyes and a tiny pink nose.
+Character 2: A gentle grey-blue elephant with large ears, a curved trunk and small ivory tusks.
+
+SCENE 1
+Visual: A little rabbit hops through a green jungle clearing and looks around, searching for the path home.
+Voice: एक छोटा खरगोश हरे-भरे जंगल में रास्ता भटक गया।
+
+SCENE 2
+Visual: The rabbit looks worried and sits beside a tree. A friendly elephant notices the rabbit.
+Voice: खरगोश उदास होकर पेड़ के नीचे बैठ गया। तभी एक दयालु हाथी वहाँ आया।
+
+SCENE 3
+Visual: The elephant gently walks toward the rabbit and lowers its head to greet him.
+Voice: हाथी ने प्यार से पूछा, छोटे दोस्त, तुम परेशान क्यों हो?
+
+SCENE 4
+Visual: The rabbit explains that he cannot find his mother. The elephant listens carefully.
+Voice: खरगोश ने बताया कि उसे अपनी माँ का घर नहीं मिल रहा है।
+
+SCENE 5
+Visual: The elephant uses its trunk to point toward a safe jungle path and invites the rabbit to follow.
+Voice: हाथी ने कहा, घबराओ मत। मैं तुम्हें घर पहुँचाने में मदद करूँगा।
+
+SCENE 6
+Visual: The rabbit and elephant walk together along a bright jungle path, crossing a small stream.
+Voice: दोनों दोस्त साथ-साथ रास्ते पर चल पड़े और छोटी नदी पार की।
+
+SCENE 7
+Visual: The rabbit spots his mother near a cosy burrow and happily runs toward her. The elephant smiles.
+Voice: थोड़ी दूर पर खरगोश को अपनी माँ दिखाई दी। वह खुशी से उसकी ओर दौड़ा।
+
+SCENE 8
+Visual: The rabbit thanks the elephant. The rabbit, his mother and the elephant smile together in the jungle.
+Voice: खरगोश ने हाथी को धन्यवाद दिया। उस दिन से दोनों अच्छे दोस्त बन गए।`;showStatus("Example script loaded in the text box. Click Load 8 Scenes.");});
+
+// ----- Continuous animation render loop -----
+function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.05);if(playing)elapsed+=dt;const t=elapsed;updateCharacters(currentAction,t);renderer.render(scene,camera);}
+function resize(){const w=stage.clientWidth,h=stage.clientHeight;if(!w||!h)return;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h);}
+window.addEventListener("resize",resize);
+renderScenesPlaceholder();
+function renderScenesPlaceholder(){sceneList.textContent="No scenes loaded yet.";}
+resetPoses();animate();
+</script>
+</body>
+</html>
