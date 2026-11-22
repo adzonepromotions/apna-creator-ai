@@ -1,290 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Apna Creator AI – Elephant Model Test</title>
-  <style>
-    :root { color-scheme: dark; --bg:#0b1220; --panel:#111c2e; --line:#26364e; --muted:#9fb0c8; --accent:#70d6c5; }
-    * { box-sizing: border-box; }
-    html, body { margin:0; width:100%; height:100%; overflow:hidden; background:var(--bg); color:#eef4ff; font-family:Inter,Segoe UI,Arial,sans-serif; }
-    #app { display:grid; grid-template-columns:minmax(0,1fr) 310px; width:100%; height:100%; }
-    #stage { position:relative; min-width:0; min-height:0; }
-    #viewer { display:block; width:100%; height:100%; outline:none; }
-    #panel { background:linear-gradient(180deg,#142137,#0f1929); border-left:1px solid var(--line); padding:22px 18px; overflow:auto; }
-    h1 { font-size:20px; margin:0 0 6px; }
-    .sub { font-size:12px; color:var(--muted); line-height:1.5; margin-bottom:20px; }
-    .status { padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:#0c1626; color:var(--muted); font-size:12px; line-height:1.5; margin-bottom:10px; overflow-wrap:anywhere; }
-    .status.error { display:none; color:#ffd0d0; border-color:#793b43; background:#2a151d; white-space:pre-wrap; }
-    label { display:block; font-size:12px; font-weight:600; color:#cfdbec; margin:15px 0 7px; }
-    select, button { width:100%; border:1px solid #344761; border-radius:9px; background:#0b1627; color:#eef4ff; padding:11px 12px; font-size:13px; }
-    button { cursor:pointer; font-weight:650; }
-    button:hover { background:#1a2b43; border-color:#5d789d; }
-    button.primary { color:#09201c; background:var(--accent); border-color:var(--accent); }
-    button:disabled, select:disabled { opacity:.55; cursor:not-allowed; }
-    .buttons { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px; }
-    .facts { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:18px 0; }
-    .fact { background:#0b1627; border:1px solid var(--line); border-radius:10px; padding:10px; }
-    .fact strong { display:block; font-size:16px; }
-    .fact span { display:block; color:var(--muted); font-size:10px; margin-top:4px; }
-    .hint { color:var(--muted); font-size:11px; line-height:1.55; margin-top:16px; }
-    .credit { padding-top:14px; margin-top:18px; border-top:1px solid var(--line); color:var(--muted); font-size:10px; line-height:1.6; }
-    a { color:var(--accent); }
-    #loading { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); background:#0e1a2b; border:1px solid var(--line); padding:14px 18px; border-radius:12px; font-size:13px; text-align:center; max-width:min(90%,430px); }
-    #badge { position:absolute; left:16px; top:16px; padding:8px 11px; border-radius:9px; background:#081321bf; border:1px solid #ffffff20; font-size:11px; color:#dce8f8; pointer-events:none; }
-    @media (max-width:760px) {
-      html,body { overflow:auto; }
-      #app { grid-template-columns:1fr; grid-template-rows:minmax(300px,58vh) auto; min-height:100%; height:auto; }
-      #stage { min-height:300px; }
-      #panel { border-left:0; border-top:1px solid var(--line); max-height:none; padding:14px; }
-      h1 { font-size:17px; }.sub { margin-bottom:10px; }.facts { margin:10px 0; }
-    }
-  </style>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Apna Creator AI – Elephant Test</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1220;--panel:#111c2e;--line:#26364e;--muted:#9fb0c8;--accent:#70d6c5}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:#eef4ff;font-family:Segoe UI,Arial,sans-serif}
+#app{display:grid;grid-template-columns:minmax(0,1fr) 310px;width:100%;height:100%}#stage{position:relative;min-width:0;min-height:0}#viewer{display:block;width:100%;height:100%;outline:0}
+#panel{background:linear-gradient(180deg,#142137,#0f1929);border-left:1px solid var(--line);padding:22px 18px;overflow:auto}h1{font-size:20px;margin:0 0 6px}.sub{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:20px}
+.status{padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#0c1626;color:var(--muted);font-size:12px;line-height:1.5;margin-bottom:10px;overflow-wrap:anywhere}.error{display:none;color:#ffd0d0;border-color:#793b43;background:#2a151d;white-space:pre-wrap}
+label{display:block;font-size:12px;font-weight:600;color:#cfdbec;margin:15px 0 7px}select,button{width:100%;border:1px solid #344761;border-radius:9px;background:#0b1627;color:#eef4ff;padding:11px 12px;font-size:13px}button{cursor:pointer;font-weight:650}button:hover{background:#1a2b43}button.primary{color:#09201c;background:var(--accent);border-color:var(--accent)}button:disabled,select:disabled{opacity:.55;cursor:not-allowed}.buttons{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:18px 0}.fact{background:#0b1627;border:1px solid var(--line);border-radius:10px;padding:10px}.fact strong{display:block;font-size:16px}.fact span{display:block;color:var(--muted);font-size:10px;margin-top:4px}.hint,.credit{color:var(--muted);font-size:11px;line-height:1.55;margin-top:14px}.credit{padding-top:14px;border-top:1px solid var(--line)}a{color:var(--accent)}
+#badge{position:absolute;left:16px;top:16px;padding:8px 11px;border-radius:9px;background:#081321d9;border:1px solid #ffffff20;font-size:11px;color:#dce8f8;pointer-events:none}#loading{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:#0e1a2b;border:1px solid var(--line);padding:14px 18px;border-radius:12px;font-size:13px;text-align:center;max-width:min(90%,430px)}
+@media(max-width:760px){html,body{overflow:auto}#app{grid-template-columns:1fr;grid-template-rows:minmax(300px,58vh) auto;min-height:100%;height:auto}#stage{min-height:300px}#panel{border-left:0;border-top:1px solid var(--line);max-height:none;padding:14px}h1{font-size:17px}.sub{margin-bottom:10px}.facts{margin:10px 0}}
+</style>
 </head>
 <body>
-  <div id="app">
-    <main id="stage">
-      <canvas id="viewer"></canvas>
-      <div id="badge">3D preview · Drag to rotate · Scroll to zoom · Build 3 (classic loader)</div>
-      <div id="loading">Starting 3D viewer…</div>
-    </main>
-    <aside id="panel">
-      <h1>Elephant Model Test</h1>
-      <div class="sub">Apna Creator AI · Rukh3D animated character · Test build 3</div>
-      <div class="status" id="status">Starting classic 3D engine…</div>
-      <div class="status error" id="error"></div>
-      <label for="animation">Choose animation</label>
-      <select id="animation" disabled><option>Waiting for model…</option></select>
-      <div class="buttons">
-        <button class="primary" id="play" disabled>▶ Play</button>
-        <button id="stop" disabled>■ Stop</button>
-      </div>
-      <div class="facts">
-        <div class="fact"><strong>28</strong><span>Animation clips in source model</span></div>
-        <div class="fact"><strong>1,958</strong><span>Triangles (source listing)</span></div>
-        <div class="fact"><strong>8.5 MB</strong><span>GLB file</span></div>
-        <div class="fact"><strong>1K</strong><span>Texture resolution</span></div>
-      </div>
-      <div class="hint">Try idle, walk, run, eating, sleep, wakeup and trumpet. This model has body animations but no dedicated speech lip-sync clip.</div>
-      <div class="credit">
-        Model: <b>Elephant</b> by <b>Rukh3D</b><br>
-        License: <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">Creative Commons Attribution 4.0</a><br>
-        Source: <a href="https://sketchfab.com/3d-models/elephant-4ae161372d6a4219a87340339d1ffe03" target="_blank" rel="noopener">Sketchfab model page</a><br>
-        Attribution is required when redistributing or publishing this model.
-      </div>
-    </aside>
-  </div>
-
-  <script>
-    // This handler is deliberately a normal script, so it can report failures
-    // even if a later external JavaScript library fails to load.
-    window.apnaShowError = function(message) {
-      const status = document.getElementById('status');
-      const error = document.getElementById('error');
-      const loading = document.getElementById('loading');
-      if (status) status.textContent = 'Elephant viewer could not start.';
-      if (error) { error.style.display = 'block'; error.textContent = message; }
-      if (loading) loading.style.display = 'none';
-    };
-    window.addEventListener('error', function(event) {
-      if (event && event.message) window.apnaShowError('JavaScript error: ' + event.message);
-    });
-    window.addEventListener('unhandledrejection', function(event) {
-      const reason = event && event.reason;
-      window.apnaShowError('Loading error: ' + (reason && reason.message ? reason.message : String(reason || 'Unknown error')));
-    });
-  </script>
-
-  <!-- Use the classic (non-module) Three.js build to avoid import-map/module startup issues. -->
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"
-          onerror="window.apnaShowError('Could not download the Three.js library from jsDelivr. Check your internet connection or allow cdn.jsdelivr.net in the browser.')"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"
-          onerror="window.apnaShowError('Three.js loaded, but OrbitControls could not load from jsDelivr.')"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"
-          onerror="window.apnaShowError('Three.js loaded, but GLTFLoader could not load from jsDelivr.')"></script>
-
-  <script>
-  (function() {
-    const statusEl = document.getElementById('status');
-    const loadingEl = document.getElementById('loading');
-    const errorEl = document.getElementById('error');
-    const canvas = document.getElementById('viewer');
-    const animationSelect = document.getElementById('animation');
-    const playButton = document.getElementById('play');
-    const stopButton = document.getElementById('stop');
-
-    function fail(message) {
-      window.apnaShowError(message);
-    }
-
-    try {
-      statusEl.textContent = 'Checking 3D engine…';
-      if (!window.THREE) throw new Error('Three.js did not load. The CDN may be blocked or unavailable.');
-      if (!THREE.OrbitControls) throw new Error('OrbitControls did not load.');
-      if (!THREE.GLTFLoader) throw new Error('GLTFLoader did not load.');
-
-      statusEl.textContent = 'Creating WebGL viewer…';
-      const scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x18263a);
-      scene.fog = new THREE.Fog(0x18263a, 18, 55);
-      const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 2000);
-      camera.position.set(5, 3.5, 7);
-
-      let renderer;
-      try {
-        renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: false, powerPreference: 'low-power' });
-      } catch (webglError) {
-        throw new Error('This browser could not create a WebGL graphics context. Try enabling hardware acceleration in Chrome settings, then restart Chrome. Details: ' + webglError.message);
-      }
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
-      renderer.outputEncoding = THREE.sRGBEncoding;
-      renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.1;
-
-      const controls = new THREE.OrbitControls(camera, renderer.domElement);
-      controls.enableDamping = true;
-      controls.dampingFactor = 0.06;
-      controls.minDistance = 1.2;
-      controls.maxDistance = 35;
-
-      scene.add(new THREE.HemisphereLight(0xffffff, 0x71809a, 1.7));
-      const keyLight = new THREE.DirectionalLight(0xffffff, 1.8);
-      keyLight.position.set(5, 10, 7);
-      scene.add(keyLight);
-      const fillLight = new THREE.DirectionalLight(0xb9d6ff, 0.6);
-      fillLight.position.set(-6, 4, -5);
-      scene.add(fillLight);
-
-      const floor = new THREE.Mesh(
-        new THREE.CircleGeometry(14, 48),
-        new THREE.MeshStandardMaterial({ color: 0x26364a, roughness: 0.95, metalness: 0 })
-      );
-      floor.rotation.x = -Math.PI / 2;
-      floor.position.y = -0.025;
-      scene.add(floor);
-      const grid = new THREE.GridHelper(28, 28, 0x53647a, 0x34465d);
-      grid.position.y = -0.015;
-      scene.add(grid);
-
-      const clock = new THREE.Clock();
-      let mixer = null;
-      let actions = new Map();
-      let activeAction = null;
-      let modelGroup = null;
-
-      function chooseAnimation(name) {
-        if (!mixer || !actions.has(name)) return;
-        const next = actions.get(name);
-        if (activeAction && activeAction !== next) activeAction.fadeOut(0.2);
-        next.reset();
-        next.enabled = true;
-        next.setEffectiveTimeScale(1);
-        next.setEffectiveWeight(1);
-        next.fadeIn(0.2).play();
-        activeAction = next;
-        statusEl.textContent = 'Loaded · Playing: ' + name.replace(/^TRS\|/i, '');
-      }
-
-      animationSelect.addEventListener('change', function() { chooseAnimation(animationSelect.value); });
-      playButton.addEventListener('click', function() {
-        if (!activeAction) chooseAnimation(animationSelect.value);
-        else { activeAction.paused = false; statusEl.textContent = 'Playing: ' + animationSelect.value.replace(/^TRS\|/i, ''); }
-      });
-      stopButton.addEventListener('click', function() {
-        if (activeAction) { activeAction.stop(); activeAction = null; }
-        statusEl.textContent = 'Animation stopped.';
-      });
-
-      statusEl.textContent = 'Loading elephant.glb from this GitHub folder…';
-      const modelUrl = new URL('./elephant.glb', window.location.href).href;
-      const loader = new THREE.GLTFLoader();
-      loader.load(modelUrl, function(gltf) {
-        try {
-          const model = gltf.scene;
-          model.traverse(function(obj) {
-            if (obj.isMesh) {
-              obj.frustumCulled = true;
-              if (obj.material) {
-                obj.material.roughness = Math.max(obj.material.roughness || 0.8, 0.65);
-                obj.material.metalness = 0;
-              }
-            }
-          });
-
-          const bounds = new THREE.Box3().setFromObject(model);
-          const size = bounds.getSize(new THREE.Vector3());
-          const center = bounds.getCenter(new THREE.Vector3());
-          const maxDim = Math.max(size.x, size.y, size.z) || 1;
-          const scale = 3.2 / maxDim;
-
-          model.position.set(-center.x, -bounds.min.y, -center.z);
-          modelGroup = new THREE.Group();
-          modelGroup.add(model);
-          modelGroup.scale.setScalar(scale);
-          scene.add(modelGroup);
-
-          const scaledSize = size.clone().multiplyScalar(scale);
-          controls.target.set(0, scaledSize.y * 0.48, 0);
-          const distance = Math.max(scaledSize.x, scaledSize.y, scaledSize.z) * 2.3;
-          camera.position.set(distance * 0.85, distance * 0.58, distance * 1.05);
-          camera.near = Math.max(0.01, distance / 100);
-          camera.far = Math.max(100, distance * 100);
-          camera.updateProjectionMatrix();
-          controls.update();
-
-          mixer = new THREE.AnimationMixer(model);
-          const clips = gltf.animations || [];
-          clips.forEach(function(clip) { actions.set(clip.name, mixer.clipAction(clip)); });
-          animationSelect.innerHTML = '';
-          clips.forEach(function(clip) {
-            const option = document.createElement('option');
-            option.value = clip.name;
-            option.textContent = clip.name.replace(/^TRS\|/i, '').replace(/_/g, ' ');
-            animationSelect.appendChild(option);
-          });
-          animationSelect.disabled = clips.length === 0;
-          playButton.disabled = clips.length === 0;
-          stopButton.disabled = clips.length === 0;
-          if (clips.length) {
-            const idle = clips.find(function(c) { return /idle/i.test(c.name); }) || clips[0];
-            animationSelect.value = idle.name;
-            chooseAnimation(idle.name);
-          }
-          statusEl.textContent = 'Loaded successfully · ' + clips.length + ' animations found.';
-          loadingEl.style.display = 'none';
-        } catch (modelError) {
-          fail('The GLB was downloaded, but the model could not be prepared: ' + modelError.message);
-        }
-      }, function(event) {
-        if (event && event.total) loadingEl.textContent = 'Loading Elephant… ' + Math.round(event.loaded / event.total * 100) + '%';
-      }, function(loadError) {
-        console.error('GLB load failed:', loadError);
-        fail('Could not load ' + modelUrl + '. Check that elephant.glb is in the same main repository folder as elephant-model-test.html, with exactly this lowercase filename. A 404 means the file is missing or not yet published.');
-      });
-
-      function resize() {
-        const width = canvas.clientWidth || 1;
-        const height = canvas.clientHeight || 1;
-        renderer.setSize(width, height, false);
-        camera.aspect = width / height;
-        camera.updateProjectionMatrix();
-      }
-      window.addEventListener('resize', resize);
-      resize();
-
-      function animate() {
-        requestAnimationFrame(animate);
-        const delta = Math.min(clock.getDelta(), 0.05);
-        if (mixer) mixer.update(delta);
-        controls.update();
-        renderer.render(scene, camera);
-      }
-      animate();
-    } catch (error) {
-      console.error('Elephant viewer startup failed:', error);
-      fail(error.message || String(error));
-    }
-  })();
-  </script>
-</body>
-</html>
+<div id="app">
+ <main id="stage"><canvas id="viewer"></canvas><div id="badge">3D preview · Drag to rotate · Scroll to zoom · Build 4</div><div id="loading">Starting 3D viewer…</div></main>
+ <aside id="panel">
+  <h1>Elephant Model Test</h1><div class="sub">Apna Creator AI · Rukh3D animated character · Build 4</div>
+  <div class="status" id="status">Starting…</div><div class="status error" id="error"></div>
+  <label for="animation">Choose animation</label><select id="animation" disabled><option value="">Select animation…</option></select>
+  <div class="buttons"><button class="primary" id="play" disabled>▶ Play</button><button id="stop" disabled>■ Stop</button></div>
+  <div class="facts"><div class="fact"><strong>28</strong><span>Animation clips</span></div><div class="fact"><strong>1,958</strong><span>Triangles</span></div><div class="fact"><strong>8.5 MB</strong><span>GLB file</span></div><div class="fact"><strong>1K</strong><span>Texture resolution</span></div></div>
+  <div class="hint">First confirm the character is visible. Then choose an animation and press Play. Some clips are short. The model does not include dedicated speech lip-sync.</div>
+  <div class="credit">Model: <b>Elephant</b> by <b>Rukh3D</b><br>License: <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">Creative Commons Attribution 4.0</a><br>Source: <a href="https://sketchfab.com/3d-models/elephant-4ae161372d6a4219a87340339d1ffe03" target="_blank" rel="noopener">Sketchfab model page</a><br>Attribution required when redistributing or publishing.</div>
+ </aside>
+</div>
+<script>
+window.apnaFail=function(msg){const s=document.getElementById('status'),e=document.getElementById('error'),l=document.getElementById('loading');if(s)s.textContent='Viewer error';if(e){e.style.display='block';e.textContent=msg}if(l)l.style.display='none'};
+window.addEventListener('error',e=>{if(e.message)window.apnaFail('JavaScript error: '+e.message)});
+window.addEventListener('unhandledrejection',e=>window.apnaFail('Loading error: '+(e.reason?.message||String(e.reason||'Unknown'))));
+</script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" onerror="window.apnaFail('Three.js library could not load from jsDelivr. Check internet access.')"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" onerror="window.apnaFail('OrbitControls could not load.')"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js" onerror="window.apnaFail('GLTFLoader could not load.')"></script>
+<script>
+(function(){
+ const $=id=>document.getElementById(id),canvas=$('viewer'),status=$('status'),loading=$('loading'),select=$('animation'),play=$('play'),stop=$('stop');
+ try{
+  if(!window.THREE)throw Error('Three.js did not load.');if(!THREE.OrbitControls)throw Error('OrbitControls did not load.');if(!THREE.GLTFLoader)throw Error('GLTFLoader did not load.');
+  const scene=new THREE.Scene();scene.background=new THREE.Color(0x18263a);
+  const camera=new THREE.PerspectiveCamera(38,1,0.01,1000);
+  const renderer=new THREE.WebGLRenderer({canvas,antialias:false,powerPreference:'low-power'});renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.25));renderer.outputEncoding=THREE.sRGBEncoding;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;
+  scene.add(new THREE.HemisphereLight(0xffffff,0x74839b,2));const key=new THREE.DirectionalLight(0xffffff,2.2);key.position.set(5,9,7);scene.add(key);const fill=new THREE.DirectionalLight(0xc9dcff,0.8);fill.position.set(-6,5,-5);scene.add(fill);
+  const floor=new THREE.Mesh(new THREE.CircleGeometry(10,48),new THREE.MeshStandardMaterial({color:0x26364a,roughness:1}));floor.rotation.x=-Math.PI/2;floor.position.y=-0.02;scene.add(floor);const grid=new THREE.GridHelper(20,20,0x64758d,0x40516a);grid.position.y=-0.01;scene.add(grid);
+  const controls=new THREE.OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.dampingFactor=.07;controls.minDistance=1;controls.maxDistance=30;
+  const clock=new THREE.Clock();let mixer=null,active=null,actions=new Map();
+  function resize(){const w=canvas.clientWidth||1,h=canvas.clientHeight||1;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}window.addEventListener('resize',resize);resize();
+  status.textContent='Downloading elephant.glb…';const modelUrl=new URL('./elephant.glb',location.href).href;
+  new THREE.GLTFLoader().load(modelUrl,gltf=>{
+   try{
+    const model=gltf.scene;model.updateMatrixWorld(true);
+    // Disable frustum culling on every skinned mesh. Animated skeleton bounds can otherwise hide the full character.
+    let meshes=0;model.traverse(o=>{if(o.isMesh){meshes++;o.visible=true;o.frustumCulled=false;if(o.material){const mats=Array.isArray(o.material)?o.material:[o.material];mats.forEach(m=>{m.visible=true;m.side=THREE.DoubleSide;if('roughness'in m)m.roughness=Math.max(m.roughness||.7,.65);if('metalness'in m)m.metalness=0;m.needsUpdate=true})}}});
+    const box=new THREE.Box3().setFromObject(model);const size=box.getSize(new THREE.Vector3());const center=box.getCenter(new THREE.Vector3());const maxDim=Math.max(size.x,size.y,size.z);
+    if(!isFinite(maxDim)||maxDim<=0)throw Error('The model geometry has empty bounds.');
+    // Put the feet at ground level, centre horizontally, and scale the outer group.
+    const pivot=new THREE.Group();pivot.add(model);scene.add(pivot);model.position.set(-center.x,-box.min.y,-center.z);pivot.scale.setScalar(3.0/maxDim);pivot.updateMatrixWorld(true);
+    const shownSize=size.clone().multiplyScalar(3.0/maxDim);const targetY=shownSize.y*.48;controls.target.set(0,targetY,0);
+    const d=Math.max(5.3,shownSize.length()*1.05);camera.position.set(d*.9,targetY+d*.32,d*1.15);camera.near=.01;camera.far=1000;camera.lookAt(0,targetY,0);camera.updateProjectionMatrix();controls.update();
+    // A wireframe bounding box gives a visible diagnostic even if a GPU has a skinning issue.
+    const debugBox=new THREE.Box3Helper(new THREE.Box3(new THREE.Vector3(-shownSize.x/2,0,-shownSize.z/2),new THREE.Vector3(shownSize.x/2,shownSize.y,shownSize.z/2)),0x55718d);debugBox.visible=false;scene.add(debugBox);
+    mixer=new THREE.AnimationMixer(model);const clips=gltf.animations||[];clips.forEach(c=>actions.set(c.name,mixer.clipAction(c)));
+    select.innerHTML='<option value="">Select animation…</option>';clips.forEach(c=>{const op=document.createElement('option');op.value=c.name;op.textContent=c.name;select.appendChild(op)});select.disabled=!clips.length;play.disabled=!clips.length;stop.disabled=!clips.length;
+    select.addEventListener('change',()=>{if(!select.value)return;if(active)active.stop();active=actions.get(select.value);active.reset().fadeIn(.15).play();status.textContent='Playing animation: '+select.value});
+    play.addEventListener('click',()=>{if(!select.value&&clips.length){select.value=clips[0].name}if(select.value){if(active)active.stop();active=actions.get(select.value);active.reset().fadeIn(.15).play();status.textContent='Playing animation: '+select.value}});
+    stop.addEventListener('click',()=>{if(active){active.stop();active=null}status.textContent='Animation stopped.'});
+    status.textContent='Model visible-ready · '+meshes+' mesh(es) · '+clips.length+' animations · bounds '+size.x.toFixed(2)+' × '+size.y.toFixed(2)+' × '+size.z.toFixed(2);
+    loading.style.display='none';
+   }catch(e){window.apnaFail('Model downloaded but setup failed: '+e.message)}
+  },xhr=>{if(xhr.total)loading.textContent='Loading Elephant… '+Math.round(xhr.loaded/xhr.total*100)+'%'},err=>window.apnaFail('Could not load '+modelUrl+'. Confirm elephant.glb is in the same main GitHub folder. Details: '+(err?.message||'network/404 error')));
+  function frame(){requestAnimationFrame(frame);if(mixer)mixer.update(Math.min(clock.getDelta(),.05));controls.update();renderer.render(scene,camera)}frame();
+ }catch(e){window.apnaFail(e.message||String(e))}
+})();
+</script>
+</body></html>
