@@ -77,10 +77,18 @@
     </aside>
   </div>
 
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
   <script type="module">
-    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js';
-    import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
     const canvas = document.getElementById('viewer');
     const loadingEl = document.getElementById('loading');
@@ -222,7 +230,7 @@
       if (event.total) loadingEl.textContent = `Loading Elephant… ${Math.round(event.loaded / event.total * 100)}%`;
     }, (error) => {
       console.error(error);
-      showError('Could not find elephant.glb. Upload elephant.glb into the same GitHub repository folder as this HTML file. Open the page through GitHub Pages, not by double-clicking the HTML file.');
+      showError('The 3D model could not be loaded. Check that elephant.glb is in the same GitHub repository folder as this HTML file, and that the file name uses exactly the same lowercase spelling.');
     });
 
     function resize() {
