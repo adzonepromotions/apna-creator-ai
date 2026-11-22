@@ -8,19 +8,20 @@
     :root { color-scheme: dark; --bg:#0b1220; --panel:#111c2e; --line:#26364e; --muted:#9fb0c8; --accent:#70d6c5; }
     * { box-sizing: border-box; }
     html, body { margin:0; width:100%; height:100%; overflow:hidden; background:var(--bg); color:#eef4ff; font-family:Inter,Segoe UI,Arial,sans-serif; }
-    #app { display:grid; grid-template-columns: minmax(0,1fr) 310px; width:100%; height:100%; }
+    #app { display:grid; grid-template-columns:minmax(0,1fr) 310px; width:100%; height:100%; }
     #stage { position:relative; min-width:0; min-height:0; }
     #viewer { display:block; width:100%; height:100%; outline:none; }
     #panel { background:linear-gradient(180deg,#142137,#0f1929); border-left:1px solid var(--line); padding:22px 18px; overflow:auto; }
     h1 { font-size:20px; margin:0 0 6px; }
     .sub { font-size:12px; color:var(--muted); line-height:1.5; margin-bottom:20px; }
-    .status { padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:#0c1626; color:var(--muted); font-size:12px; line-height:1.5; margin-bottom:16px; }
+    .status { padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:#0c1626; color:var(--muted); font-size:12px; line-height:1.5; margin-bottom:10px; overflow-wrap:anywhere; }
+    .status.error { display:none; color:#ffd0d0; border-color:#793b43; background:#2a151d; white-space:pre-wrap; }
     label { display:block; font-size:12px; font-weight:600; color:#cfdbec; margin:15px 0 7px; }
     select, button { width:100%; border:1px solid #344761; border-radius:9px; background:#0b1627; color:#eef4ff; padding:11px 12px; font-size:13px; }
-    button { cursor:pointer; font-weight:650; transition:background .15s,border-color .15s; }
+    button { cursor:pointer; font-weight:650; }
     button:hover { background:#1a2b43; border-color:#5d789d; }
     button.primary { color:#09201c; background:var(--accent); border-color:var(--accent); }
-    button.primary:hover { background:#8be5d7; }
+    button:disabled, select:disabled { opacity:.55; cursor:not-allowed; }
     .buttons { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px; }
     .facts { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:18px 0; }
     .fact { background:#0b1627; border:1px solid var(--line); border-radius:10px; padding:10px; }
@@ -29,17 +30,14 @@
     .hint { color:var(--muted); font-size:11px; line-height:1.55; margin-top:16px; }
     .credit { padding-top:14px; margin-top:18px; border-top:1px solid var(--line); color:var(--muted); font-size:10px; line-height:1.6; }
     a { color:var(--accent); }
-    #loading { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); background:#0e1a2b; border:1px solid var(--line); padding:14px 18px; border-radius:12px; font-size:13px; box-shadow:0 12px 40px #0008; }
-    #error { display:none; color:#ffd0d0; border-color:#793b43; background:#2a151d; }
+    #loading { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); background:#0e1a2b; border:1px solid var(--line); padding:14px 18px; border-radius:12px; font-size:13px; text-align:center; max-width:min(90%,430px); }
     #badge { position:absolute; left:16px; top:16px; padding:8px 11px; border-radius:9px; background:#081321bf; border:1px solid #ffffff20; font-size:11px; color:#dce8f8; pointer-events:none; }
     @media (max-width:760px) {
-      #app { grid-template-columns:1fr; grid-template-rows:minmax(0,1fr) auto; }
-      #panel { border-left:0; border-top:1px solid var(--line); max-height:42vh; padding:14px; }
-      h1 { font-size:17px; }
-      .sub { margin-bottom:10px; }
-      .facts { margin:10px 0; }
-      label { margin-top:10px; }
-      .hint,.credit { margin-top:10px; }
+      html,body { overflow:auto; }
+      #app { grid-template-columns:1fr; grid-template-rows:minmax(300px,58vh) auto; min-height:100%; height:auto; }
+      #stage { min-height:300px; }
+      #panel { border-left:0; border-top:1px solid var(--line); max-height:none; padding:14px; }
+      h1 { font-size:17px; }.sub { margin-bottom:10px; }.facts { margin:10px 0; }
     }
   </style>
 </head>
@@ -47,27 +45,27 @@
   <div id="app">
     <main id="stage">
       <canvas id="viewer"></canvas>
-      <div id="badge">3D preview · Drag to rotate · Scroll to zoom</div>
-      <div id="loading">Loading Elephant model…</div>
+      <div id="badge">3D preview · Drag to rotate · Scroll to zoom · Build 3 (classic loader)</div>
+      <div id="loading">Starting 3D viewer…</div>
     </main>
     <aside id="panel">
       <h1>Elephant Model Test</h1>
-      <div class="sub">Apna Creator AI · Rukh3D animated character</div>
-      <div class="status" id="status">Preparing 3D viewer…</div>
-      <div class="status" id="error"></div>
+      <div class="sub">Apna Creator AI · Rukh3D animated character · Test build 3</div>
+      <div class="status" id="status">Starting classic 3D engine…</div>
+      <div class="status error" id="error"></div>
       <label for="animation">Choose animation</label>
-      <select id="animation" disabled><option>Loading animations…</option></select>
+      <select id="animation" disabled><option>Waiting for model…</option></select>
       <div class="buttons">
         <button class="primary" id="play" disabled>▶ Play</button>
         <button id="stop" disabled>■ Stop</button>
       </div>
       <div class="facts">
-        <div class="fact"><strong>28</strong><span>Animation clips</span></div>
-        <div class="fact"><strong>1,958</strong><span>Triangles</span></div>
+        <div class="fact"><strong>28</strong><span>Animation clips in source model</span></div>
+        <div class="fact"><strong>1,958</strong><span>Triangles (source listing)</span></div>
         <div class="fact"><strong>8.5 MB</strong><span>GLB file</span></div>
         <div class="fact"><strong>1K</strong><span>Texture resolution</span></div>
       </div>
-      <div class="hint">Tip: Try <b>idle</b>, <b>walk</b>, <b>run</b>, <b>eating</b>, <b>sleep</b>, <b>wakeup</b> and <b>trumpet</b>. Some clips are short. The model has body animations, but no dedicated speech lip-sync clip.</div>
+      <div class="hint">Try idle, walk, run, eating, sleep, wakeup and trumpet. This model has body animations but no dedicated speech lip-sync clip.</div>
       <div class="credit">
         Model: <b>Elephant</b> by <b>Rukh3D</b><br>
         License: <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">Creative Commons Attribution 4.0</a><br>
@@ -77,180 +75,216 @@
     </aside>
   </div>
 
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-      }
-    }
+  <script>
+    // This handler is deliberately a normal script, so it can report failures
+    // even if a later external JavaScript library fails to load.
+    window.apnaShowError = function(message) {
+      const status = document.getElementById('status');
+      const error = document.getElementById('error');
+      const loading = document.getElementById('loading');
+      if (status) status.textContent = 'Elephant viewer could not start.';
+      if (error) { error.style.display = 'block'; error.textContent = message; }
+      if (loading) loading.style.display = 'none';
+    };
+    window.addEventListener('error', function(event) {
+      if (event && event.message) window.apnaShowError('JavaScript error: ' + event.message);
+    });
+    window.addEventListener('unhandledrejection', function(event) {
+      const reason = event && event.reason;
+      window.apnaShowError('Loading error: ' + (reason && reason.message ? reason.message : String(reason || 'Unknown error')));
+    });
   </script>
-  <script type="module">
-    import * as THREE from 'three';
-    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-    const canvas = document.getElementById('viewer');
-    const loadingEl = document.getElementById('loading');
+  <!-- Use the classic (non-module) Three.js build to avoid import-map/module startup issues. -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"
+          onerror="window.apnaShowError('Could not download the Three.js library from jsDelivr. Check your internet connection or allow cdn.jsdelivr.net in the browser.')"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"
+          onerror="window.apnaShowError('Three.js loaded, but OrbitControls could not load from jsDelivr.')"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"
+          onerror="window.apnaShowError('Three.js loaded, but GLTFLoader could not load from jsDelivr.')"></script>
+
+  <script>
+  (function() {
     const statusEl = document.getElementById('status');
+    const loadingEl = document.getElementById('loading');
     const errorEl = document.getElementById('error');
+    const canvas = document.getElementById('viewer');
     const animationSelect = document.getElementById('animation');
     const playButton = document.getElementById('play');
     const stopButton = document.getElementById('stop');
 
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x18263a);
-    scene.fog = new THREE.Fog(0x18263a, 18, 55);
-
-    const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 2000);
-    camera.position.set(5, 3.5, 7);
-
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'low-power' });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.35));
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.15;
-
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.06;
-    controls.minDistance = 1.2;
-    controls.maxDistance = 35;
-    controls.target.set(0, 1, 0);
-
-    scene.add(new THREE.HemisphereLight(0xffffff, 0x71809a, 2.0));
-    const keyLight = new THREE.DirectionalLight(0xffffff, 2.0);
-    keyLight.position.set(5, 10, 7);
-    scene.add(keyLight);
-    const fillLight = new THREE.DirectionalLight(0xb9d6ff, 0.8);
-    fillLight.position.set(-6, 4, -5);
-    scene.add(fillLight);
-
-    const floor = new THREE.Mesh(
-      new THREE.CircleGeometry(14, 64),
-      new THREE.MeshStandardMaterial({ color: 0x26364a, roughness: 0.95, metalness: 0 })
-    );
-    floor.rotation.x = -Math.PI / 2;
-    floor.position.y = -0.025;
-    scene.add(floor);
-    const grid = new THREE.GridHelper(28, 28, 0x53647a, 0x34465d);
-    grid.position.y = -0.015;
-    scene.add(grid);
-
-    const clock = new THREE.Clock();
-    let mixer = null;
-    let actions = new Map();
-    let activeAction = null;
-    let modelRoot = null;
-
-    function showError(message) {
-      errorEl.style.display = 'block';
-      errorEl.textContent = message;
-      loadingEl.style.display = 'none';
-      statusEl.textContent = 'Model could not be loaded.';
+    function fail(message) {
+      window.apnaShowError(message);
     }
 
-    function chooseAnimation(name) {
-      if (!mixer || !actions.has(name)) return;
-      const next = actions.get(name);
-      if (activeAction && activeAction !== next) activeAction.fadeOut(0.18);
-      next.reset();
-      next.enabled = true;
-      next.setEffectiveTimeScale(1);
-      next.setEffectiveWeight(1);
-      next.fadeIn(0.18).play();
-      activeAction = next;
-      statusEl.textContent = `Playing: ${name.replace(/^TRS\|/i, '')}`;
-    }
+    try {
+      statusEl.textContent = 'Checking 3D engine…';
+      if (!window.THREE) throw new Error('Three.js did not load. The CDN may be blocked or unavailable.');
+      if (!THREE.OrbitControls) throw new Error('OrbitControls did not load.');
+      if (!THREE.GLTFLoader) throw new Error('GLTFLoader did not load.');
 
-    animationSelect.addEventListener('change', () => chooseAnimation(animationSelect.value));
-    playButton.addEventListener('click', () => {
-      if (!activeAction) chooseAnimation(animationSelect.value);
-      else { activeAction.paused = false; statusEl.textContent = `Playing: ${animationSelect.value.replace(/^TRS\|/i, '')}`; }
-    });
-    stopButton.addEventListener('click', () => {
-      if (activeAction) { activeAction.stop(); activeAction = null; }
-      statusEl.textContent = 'Animation stopped.';
-    });
+      statusEl.textContent = 'Creating WebGL viewer…';
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x18263a);
+      scene.fog = new THREE.Fog(0x18263a, 18, 55);
+      const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 2000);
+      camera.position.set(5, 3.5, 7);
 
-    const loader = new GLTFLoader();
-    loader.load('./elephant.glb', (gltf) => {
-      modelRoot = gltf.scene;
-      modelRoot.traverse((obj) => {
-        if (obj.isMesh) {
-          obj.frustumCulled = true;
-          if (obj.material) {
-            obj.material.roughness = Math.max(obj.material.roughness ?? 0.8, 0.65);
-            obj.material.metalness = 0;
-          }
-        }
-      });
-      scene.add(modelRoot);
-
-      const box = new THREE.Box3().setFromObject(modelRoot);
-      const size = box.getSize(new THREE.Vector3());
-      const center = box.getCenter(new THREE.Vector3());
-      modelRoot.position.x -= center.x;
-      modelRoot.position.z -= center.z;
-      modelRoot.position.y -= box.min.y;
-      const maxDim = Math.max(size.x, size.y, size.z) || 1;
-      const scale = 3.2 / maxDim;
-      modelRoot.scale.setScalar(scale);
-
-      const scaledSize = size.multiplyScalar(scale);
-      controls.target.set(0, scaledSize.y * 0.48, 0);
-      const distance = Math.max(scaledSize.x, scaledSize.y, scaledSize.z) * 2.25;
-      camera.position.set(distance * 0.8, distance * 0.55, distance * 1.05);
-      camera.near = Math.max(0.01, distance / 100);
-      camera.far = distance * 100;
-      camera.updateProjectionMatrix();
-      controls.update();
-
-      mixer = new THREE.AnimationMixer(modelRoot);
-      const clips = gltf.animations || [];
-      clips.forEach((clip) => actions.set(clip.name, mixer.clipAction(clip)));
-      animationSelect.innerHTML = '';
-      clips.forEach((clip) => {
-        const option = document.createElement('option');
-        option.value = clip.name;
-        option.textContent = clip.name.replace(/^TRS\|/i, '').replaceAll('_', ' ');
-        animationSelect.appendChild(option);
-      });
-      animationSelect.disabled = clips.length === 0;
-      playButton.disabled = clips.length === 0;
-      stopButton.disabled = clips.length === 0;
-      if (clips.length) {
-        const idle = clips.find(c => /idle/i.test(c.name)) || clips[0];
-        animationSelect.value = idle.name;
-        chooseAnimation(idle.name);
+      let renderer;
+      try {
+        renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: false, powerPreference: 'low-power' });
+      } catch (webglError) {
+        throw new Error('This browser could not create a WebGL graphics context. Try enabling hardware acceleration in Chrome settings, then restart Chrome. Details: ' + webglError.message);
       }
-      statusEl.textContent = `Loaded successfully · ${clips.length} animations found.`;
-      loadingEl.style.display = 'none';
-    }, (event) => {
-      if (event.total) loadingEl.textContent = `Loading Elephant… ${Math.round(event.loaded / event.total * 100)}%`;
-    }, (error) => {
-      console.error(error);
-      showError('The 3D model could not be loaded. Check that elephant.glb is in the same GitHub repository folder as this HTML file, and that the file name uses exactly the same lowercase spelling.');
-    });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
+      renderer.outputEncoding = THREE.sRGBEncoding;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.1;
 
-    function resize() {
-      const width = canvas.clientWidth || 1;
-      const height = canvas.clientHeight || 1;
-      renderer.setSize(width, height, false);
-      camera.aspect = width / height;
-      camera.updateProjectionMatrix();
-    }
-    window.addEventListener('resize', resize);
-    resize();
+      const controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.06;
+      controls.minDistance = 1.2;
+      controls.maxDistance = 35;
 
-    function animate() {
-      requestAnimationFrame(animate);
-      const delta = Math.min(clock.getDelta(), 0.05);
-      if (mixer) mixer.update(delta);
-      controls.update();
-      renderer.render(scene, camera);
+      scene.add(new THREE.HemisphereLight(0xffffff, 0x71809a, 1.7));
+      const keyLight = new THREE.DirectionalLight(0xffffff, 1.8);
+      keyLight.position.set(5, 10, 7);
+      scene.add(keyLight);
+      const fillLight = new THREE.DirectionalLight(0xb9d6ff, 0.6);
+      fillLight.position.set(-6, 4, -5);
+      scene.add(fillLight);
+
+      const floor = new THREE.Mesh(
+        new THREE.CircleGeometry(14, 48),
+        new THREE.MeshStandardMaterial({ color: 0x26364a, roughness: 0.95, metalness: 0 })
+      );
+      floor.rotation.x = -Math.PI / 2;
+      floor.position.y = -0.025;
+      scene.add(floor);
+      const grid = new THREE.GridHelper(28, 28, 0x53647a, 0x34465d);
+      grid.position.y = -0.015;
+      scene.add(grid);
+
+      const clock = new THREE.Clock();
+      let mixer = null;
+      let actions = new Map();
+      let activeAction = null;
+      let modelGroup = null;
+
+      function chooseAnimation(name) {
+        if (!mixer || !actions.has(name)) return;
+        const next = actions.get(name);
+        if (activeAction && activeAction !== next) activeAction.fadeOut(0.2);
+        next.reset();
+        next.enabled = true;
+        next.setEffectiveTimeScale(1);
+        next.setEffectiveWeight(1);
+        next.fadeIn(0.2).play();
+        activeAction = next;
+        statusEl.textContent = 'Loaded · Playing: ' + name.replace(/^TRS\|/i, '');
+      }
+
+      animationSelect.addEventListener('change', function() { chooseAnimation(animationSelect.value); });
+      playButton.addEventListener('click', function() {
+        if (!activeAction) chooseAnimation(animationSelect.value);
+        else { activeAction.paused = false; statusEl.textContent = 'Playing: ' + animationSelect.value.replace(/^TRS\|/i, ''); }
+      });
+      stopButton.addEventListener('click', function() {
+        if (activeAction) { activeAction.stop(); activeAction = null; }
+        statusEl.textContent = 'Animation stopped.';
+      });
+
+      statusEl.textContent = 'Loading elephant.glb from this GitHub folder…';
+      const modelUrl = new URL('./elephant.glb', window.location.href).href;
+      const loader = new THREE.GLTFLoader();
+      loader.load(modelUrl, function(gltf) {
+        try {
+          const model = gltf.scene;
+          model.traverse(function(obj) {
+            if (obj.isMesh) {
+              obj.frustumCulled = true;
+              if (obj.material) {
+                obj.material.roughness = Math.max(obj.material.roughness || 0.8, 0.65);
+                obj.material.metalness = 0;
+              }
+            }
+          });
+
+          const bounds = new THREE.Box3().setFromObject(model);
+          const size = bounds.getSize(new THREE.Vector3());
+          const center = bounds.getCenter(new THREE.Vector3());
+          const maxDim = Math.max(size.x, size.y, size.z) || 1;
+          const scale = 3.2 / maxDim;
+
+          model.position.set(-center.x, -bounds.min.y, -center.z);
+          modelGroup = new THREE.Group();
+          modelGroup.add(model);
+          modelGroup.scale.setScalar(scale);
+          scene.add(modelGroup);
+
+          const scaledSize = size.clone().multiplyScalar(scale);
+          controls.target.set(0, scaledSize.y * 0.48, 0);
+          const distance = Math.max(scaledSize.x, scaledSize.y, scaledSize.z) * 2.3;
+          camera.position.set(distance * 0.85, distance * 0.58, distance * 1.05);
+          camera.near = Math.max(0.01, distance / 100);
+          camera.far = Math.max(100, distance * 100);
+          camera.updateProjectionMatrix();
+          controls.update();
+
+          mixer = new THREE.AnimationMixer(model);
+          const clips = gltf.animations || [];
+          clips.forEach(function(clip) { actions.set(clip.name, mixer.clipAction(clip)); });
+          animationSelect.innerHTML = '';
+          clips.forEach(function(clip) {
+            const option = document.createElement('option');
+            option.value = clip.name;
+            option.textContent = clip.name.replace(/^TRS\|/i, '').replace(/_/g, ' ');
+            animationSelect.appendChild(option);
+          });
+          animationSelect.disabled = clips.length === 0;
+          playButton.disabled = clips.length === 0;
+          stopButton.disabled = clips.length === 0;
+          if (clips.length) {
+            const idle = clips.find(function(c) { return /idle/i.test(c.name); }) || clips[0];
+            animationSelect.value = idle.name;
+            chooseAnimation(idle.name);
+          }
+          statusEl.textContent = 'Loaded successfully · ' + clips.length + ' animations found.';
+          loadingEl.style.display = 'none';
+        } catch (modelError) {
+          fail('The GLB was downloaded, but the model could not be prepared: ' + modelError.message);
+        }
+      }, function(event) {
+        if (event && event.total) loadingEl.textContent = 'Loading Elephant… ' + Math.round(event.loaded / event.total * 100) + '%';
+      }, function(loadError) {
+        console.error('GLB load failed:', loadError);
+        fail('Could not load ' + modelUrl + '. Check that elephant.glb is in the same main repository folder as elephant-model-test.html, with exactly this lowercase filename. A 404 means the file is missing or not yet published.');
+      });
+
+      function resize() {
+        const width = canvas.clientWidth || 1;
+        const height = canvas.clientHeight || 1;
+        renderer.setSize(width, height, false);
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+      }
+      window.addEventListener('resize', resize);
+      resize();
+
+      function animate() {
+        requestAnimationFrame(animate);
+        const delta = Math.min(clock.getDelta(), 0.05);
+        if (mixer) mixer.update(delta);
+        controls.update();
+        renderer.render(scene, camera);
+      }
+      animate();
+    } catch (error) {
+      console.error('Elephant viewer startup failed:', error);
+      fail(error.message || String(error));
     }
-    animate();
+  })();
   </script>
 </body>
 </html>
