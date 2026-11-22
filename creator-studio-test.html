@@ -59,7 +59,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 </style>
 
 <script type="importmap">
-{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js"}}
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.187.0/examples/jsm/"}}
 </script>
 </head>
 
@@ -142,6 +142,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
   <section class="card">
    <h2>3. 3D Cartoon Preview</h2>
    <div id="stage"></div>
+   <p class="small" id="elephantModelStatus">Loading the Rukh3D Elephant model…</p>
 
    <div class="controls">
     <button id="playBtn" class="green" disabled>▶ Play Story</button>
@@ -172,7 +173,8 @@ button:disabled{opacity:.5;cursor:not-allowed}
  <section class="card">
   <h2>Current MVP Limits</h2>
   <p class="small">
-   This first integrated build uses the Rabbit and Elephant procedural 3D characters. It animates actions inferred from each scene's Visual description and speaks the AI dialogue with the browser voice. During recording, lip movement follows audio activity measured from the actual Stereo Mix recording input; it is not phoneme-synced. Export is WEBM, not MP4. Each scene includes a speaker label. Rabbit and Elephant use different pitch settings and speaker-specific lip movement. Scene images and arbitrary new 3D models are not generated yet.
+   This build uses the procedural Rabbit and the rigged Rukh3D Elephant GLB with its included animation clips. Elephant actions are selected from each scene's Visual description (for example, idle, walk, run and trumpet). During recording, mouth movement follows audio activity measured from the actual Stereo Mix input; it is approximate, not phoneme-synced. Export is WEBM, not MP4. Each scene includes a speaker label and Rabbit/Elephant use different voice pitch settings. Scene images and arbitrary new 3D models are not generated yet.
+    <br><br><b>Elephant model credit:</b> “Elephant” by Rukh3D, licensed under <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">Creative Commons Attribution 4.0</a>. Source: <a href="https://sketchfab.com/3d-models/elephant-4ae161372d6a4219a87340339d1ffe03" target="_blank" rel="noopener">Sketchfab</a>.
   </p>
  </section>
 
@@ -180,6 +182,7 @@ button:disabled{opacity:.5;cursor:not-allowed}
 
 <script type="module">
 import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
 // =====================================
 // APNA CREATOR AI - INTEGRATED MVP
@@ -553,15 +556,19 @@ for (const x of [-.25, .25]) {
 const elephant = new THREE.Group();
 world.add(elephant);
 
+// Keep the original lightweight procedural elephant as a fallback in case the GLB cannot load.
+const elephantFallback = new THREE.Group();
+elephant.add(elephantFallback);
+
 const eb = new THREE.Group();
-elephant.add(eb);
+elephantFallback.add(eb);
 
 sph(eb, [0, 1.02, 0], [.62, .68, .78], C.elephant);
 sph(eb, [0, .82, .48], [.40, .40, .17], C.elephantLight);
 
 const elephantHead = new THREE.Group();
 elephantHead.position.set(0, 1.55, .58);
-elephant.add(elephantHead);
+elephantFallback.add(elephantHead);
 
 sph(elephantHead, [0, 0, 0], [.49, .48, .43], C.elephant);
 
@@ -603,7 +610,7 @@ for (const x of [-.37, .37]) {
  for (const z of [-.48, .48]) {
   const hip = new THREE.Group();
   hip.position.set(x, .68, z);
-  elephant.add(hip);
+  elephantFallback.add(hip);
 
   cyl(hip, [0, -.22, 0], .16, .18, .44, C.elephant);
   sph(hip, [0, -.44, .04], [.18, .08, .19], C.elephantLight);
@@ -613,7 +620,7 @@ for (const x of [-.37, .37]) {
 
 const elephantTail = new THREE.Group();
 elephantTail.position.set(0, 1.30, -.72);
-elephant.add(elephantTail);
+elephantFallback.add(elephantTail);
 
 tube(elephantTail, [
  [0, 0, 0],
@@ -633,6 +640,107 @@ let rabbitTalking = false;
 let elephantTalking = false;
 let currentSpeaker = "Narrator";
 
+// Rukh3D rigged Elephant model and its 28 embedded animation clips.
+let elephantMixer = null;
+let elephantClips = [];
+let activeElephantAction = null;
+let elephantJawBone = null;
+let elephantJawBaseQuaternion = null;
+const elephantModelStatus = $("elephantModelStatus");
+
+function findElephantClip(actionName) {
+ const name = String(actionName || "idle").toLowerCase();
+ const matches = pattern => elephantClips.find(c => pattern.test(c.name.toLowerCase()));
+ if (name === "walk") return matches(/walk/);
+ if (name === "run") return matches(/run(?!.*attack)/);
+ if (name === "jump") return matches(/drop2?/);
+ if (name === "help") return matches(/pick[_ ]?stand|pick/);
+ if (name === "sit") return matches(/sit|rest/);
+ if (name === "trumpet") return matches(/idle trumpet|trumped|trumpet/);
+ // Avoid choosing the special trumpet idle when a neutral idle is requested.
+ return matches(/(^|[| _])idle$/) || matches(/end idle/i) || matches(/idle(?!.*trumpet|.*trumped)/);
+}
+
+function playElephantAnimation(actionName = "idle") {
+ if (!elephantMixer || !elephantClips.length) return;
+ const clip = findElephantClip(actionName) || findElephantClip("idle");
+ if (!clip) return;
+ const next = elephantMixer.clipAction(clip);
+ if (activeElephantAction === next && next.isRunning()) return;
+ next.reset();
+ next.enabled = true;
+ next.setEffectiveTimeScale(1);
+ next.setEffectiveWeight(1);
+ next.setLoop(THREE.LoopRepeat, Infinity);
+ if (activeElephantAction) {
+  activeElephantAction.crossFadeTo(next, 0.22, false);
+ }
+ next.play();
+ activeElephantAction = next;
+}
+
+function loadRiggedElephant() {
+ const modelUrl = new URL("./elephant.glb", document.baseURI).href;
+ const loader = new GLTFLoader();
+ elephantModelStatus.textContent = "Loading Rukh3D Elephant GLB…";
+ loader.load(modelUrl, gltf => {
+  try {
+   const model = gltf.scene;
+   model.updateMatrixWorld(true);
+   let meshCount = 0;
+   model.traverse(node => {
+    if (node.isMesh) {
+     meshCount++;
+     node.visible = true;
+     node.frustumCulled = false;
+     const materials = Array.isArray(node.material) ? node.material : [node.material];
+     materials.filter(Boolean).forEach(material => {
+      material.side = THREE.DoubleSide;
+      if ("roughness" in material) material.roughness = Math.max(material.roughness || 0.7, 0.65);
+      if ("metalness" in material) material.metalness = 0;
+      material.needsUpdate = true;
+     });
+    }
+    if (node.isBone && /jaw/i.test(node.name) && !elephantJawBone) {
+     elephantJawBone = node;
+     elephantJawBaseQuaternion = node.quaternion.clone();
+    }
+   });
+
+   const bounds = new THREE.Box3().setFromObject(model);
+   const size = bounds.getSize(new THREE.Vector3());
+   const center = bounds.getCenter(new THREE.Vector3());
+   const maxDimension = Math.max(size.x, size.y, size.z);
+   if (!Number.isFinite(maxDimension) || maxDimension <= 0 || meshCount === 0) {
+    throw new Error("GLB file loaded, but no visible model mesh was found.");
+   }
+
+   // Match the proven test-page scale: 3 world units across the model's longest dimension.
+   const modelHolder = new THREE.Group();
+   modelHolder.add(model);
+   model.position.set(-center.x, -bounds.min.y, -center.z);
+   modelHolder.scale.setScalar(3.0 / maxDimension);
+   modelHolder.traverse(node => { if (node.isMesh) node.frustumCulled = false; });
+   elephant.add(modelHolder);
+   elephantFallback.visible = false;
+
+   elephantMixer = new THREE.AnimationMixer(model);
+   elephantClips = Array.isArray(gltf.animations) ? gltf.animations : [];
+   playElephantAnimation(currentAction || "idle");
+   elephantModelStatus.textContent = "✅ Real Rukh3D Elephant loaded · " + elephantClips.length + " animations · " + meshCount + " mesh(es).";
+   console.info("Apna Creator AI: Rukh3D Elephant loaded", {meshCount, clips: elephantClips.map(c => c.name), size});
+  } catch (error) {
+   console.error("Elephant model setup failed:", error);
+   elephantModelStatus.textContent = "⚠️ Elephant GLB setup failed; using the built-in simple fallback. " + (error.message || "");
+  }
+ }, undefined, error => {
+  console.error("Elephant GLB could not load:", error);
+  elephantModelStatus.textContent = "⚠️ elephant.glb could not load. Keep elephant.glb beside creator-studio-test.html; the simple fallback is active.";
+ });
+}
+
+loadRiggedElephant();
+
 function setDefaultPose() {
  rabbit.position.set(-1.65, 0, 0);
  elephant.position.set(1.75, 0, 0);
@@ -641,6 +749,7 @@ function setDefaultPose() {
  rabbitEars.rotation.set(0, 0, 0);
  elephantHead.rotation.set(0, 0, 0);
  trunk.rotation.set(0, 0, 0);
+ elephant.rotation.set(0, 0, 0);
 
  rabbitLegs.forEach(l => l.rotation.set(0, 0, 0));
  elephantLegs.forEach(l => l.rotation.set(0, 0, 0));
@@ -649,6 +758,7 @@ function setDefaultPose() {
 function inferAction(v, i) {
  const t = String(v || "").toLowerCase();
 
+ if (/trumpet|trumpeting|trunk up|raises? (?:its )?trunk|roar|चिंघाड|चिंघाडतो|सोंड उचल/.test(t)) return "trumpet";
  if (/jump|hop|leap|कूद|उछल/.test(t)) return "jump";
  if (/run|running|rush|दौड़|भाग/.test(t)) return "run";
  if (/walk|walking|approach|moves toward|चल|आता है|आती है/.test(t)) return "walk";
@@ -684,7 +794,6 @@ function updatePose(dt) {
   elephant.position.x = 1.75 - Math.sin(t * 1.1) * .20;
 
   rabbitLegs.forEach((l, i) => l.rotation.x = Math.sin(t * speed + i * Math.PI) * .48);
-  elephantLegs.forEach((l, i) => l.rotation.x = Math.sin(t * speed * .7 + i * Math.PI) * .25);
  }
 
  if (currentAction === "jump") {
@@ -711,6 +820,11 @@ function updatePose(dt) {
   elephant.position.x = 1.4;
   trunk.rotation.x = -.55 + Math.sin(t * 2) * .08;
   rabbitHead.rotation.y = .22;
+ }
+
+ if (currentAction === "trumpet") {
+  elephant.position.x = 1.45;
+  rabbitHead.rotation.y = .18;
  }
 
  if (currentAction === "talk") {
@@ -757,6 +871,15 @@ function renderLoop() {
  if (isPlaying) {
   updateLipSyncFromAudio();
   updatePose(dt);
+ }
+
+ if (elephantMixer) {
+  elephantMixer.update(dt);
+  // Approximate speaking movement on the rig's jaw bone; this is not phoneme lip-sync.
+  if (elephantJawBone && elephantJawBaseQuaternion) {
+   elephantJawBone.quaternion.copy(elephantJawBaseQuaternion);
+   if (elephantTalking) elephantJawBone.rotateX(Math.abs(Math.sin(animTime * 11)) * 0.075);
+  }
  }
 
  renderer.render(world, camera);
@@ -922,6 +1045,7 @@ function finishPlayback() {
  isPaused = false;
  waitingNext = false;
  stopLipSync();
+ playElephantAnimation("idle");
  setControls();
  playInfo.textContent = "Story playback completed.";
 
@@ -944,6 +1068,7 @@ function speakScene(index, token) {
  animTime = 0;
  currentAction = inferAction(item.visual, index);
  setSpeaker(item.speaker);
+ playElephantAnimation(currentAction);
 
  stopLipSync();
 
@@ -1074,6 +1199,7 @@ function resetPlayback() {
  progress.style.width = "0%";
 
  setDefaultPose();
+ playElephantAnimation("idle");
  setControls();
 }
 
@@ -1529,7 +1655,7 @@ recordBtn.addEventListener("click", startRecording);
 refreshPacks();
 setControls();
 resize();
-setStatus("Ready. Generate a Rabbit + Elephant story to test speaker-specific voices and mouth movement.");
+setStatus("Ready. The rigged Elephant loads from elephant.glb. Generate a story to test its scene animations and speaker voices.");
 </script>
 </body>
 </html>
