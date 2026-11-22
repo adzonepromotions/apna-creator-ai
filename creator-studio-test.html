@@ -48,36 +48,75 @@
    <div id="sceneList"></div>
   </section>
  </section>
- <section class="card"><h2>Current MVP Limits</h2><p class="small">This first integrated build uses the Rabbit and Elephant procedural 3D characters. It animates actions inferred from each scene's Visual description and speaks the AI dialogue with the browser voice. Lip movement is approximate, not phoneme-synced. Export is WEBM, not MP4. A continuous Web Audio track is used to reduce late audio starts. Scene images and arbitrary new 3D models are not generated yet.</p></section>
+ <section class="card"><h2>Current MVP Limits</h2><p class="small">This first integrated build uses the Rabbit and Elephant procedural 3D characters. It animates actions inferred from each scene's Visual description and speaks the AI dialogue with the browser voice. Lip movement starts from the browser speech-start event with a small sync offset; it is not phoneme-synced. Export is WEBM, not MP4. A continuous Web Audio track is used to reduce late audio starts; lip movement is triggered by the browser speech-start event. Scene images and arbitrary new 3D models are not generated yet.</p></section>
 </div>
 <script type="module">
 import * as THREE from "three";
 
+// =====================================
+// APNA CREATOR AI - INTEGRATED MVP
+// =====================================
+
 const API_URL = "https://apna-creator-ai.apnacreatorai.workers.dev/";
 const PACK_KEY = "apnaCreatorSavedCharacterPacksV1";
 const $ = id => document.getElementById(id);
-const app = $("app"), statusBox = $("status"), ideaInput = $("idea");
-const languageInput = $("language"), ratioInput = $("ratio"), styleInput = $("style");
-const modeInput = $("characterMode"), savedPackInput = $("savedPack");
-const generateBtn = $("generateBtn"), studioResult = $("studioResult");
-const sceneList = $("sceneList"), characterLockBox = $("characterLock");
-const playBtn = $("playBtn"), pauseBtn = $("pauseBtn"), stopBtn = $("stopBtn"), recordBtn = $("recordBtn");
-const progress = $("progress"), playInfo = $("playInfo"), downloadLink = $("downloadLink");
 
-let storyData = null, scenes = [], packs = loadPacks();
-let currentIndex = -1, isPlaying = false, isPaused = false, waitingNext = false;
-let speakToken = 0, nextTimer = null, activeUtterance = null;
+const app = $("app");
+const statusBox = $("status");
+const ideaInput = $("idea");
+const languageInput = $("language");
+const ratioInput = $("ratio");
+const styleInput = $("style");
+const modeInput = $("characterMode");
+const savedPackInput = $("savedPack");
 
-let recorder = null, recorderChunks = [];
-let stereoMixStream = null, canvasStream = null, recordingStream = null;
-let downloadURL = null, stopRequested = false;
+const generateBtn = $("generateBtn");
+const studioResult = $("studioResult");
+const sceneList = $("sceneList");
+const characterLockBox = $("characterLock");
 
-// Continuous Web Audio output prevents the exported audio track from starting late.
-let audioContext = null, audioDestination = null, audioInputNode = null;
-let silentOscillator = null, silentGain = null;
+const playBtn = $("playBtn");
+const pauseBtn = $("pauseBtn");
+const stopBtn = $("stopBtn");
+const recordBtn = $("recordBtn");
+
+const progress = $("progress");
+const playInfo = $("playInfo");
+const downloadLink = $("downloadLink");
+
+let storyData = null;
+let scenes = [];
+let packs = loadPacks();
+
+let currentIndex = -1;
+let isPlaying = false;
+let isPaused = false;
+let waitingNext = false;
+
+let speakToken = 0;
+let nextTimer = null;
+let activeUtterance = null;
+
+// Lip-sync timing correction
+let lipSyncTimer = null;
+const LIP_SYNC_DELAY_MS = 140;
+
+let recorder = null;
+let recorderChunks = [];
+let stereoMixStream = null;
+let canvasStream = null;
+let recordingStream = null;
+let downloadURL = null;
+let stopRequested = false;
+
+let audioContext = null;
+let audioDestination = null;
+let audioInputNode = null;
+let silentOscillator = null;
+let silentGain = null;
 let voices = [];
 
-function setStatus(message, type = "") {
+function setStatus(message, type="") {
  statusBox.textContent = message;
  statusBox.className = type;
 }
@@ -117,7 +156,9 @@ function refreshPacks() {
   savedPackInput.appendChild(o);
  });
 
- if (packs.some(p => p.id === old)) savedPackInput.value = old;
+ if(packs.some(p => p.id === old)) {
+  savedPackInput.value = old;
+ }
 }
 
 modeInput.addEventListener("change", () => {
@@ -127,18 +168,18 @@ modeInput.addEventListener("change", () => {
 function cleanVoice(text, language) {
  let s = String(text || "").replace(/\s+/g, " ").trim();
 
- if (language === "Hindi" && /[\u0900-\u097F]/.test(s)) {
+ if(language === "Hindi" && /[\u0900-\u097F]/.test(s)) {
   s = s.replace(/\s*\([^)]*[A-Za-z][^)]*\)/g, "").trim();
  }
 
  const chars = Array.from(s);
 
- if (chars.length > 180) {
+ if(chars.length > 180) {
   const first = (s.match(/^.*?[.!?।](?:\s|$)/u) || [])[0]?.trim() || s;
 
   s = Array.from(first).length <= 180
    ? first
-   : Array.from(s).slice(0, 179).join("")
+   : Array.from(s).slice(0,179).join("")
       .replace(/\s+\S*$/u, "").trim() + "…";
  }
 
@@ -148,8 +189,8 @@ function cleanVoice(text, language) {
 function cleanVisual(text) {
  let s = String(text || "").replace(/\s+/g, " ").trim();
 
- if (Array.from(s).length > 260) {
-  s = Array.from(s).slice(0, 259).join("")
+ if(Array.from(s).length > 260) {
+  s = Array.from(s).slice(0,259).join("")
    .replace(/\s+\S*$/u, "").trim() + "…";
  }
 
@@ -157,17 +198,17 @@ function cleanVisual(text) {
 }
 
 function normalizeStory(data) {
- if (!Array.isArray(data.scenes) || data.scenes.length !== 8) {
+ if(!Array.isArray(data.scenes) || data.scenes.length !== 8) {
   throw new Error("AI response मध्ये अचूक 8 scenes नाहीत.");
  }
 
- const out = data.scenes.map((s, i) => ({
-  number: i + 1,
+ const out = data.scenes.map((s,i) => ({
+  number: i+1,
   visual: cleanVisual(s.visual),
   voice: cleanVoice(s.voice, data.language || languageInput.value)
  }));
 
- if (out.some(s => !s.visual || !s.voice)) {
+ if(out.some(s => !s.visual || !s.voice)) {
   throw new Error("काही scene चे Visual किंवा Voice रिकामे आहेत.");
  }
 
@@ -180,8 +221,8 @@ function normalizeStory(data) {
 
 const stage = $("stage");
 const renderer = new THREE.WebGLRenderer({
- antialias: true,
- powerPreference: "low-power"
+ antialias:true,
+ powerPreference:"low-power"
 });
 
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
@@ -192,39 +233,41 @@ stage.appendChild(renderer.domElement);
 
 const world = new THREE.Scene();
 world.background = new THREE.Color(0xb7def5);
-world.fog = new THREE.Fog(0xb7def5, 18, 42);
+world.fog = new THREE.Fog(0xb7def5,18,42);
 
-const camera = new THREE.PerspectiveCamera(38, stage.clientWidth / stage.clientHeight, .1, 100);
-camera.position.set(0, 3.4, 10.7);
-camera.lookAt(0, 1.4, 0);
+const camera = new THREE.PerspectiveCamera(
+ 38, stage.clientWidth/stage.clientHeight, .1, 100
+);
+camera.position.set(0,3.4,10.7);
+camera.lookAt(0,1.4,0);
 
-world.add(new THREE.HemisphereLight(0xffffff, 0x64744d, 2));
+world.add(new THREE.HemisphereLight(0xffffff,0x64744d,2));
 
-const sun = new THREE.DirectionalLight(0xffffff, 2.2);
-sun.position.set(-4, 9, 6);
+const sun = new THREE.DirectionalLight(0xffffff,2.2);
+sun.position.set(-4,9,6);
 sun.castShadow = true;
 world.add(sun);
 
-const mat = c => new THREE.MeshStandardMaterial({ color: c, roughness: .82 });
+const mat = c => new THREE.MeshStandardMaterial({color:c,roughness:.82});
 
 const C = {
- grass: mat(0x7eae64),
- trunk: mat(0x76502f),
- leaf: mat(0x38864c),
- leaf2: mat(0x4a9955),
- rabbit: mat(0xf2e5d2),
- cream: mat(0xffffff),
- pink: mat(0xe994a9),
- black: mat(0x201915),
- nose: mat(0xb96c70),
- elephant: mat(0x8999ad),
- elephantLight: mat(0xb5c0ce),
- innerEar: mat(0xc78d9d),
- tusk: mat(0xffe8b3)
+ grass:mat(0x7eae64),
+ trunk:mat(0x76502f),
+ leaf:mat(0x38864c),
+ leaf2:mat(0x4a9955),
+ rabbit:mat(0xf2e5d2),
+ cream:mat(0xffffff),
+ pink:mat(0xe994a9),
+ black:mat(0x201915),
+ nose:mat(0xb96c70),
+ elephant:mat(0x8999ad),
+ elephantLight:mat(0xb5c0ce),
+ innerEar:mat(0xc78d9d),
+ tusk:mat(0xffe8b3)
 };
 
-function sph(parent, pos, scale, material, name = "part") {
- const m = new THREE.Mesh(new THREE.SphereGeometry(1, 18, 14), material);
+function sph(parent,pos,scale,material,name="part") {
+ const m = new THREE.Mesh(new THREE.SphereGeometry(1,18,14),material);
  m.position.set(...pos);
  m.scale.set(...scale);
  m.name = name;
@@ -234,8 +277,8 @@ function sph(parent, pos, scale, material, name = "part") {
  return m;
 }
 
-function cyl(parent, pos, r1, r2, h, material, name = "part") {
- const m = new THREE.Mesh(new THREE.CylinderGeometry(r1, r2, h, 14), material);
+function cyl(parent,pos,r1,r2,h,material,name="part") {
+ const m = new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,14),material);
  m.position.set(...pos);
  m.castShadow = true;
  m.receiveShadow = true;
@@ -244,144 +287,140 @@ function cyl(parent, pos, r1, r2, h, material, name = "part") {
  return m;
 }
 
-function tube(parent, pts, r, material) {
+function tube(parent,pts,r,material) {
  const curve = new THREE.CatmullRomCurve3(
   pts.map(p => new THREE.Vector3(...p))
  );
- const m = new THREE.Mesh(new THREE.TubeGeometry(curve, 18, r, 8, false), material);
+ const m = new THREE.Mesh(
+  new THREE.TubeGeometry(curve,18,r,8,false),
+  material
+ );
  m.castShadow = true;
  parent.add(m);
  return m;
 }
 
-const floor = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), C.grass);
-floor.rotation.x = -Math.PI / 2;
+const floor = new THREE.Mesh(
+ new THREE.PlaneGeometry(60,60),
+ C.grass
+);
+floor.rotation.x = -Math.PI/2;
 floor.position.y = -.04;
 floor.receiveShadow = true;
 world.add(floor);
 
-function tree(x, z, h) {
+function tree(x,z,h) {
  const g = new THREE.Group();
- g.position.set(x, 0, z);
+ g.position.set(x,0,z);
  world.add(g);
- cyl(g, [0, h / 2, 0], .13, .18, h, C.trunk);
- sph(g, [0, h + .25, 0], [.78, 1, .75], C.leaf);
- sph(g, [.37, h + .07, .03], [.5, .62, .5], C.leaf2);
+ cyl(g,[0,h/2,0],.13,.18,h,C.trunk);
+ sph(g,[0,h+.25,0],[.78,1,.75],C.leaf);
+ sph(g,[.37,h+.07,.03],[.5,.62,.5],C.leaf2);
 }
 
-tree(-4, -2, 2.1);
-tree(4, -3, 2.5);
-tree(-4, -6, 2.3);
-tree(4.3, -7, 2.2);
+tree(-4,-2,2.1);
+tree(4,-3,2.5);
+tree(-4,-6,2.3);
+tree(4.3,-7,2.2);
 
-// RABBIT
-
+// Rabbit rig
 const rabbit = new THREE.Group();
 world.add(rabbit);
 const rb = new THREE.Group();
 rabbit.add(rb);
 
-sph(rb, [0, .91, 0], [.43, .48, .62], C.rabbit, "rabbit-body");
-sph(rb, [0, .78, .43], [.30, .32, .20], C.cream);
+sph(rb,[0,.91,0],[.43,.48,.62],C.rabbit,"rabbit-body");
+sph(rb,[0,.78,.43],[.30,.32,.20],C.cream);
 
 const rabbitHead = new THREE.Group();
-rabbitHead.position.set(0, 1.45, .48);
+rabbitHead.position.set(0,1.45,.48);
 rabbit.add(rabbitHead);
-sph(rabbitHead, [0, 0, 0], [.39, .37, .35], C.rabbit);
+sph(rabbitHead,[0,0,0],[.39,.37,.35],C.rabbit);
 
 const rabbitEars = new THREE.Group();
-rabbitEars.position.set(0, .25, -.02);
+rabbitEars.position.set(0,.25,-.02);
 rabbitHead.add(rabbitEars);
 
-for (const side of [-1, 1]) {
- const ear = sph(rabbitEars, [side * .16, .32, 0], [.105, .39, .09], C.rabbit);
- ear.rotation.z = side * -.12;
- sph(rabbitEars, [side * .16, .32, .075], [.063, .30, .025], C.pink);
- sph(rabbitHead, [side * .14, .06, .31], [.055, .07, .035], C.black);
+for(const side of [-1,1]) {
+ const ear = sph(rabbitEars,[side*.16,.32,0],[.105,.39,.09],C.rabbit);
+ ear.rotation.z = side*-.12;
+ sph(rabbitEars,[side*.16,.32,.075],[.063,.30,.025],C.pink);
+ sph(rabbitHead,[side*.14,.06,.31],[.055,.07,.035],C.black);
 }
 
-sph(rabbitHead, [0, -.13, .31], [.19, .12, .11], C.cream);
-sph(rabbitHead, [0, -.09, .42], [.06, .045, .035], C.nose);
+sph(rabbitHead,[0,-.13,.31],[.19,.12,.11],C.cream);
+sph(rabbitHead,[0,-.09,.42],[.06,.045,.035],C.nose);
+const rabbitMouth = sph(rabbitHead,[0,-.23,.40],[.07,.018,.018],C.black);
 
-const rabbitMouth = sph(rabbitHead, [0, -.23, .40], [.07, .018, .018], C.black);
-sph(rb, [0, .88, -.62], [.16, .16, .16], C.cream);
+sph(rb,[0,.88,-.62],[.16,.16,.16],C.cream);
 
 const rabbitLegs = [];
-
-for (const x of [-.25, .25]) {
- for (const z of [-.36, .38]) {
+for(const x of [-.25,.25]) {
+ for(const z of [-.36,.38]) {
   const hip = new THREE.Group();
-  hip.position.set(x, .72, z);
+  hip.position.set(x,.72,z);
   rabbit.add(hip);
-  cyl(hip, [0, -.20, 0], .095, .11, .40, C.rabbit);
-  sph(hip, [0, -.40, .07], [.13, .08, .19], C.cream);
+  cyl(hip,[0,-.20,0],.095,.11,.40,C.rabbit);
+  sph(hip,[0,-.40,.07],[.13,.08,.19],C.cream);
   rabbitLegs.push(hip);
  }
 }
 
-// ELEPHANT
-
+// Elephant rig
 const elephant = new THREE.Group();
 world.add(elephant);
 const eb = new THREE.Group();
 elephant.add(eb);
 
-sph(eb, [0, 1.02, 0], [.62, .68, .78], C.elephant);
-sph(eb, [0, .82, .48], [.40, .40, .17], C.elephantLight);
+sph(eb,[0,1.02,0],[.62,.68,.78],C.elephant);
+sph(eb,[0,.82,.48],[.40,.40,.17],C.elephantLight);
 
 const elephantHead = new THREE.Group();
-elephantHead.position.set(0, 1.55, .58);
+elephantHead.position.set(0,1.55,.58);
 elephant.add(elephantHead);
-sph(elephantHead, [0, 0, 0], [.49, .48, .43], C.elephant);
+sph(elephantHead,[0,0,0],[.49,.48,.43],C.elephant);
 
-for (const side of [-1, 1]) {
- sph(elephantHead, [side * .48, .05, -.08], [.43, .40, .13], C.elephantLight);
- sph(elephantHead, [side * .49, .05, .035], [.32, .30, .035], C.innerEar);
- sph(elephantHead, [side * .20, .10, .39], [.06, .075, .04], C.black);
+for(const side of [-1,1]) {
+ sph(elephantHead,[side*.48,.05,-.08],[.43,.40,.13],C.elephantLight);
+ sph(elephantHead,[side*.49,.05,.035],[.32,.30,.035],C.innerEar);
+ sph(elephantHead,[side*.20,.10,.39],[.06,.075,.04],C.black);
 
- const tusk = sph(elephantHead, [side * .16, -.30, .40], [.075, .19, .08], C.tusk);
- tusk.rotation.z = side * .2;
+ const tusk = sph(elephantHead,[side*.16,-.30,.40],[.075,.19,.08],C.tusk);
+ tusk.rotation.z = side*.2;
 }
 
 const trunk = new THREE.Group();
-trunk.position.set(0, -.20, .38);
+trunk.position.set(0,-.20,.38);
 elephantHead.add(trunk);
 
-tube(trunk, [
- [0, .02, 0],
- [0, -.20, .12],
- [0, -.44, .16],
- [0, -.60, .08],
- [0, -.58, -.02]
-], .105, C.elephant);
+tube(trunk,[[0,.02,0],[0,-.20,.12],[0,-.44,.16],[0,-.60,.08],[0,-.58,-.02]],.105,C.elephant);
+sph(trunk,[0,-.57,-.015],[.11,.08,.11],C.elephantLight);
 
-sph(trunk, [0, -.57, -.015], [.11, .08, .11], C.elephantLight);
-const elephantMouth = sph(elephantHead, [0, -.40, .40], [.12, .025, .025], C.black);
+const elephantMouth = sph(elephantHead,[0,-.40,.40],[.12,.025,.025],C.black);
 
 const elephantLegs = [];
-
-for (const x of [-.37, .37]) {
- for (const z of [-.48, .48]) {
+for(const x of [-.37,.37]) {
+ for(const z of [-.48,.48]) {
   const hip = new THREE.Group();
-  hip.position.set(x, .68, z);
+  hip.position.set(x,.68,z);
   elephant.add(hip);
-  cyl(hip, [0, -.22, 0], .16, .18, .44, C.elephant);
-  sph(hip, [0, -.44, .04], [.18, .08, .19], C.elephantLight);
+  cyl(hip,[0,-.22,0],.16,.18,.44,C.elephant);
+  sph(hip,[0,-.44,.04],[.18,.08,.19],C.elephantLight);
   elephantLegs.push(hip);
  }
 }
 
 const elephantTail = new THREE.Group();
-elephantTail.position.set(0, 1.30, -.72);
+elephantTail.position.set(0,1.30,-.72);
 elephant.add(elephantTail);
-tube(elephantTail, [[0,0,0], [0,-.12,-.18], [0,-.32,-.28]], .035, C.elephant);
-sph(elephantTail, [0, -.32, -.28], [.07, .10, .07], C.elephant);
+tube(elephantTail,[[0,0,0],[0,-.12,-.18],[0,-.32,-.28]],.035,C.elephant);
+sph(elephantTail,[0,-.32,-.28],[.07,.10,.07],C.elephant);
 
 // =====================================
 // ANIMATION ACTIONS
 // =====================================
 
-let currentAction = "idle", animTime = 0, rabbitTalking = false, elephantTalking = false;
+let currentAction="idle", animTime=0, rabbitTalking=false, elephantTalking=false;
 
 function setDefaultPose() {
  rabbit.position.set(-1.65,0,0);
@@ -396,6 +435,7 @@ function setDefaultPose() {
 
 function inferAction(v,i) {
  const t=String(v||"").toLowerCase();
+
  if(/jump|hop|leap|कूद|उछल/.test(t))return "jump";
  if(/run|running|rush|दौड़|भाग/.test(t))return "run";
  if(/walk|walking|approach|moves toward|चल|आता है|आती है/.test(t))return "walk";
@@ -403,6 +443,7 @@ function inferAction(v,i) {
  if(/hug|friend|together|smile|दोस्त|गले|मुस्कुर/.test(t))return "friends";
  if(/point|show|दिख|इशारा/.test(t))return "point";
  if(/sit|sits|बैठ/.test(t))return "sit";
+
  return ["search","sit","walk","talk","help","point","run","friends"][i]||"talk";
 }
 
@@ -412,45 +453,52 @@ function updatePose(dt) {
  setDefaultPose();
  const speed=currentAction==="run"?13:7;
 
- if(currentAction==="search"){
+ if(currentAction==="search") {
   rabbit.position.x=-1.65+Math.sin(t*1.5)*.22;
   rabbitHead.rotation.y=Math.sin(t*2)*.24;
   rabbitLegs.forEach((l,i)=>l.rotation.x=Math.sin(t*speed+i*Math.PI)*.30);
  }
- if(currentAction==="sit"){
+
+ if(currentAction==="sit") {
   rabbit.position.y=-.10;
   rabbitLegs.forEach(l=>l.rotation.x=-.35);
   rabbitHead.rotation.x=.12;
  }
- if(currentAction==="walk"||currentAction==="run"){
+
+ if(currentAction==="walk"||currentAction==="run") {
   rabbit.position.x=-1.65+Math.sin(t*1.1)*.30;
   elephant.position.x=1.75-Math.sin(t*1.1)*.20;
   rabbitLegs.forEach((l,i)=>l.rotation.x=Math.sin(t*speed+i*Math.PI)*.48);
   elephantLegs.forEach((l,i)=>l.rotation.x=Math.sin(t*speed*.7+i*Math.PI)*.25);
  }
- if(currentAction==="jump"){
+
+ if(currentAction==="jump") {
   rabbit.position.y=Math.abs(Math.sin(t*4.5))*.65;
   rabbitLegs.forEach(l=>l.rotation.x=-.4);
  }
- if(currentAction==="help"){
+
+ if(currentAction==="help") {
   rabbit.position.x=-1.20;
   elephant.position.x=1.2;
   trunk.rotation.x=-.48+Math.sin(t*2)*.12;
   elephantHead.rotation.x=-.08;
  }
- if(currentAction==="friends"){
+
+ if(currentAction==="friends") {
   rabbit.position.x=-.85;
   elephant.position.x=.85;
   rabbitHead.rotation.y=.12;
   elephantHead.rotation.y=-.12;
   trunk.rotation.x=-.25+Math.sin(t*2)*.06;
  }
- if(currentAction==="point"){
+
+ if(currentAction==="point") {
   elephant.position.x=1.4;
   trunk.rotation.x=-.55+Math.sin(t*2)*.08;
   rabbitHead.rotation.y=.22;
  }
- if(currentAction==="talk"){
+
+ if(currentAction==="talk") {
   rabbitHead.rotation.x=Math.sin(t*2.8)*.06;
   elephantHead.rotation.x=Math.sin(t*2.2)*.05;
   trunk.rotation.x=Math.sin(t*2)*.12;
@@ -461,8 +509,8 @@ function updatePose(dt) {
  rabbitEars.rotation.z=Math.sin(t*2.5)*.10;
  elephantTail.rotation.x=Math.sin(t*2)*.25;
 
- rabbitMouth.scale.y=rabbitTalking?.018+Math.abs(Math.sin(t*12))*.07:.018;
- elephantMouth.scale.y=elephantTalking?.025+Math.abs(Math.sin(t*10))*.06:.025;
+ rabbitMouth.scale.y=rabbitTalking ? .018+Math.abs(Math.sin(t*12))*.07 : .018;
+ elephantMouth.scale.y=elephantTalking ? .025+Math.abs(Math.sin(t*10))*.06 : .025;
 }
 
 function resize() {
@@ -479,9 +527,13 @@ const clock=new THREE.Clock();
 function renderLoop() {
  requestAnimationFrame(renderLoop);
  const dt=Math.min(clock.getDelta(),.05);
+
  if(isPlaying)updatePose(dt);
- renderer.render(world,camera);
+ else renderer.render(world,camera);
+
+ if(isPlaying)renderer.render(world,camera);
 }
+
 setDefaultPose();
 renderLoop();
 
@@ -491,34 +543,43 @@ renderLoop();
 
 function renderScenes() {
  sceneList.innerHTML="";
+
  scenes.forEach((s,i)=>{
   const box=document.createElement("div");
   box.className="scene";
   box.id="scene-"+i;
+
   const h=document.createElement("h3");
   h.textContent="🎬 Scene "+s.number;
   box.appendChild(h);
+
   const a=document.createElement("div");
   a.className="meta";
   a.textContent="VISUAL ACTION";
   box.appendChild(a);
+
   const v=document.createElement("p");
   v.textContent=s.visual;
   box.appendChild(v);
+
   const b=document.createElement("div");
   b.className="meta";
   b.textContent="VOICE / DIALOGUE";
   box.appendChild(b);
+
   const q=document.createElement("p");
   q.textContent=s.voice;
   box.appendChild(q);
+
   sceneList.appendChild(box);
  });
 }
 
 function highlightScene(i) {
  currentIndex=i;
- scenes.forEach((s,n)=>$("scene-"+n)?.classList.toggle("active",n===i));
+ scenes.forEach((s,n)=>{
+  $("scene-"+n)?.classList.toggle("active",n===i);
+ });
  progress.style.width=((i+1)/scenes.length*100)+"%";
 }
 
@@ -538,6 +599,32 @@ function setTalk(value) {
  elephantTalking=value;
 }
 
+// Lip-sync timing helpers
+function clearLipSyncTimer() {
+ if(lipSyncTimer!==null) {
+  clearTimeout(lipSyncTimer);
+  lipSyncTimer=null;
+ }
+}
+
+function stopLipSync() {
+ clearLipSyncTimer();
+ setTalk(false);
+}
+
+function startLipSync(token) {
+ clearLipSyncTimer();
+ setTalk(false);
+
+ lipSyncTimer=setTimeout(()=>{
+  lipSyncTimer=null;
+
+  if(token===speakToken&&isPlaying&&!speechSynthesis.paused) {
+   setTalk(true);
+  }
+ },LIP_SYNC_DELAY_MS);
+}
+
 function setControls() {
  playBtn.disabled=!scenes.length||isPlaying;
  pauseBtn.disabled=!isPlaying;
@@ -549,36 +636,55 @@ function finishPlayback() {
  isPlaying=false;
  isPaused=false;
  waitingNext=false;
- setTalk(false);
+ stopLipSync();
  setControls();
  playInfo.textContent="Story playback completed.";
- if(recorder&&recorder.state==="recording")setTimeout(stopRecording,700);
+
+ if(recorder&&recorder.state==="recording") {
+  setTimeout(stopRecording,700);
+ }
 }
 
 function speakScene(index,token) {
  if(token!==speakToken||!isPlaying)return;
- if(index>=scenes.length){finishPlayback();return;}
+ if(index>=scenes.length) {
+  finishPlayback();
+  return;
+ }
 
  const item=scenes[index];
+
  highlightScene(index);
  animTime=0;
  currentAction=inferAction(item.visual,index);
- setTalk(true);
+
+ // Mouth stays still until actual browser speech-start notification.
+ stopLipSync();
+
  playInfo.textContent="Scene "+item.number+" / 8 — "+currentAction;
 
  const u=new SpeechSynthesisUtterance(item.voice);
  u.lang=languageInput.value==="Hindi"?"hi-IN":"en-IN";
  u.rate=.92;
+
  const voice=getSelectedVoice();
  if(voice)u.voice=voice;
+
  activeUtterance=u;
+
+ u.onstart=()=>{
+  if(token!==speakToken||!isPlaying)return;
+  startLipSync(token);
+ };
 
  u.onend=()=>{
   if(token!==speakToken||!isPlaying)return;
-  setTalk(false);
+
+  stopLipSync();
   waitingNext=true;
+
   nextTimer=setTimeout(()=>{
-   if(token===speakToken&&isPlaying){
+   if(token===speakToken&&isPlaying) {
     waitingNext=false;
     speakScene(index+1,token);
    }
@@ -588,11 +694,13 @@ function speakScene(index,token) {
  u.onerror=e=>{
   if(token!==speakToken)return;
   if(e.error==="canceled"||e.error==="interrupted")return;
-  setTalk(false);
+
+  stopLipSync();
   playInfo.textContent="Voice error: "+e.error;
   waitingNext=true;
+
   nextTimer=setTimeout(()=>{
-   if(token===speakToken&&isPlaying){
+   if(token===speakToken&&isPlaying) {
     waitingNext=false;
     speakScene(index+1,token);
    }
@@ -602,24 +710,34 @@ function speakScene(index,token) {
  speechSynthesis.speak(u);
 }
 
+// Restore lip motion after a paused utterance resumes.
+speechSynthesis.addEventListener("resume",()=>{
+ if(isPlaying&&activeUtterance) {
+  startLipSync(speakToken);
+ }
+});
+
 function playStory() {
  if(!scenes.length)return;
 
- if(isPaused){
+ if(isPaused) {
   isPaused=false;
   isPlaying=true;
   setControls();
-  if(waitingNext){
+
+  if(waitingNext) {
    clearTimeout(nextTimer);
    waitingNext=false;
    speakScene(currentIndex+1,speakToken);
-  }else{
+  } else {
    speechSynthesis.resume();
+   startLipSync(speakToken);
   }
+
   return;
  }
 
- if(currentIndex>=scenes.length-1){
+ if(currentIndex>=scenes.length-1) {
   currentIndex=-1;
   progress.style.width="0%";
   setDefaultPose();
@@ -628,16 +746,18 @@ function playStory() {
  isPlaying=true;
  speakToken++;
  setControls();
+
  speakScene(currentIndex<0?0:currentIndex,speakToken);
 }
 
 function pauseStory() {
  if(!isPlaying)return;
+
  isPlaying=false;
  isPaused=true;
  speechSynthesis.pause();
  clearTimeout(nextTimer);
- setTalk(false);
+ stopLipSync();
  setControls();
  playInfo.textContent="Playback paused.";
 }
@@ -645,14 +765,17 @@ function pauseStory() {
 function resetPlayback() {
  speakToken++;
  clearTimeout(nextTimer);
+ stopLipSync();
  speechSynthesis.cancel();
+
  isPlaying=false;
  isPaused=false;
  waitingNext=false;
- setTalk(false);
+ activeUtterance=null;
  currentIndex=-1;
  animTime=0;
  progress.style.width="0%";
+
  setDefaultPose();
  setControls();
 }
@@ -660,7 +783,10 @@ function resetPlayback() {
 function stopStory() {
  resetPlayback();
  playInfo.textContent="Story stopped.";
- if(recorder&&recorder.state==="recording")stopRecording();
+
+ if(recorder&&recorder.state==="recording") {
+  stopRecording();
+ }
 }
 
 playBtn.addEventListener("click",playStory);
@@ -674,24 +800,26 @@ stopBtn.addEventListener("click",stopStory);
 async function generateStory() {
  const idea=ideaInput.value.trim();
 
- if(!idea){
+ if(!idea) {
   setStatus("Story Idea लिही.","error");
   return;
  }
 
- if(idea.length>4000){
+ if(idea.length>4000) {
   setStatus("Story Idea 4,000 characters पेक्षा मोठी आहे.","error");
   return;
  }
 
  let savedCharacterLock="";
 
- if(modeInput.value==="reuse"){
+ if(modeInput.value==="reuse") {
   const p=packs.find(x=>x.id===savedPackInput.value);
-  if(!p){
+
+  if(!p) {
    setStatus("Saved Character Pack निवड.","error");
    return;
   }
+
   savedCharacterLock=p.characterLock;
  }
 
@@ -702,10 +830,13 @@ async function generateStory() {
  downloadLink.classList.add("hidden");
  setStatus("AI तुझी 8-scene story तयार करत आहे. पुन्हा क्लिक करू नकोस.");
 
- try{
+ try {
   const response=await fetch(API_URL,{
    method:"POST",
-   headers:{"Content-Type":"application/json","Accept":"application/json"},
+   headers:{
+    "Content-Type":"application/json",
+    "Accept":"application/json"
+   },
    body:JSON.stringify({
     action:"generate-story",
     story:idea,
@@ -721,37 +852,46 @@ async function generateStory() {
   const raw=await response.text();
   let data;
 
-  try{
+  try {
    data=JSON.parse(raw);
-  }catch(e){
+  } catch(e) {
    throw new Error("Worker ने valid JSON परत केला नाही. HTTP "+response.status);
   }
 
-  if(!response.ok||!data.success){
+  if(!response.ok||!data.success) {
    throw new Error(data.error||("HTTP "+response.status));
   }
 
   scenes=normalizeStory(data);
   storyData=data;
   characterLockBox.textContent=data.characterLock||"No character lock returned.";
-  renderScenes();
 
+  renderScenes();
   app.classList.toggle("portrait",ratioInput.value==="9:16");
   resize();
+
   studioResult.style.display="block";
   playBtn.disabled=false;
   recordBtn.disabled=false;
   setControls();
 
   playInfo.textContent="8 scenes ready. Preview the story or create the final video.";
-  setStatus("✅ AI Story तयार झाली! 8 scenes आणि Character Lock तयार आहेत.","success");
 
-  studioResult.scrollIntoView({behavior:"smooth",block:"start"});
+  setStatus(
+   "✅ AI Story तयार झाली! 8 scenes आणि Character Lock तयार आहेत.",
+   "success"
+  );
 
- }catch(e){
+  studioResult.scrollIntoView({
+   behavior:"smooth",
+   block:"start"
+  });
+
+ } catch(e) {
   console.error(e);
   setStatus("❌ "+(e.message||"Story generation failed."),"error");
- }finally{
+
+ } finally {
   generateBtn.disabled=false;
   generateBtn.textContent="✨ Generate AI Story";
  }
@@ -761,23 +901,25 @@ generateBtn.addEventListener("click",generateStory);
 
 $("clearBtn").addEventListener("click",()=>{
  if(generateBtn.disabled||recorder)return;
+
  ideaInput.value="";
  studioResult.style.display="none";
  scenes=[];
  storyData=null;
+
  resetPlayback();
  setStatus("Form cleared. Enter a new story idea.");
 });
 
 $("savePackBtn").addEventListener("click",()=>{
- if(!storyData?.characterLock){
+ if(!storyData?.characterLock) {
   setStatus("आधी story generate कर.","error");
   return;
  }
 
  const name=$("packName").value.trim();
 
- if(!name){
+ if(!name) {
   setStatus("Character Pack चे नाव लिही.","error");
   return;
  }
@@ -788,18 +930,19 @@ $("savePackBtn").addEventListener("click",()=>{
   characterLock:storyData.characterLock
  });
 
- if(!savePacks()){
+ if(!savePacks()) {
   packs.pop();
   return;
  }
 
  refreshPacks();
  $("packName").value="";
+
  setStatus("✅ Character Pack या browser मध्ये save झाला.","success");
 });
 
 // =====================================
-// STEREO MIX VIDEO EXPORT - AUDIO SYNC FIX
+// STEREO MIX VIDEO EXPORT
 // =====================================
 
 function normLabel(s) {
@@ -807,15 +950,19 @@ function normLabel(s) {
 }
 
 async function getStereoMix() {
- if(!navigator.mediaDevices?.getUserMedia||!navigator.mediaDevices?.enumerateDevices){
+ if(!navigator.mediaDevices?.getUserMedia||
+    !navigator.mediaDevices?.enumerateDevices) {
   throw new Error("हा browser audio input capture support करत नाही.");
  }
 
  const devices=await navigator.mediaDevices.enumerateDevices();
  const inputs=devices.filter(d=>d.kind==="audioinput");
- const device=inputs.find(d=>normLabel(d.label).includes("stereomix"));
 
- if(!device?.deviceId){
+ const device=inputs.find(d=>
+  normLabel(d.label).includes("stereomix")
+ );
+
+ if(!device?.deviceId) {
   throw new Error("Chrome ला Stereo Mix दिसत नाही. Windows Sound > Recording मध्ये Stereo Mix enabled ठेव आणि Chrome ला audio-input permission दे.");
  }
 
@@ -829,14 +976,14 @@ async function getStereoMix() {
   video:false
  });
 
- if(!stream.getAudioTracks().length){
+ if(!stream.getAudioTracks().length) {
   stream.getTracks().forEach(t=>t.stop());
   throw new Error("Stereo Mix audio track मिळाला नाही.");
  }
 
  const actual=stream.getAudioTracks()[0].getSettings().deviceId;
 
- if(actual&&actual!==device.deviceId){
+ if(actual&&actual!==device.deviceId) {
   stream.getTracks().forEach(t=>t.stop());
   throw new Error("Browser ने Stereo Mix ऐवजी वेगळा input निवडला; recording थांबवली.");
  }
@@ -845,42 +992,48 @@ async function getStereoMix() {
 }
 
 async function cleanupRecord() {
- try{if(audioInputNode)audioInputNode.disconnect();}catch(e){}
+ try {
+  if(audioInputNode)audioInputNode.disconnect();
+ } catch(e) {}
+
  audioInputNode=null;
 
- try{
-  if(silentOscillator){
+ try {
+  if(silentOscillator) {
    silentOscillator.stop();
    silentOscillator.disconnect();
   }
- }catch(e){}
+ } catch(e) {}
 
  silentOscillator=null;
 
- try{if(silentGain)silentGain.disconnect();}catch(e){}
+ try {
+  if(silentGain)silentGain.disconnect();
+ } catch(e) {}
+
  silentGain=null;
 
- if(audioDestination){
+ if(audioDestination) {
   audioDestination.stream.getTracks().forEach(t=>t.stop());
   audioDestination=null;
  }
 
- if(audioContext){
-  try{await audioContext.close();}catch(e){}
+ if(audioContext) {
+  try { await audioContext.close(); } catch(e) {}
   audioContext=null;
  }
 
- if(canvasStream){
+ if(canvasStream) {
   canvasStream.getTracks().forEach(t=>t.stop());
   canvasStream=null;
  }
 
- if(stereoMixStream){
+ if(stereoMixStream) {
   stereoMixStream.getTracks().forEach(t=>t.stop());
   stereoMixStream=null;
  }
 
- if(recordingStream){
+ if(recordingStream) {
   recordingStream.getTracks().forEach(t=>t.stop());
   recordingStream=null;
  }
@@ -891,7 +1044,7 @@ async function cleanupRecord() {
 async function startRecording() {
  if(!scenes.length||recorder||isPlaying||isPaused)return;
 
- if(!renderer.domElement.captureStream||!window.MediaRecorder){
+ if(!renderer.domElement.captureStream||!window.MediaRecorder) {
   setStatus("या browser मध्ये canvas video recording support नाही.","error");
   return;
  }
@@ -904,11 +1057,10 @@ async function startRecording() {
 
  setStatus("Stereo Mix आणि continuous audio clock तयार करत आहे. Chrome permission विचारल्यास Allow कर.");
 
- try{
-  // Start the audio clock directly from the Record-button click.
+ try {
   const AudioContextClass=window.AudioContext||window.webkitAudioContext;
 
-  if(!AudioContextClass){
+  if(!AudioContextClass) {
    throw new Error("या browser मध्ये Web Audio API उपलब्ध नाही.");
   }
 
@@ -916,8 +1068,7 @@ async function startRecording() {
   const resumePromise=audioContext.resume();
   audioDestination=audioContext.createMediaStreamDestination();
 
-  // Generate continuous silent frames from the beginning of the recording.
-  // This prevents the WebM audio track from receiving a late start timestamp.
+  // Continuous silent audio from the beginning keeps WebM track timing stable.
   silentOscillator=audioContext.createOscillator();
   silentGain=audioContext.createGain();
   silentGain.gain.value=0;
@@ -929,18 +1080,18 @@ async function startRecording() {
   stereoMixStream=await getStereoMix();
   await resumePromise;
 
-  if(audioContext.state!=="running"){
+  if(audioContext.state!=="running") {
    throw new Error("Audio clock सुरू होऊ शकला नाही. पुन्हा Record क्लिक कर.");
   }
 
-  // Only Stereo Mix is connected. The physical microphone is never selected.
+  // Only Stereo Mix is routed. No physical microphone is selected.
   audioInputNode=audioContext.createMediaStreamSource(stereoMixStream);
+
   const inputGain=audioContext.createGain();
   inputGain.gain.value=1;
   audioInputNode.connect(inputGain);
   inputGain.connect(audioDestination);
 
-  // Warm up the continuous audio track before recording starts.
   await new Promise(resolve=>setTimeout(resolve,300));
 
   renderer.render(world,camera);
@@ -949,11 +1100,14 @@ async function startRecording() {
   const videoTracks=canvasStream.getVideoTracks();
   const audioTracks=audioDestination.stream.getAudioTracks();
 
-  if(!videoTracks.length||!audioTracks.length){
+  if(!videoTracks.length||!audioTracks.length) {
    throw new Error("Video किंवा continuous Stereo Mix audio track तयार झाला नाही.");
   }
 
-  recordingStream=new MediaStream([videoTracks[0],audioTracks[0]]);
+  recordingStream=new MediaStream([
+   videoTracks[0],
+   audioTracks[0]
+  ]);
 
   const types=[
    "video/webm;codecs=vp8,opus",
@@ -966,8 +1120,15 @@ async function startRecording() {
   recorder=new MediaRecorder(
    recordingStream,
    mime
-    ? {mimeType:mime,videoBitsPerSecond:2500000,audioBitsPerSecond:128000}
-    : {videoBitsPerSecond:2500000,audioBitsPerSecond:128000}
+    ? {
+       mimeType:mime,
+       videoBitsPerSecond:2500000,
+       audioBitsPerSecond:128000
+      }
+    : {
+       videoBitsPerSecond:2500000,
+       audioBitsPerSecond:128000
+      }
   );
 
   const active=recorder;
@@ -984,9 +1145,8 @@ async function startRecording() {
   active.onstart=()=>{
    setStatus("🔴 Recording सुरू आहे. Video आणि continuous Stereo Mix audio एकाच timeline वर record होत आहेत.");
 
-   // Start narration as soon as MediaRecorder confirms that recording began.
    requestAnimationFrame(()=>{
-    if(recorder===active&&active.state==="recording"){
+    if(recorder===active&&active.state==="recording") {
      playStory();
     }
    });
@@ -1001,7 +1161,7 @@ async function startRecording() {
    recorder=null;
    setControls();
 
-   if(blob.size<1024){
+   if(blob.size<1024) {
     setStatus("Recording file रिकामी आहे. Stereo Mix आणि playback तपास.","error");
     return;
    }
@@ -1010,6 +1170,7 @@ async function startRecording() {
 
    downloadURL=URL.createObjectURL(blob);
    downloadLink.href=downloadURL;
+
    downloadLink.download=
     "apna-creator-ai-cartoon-"+languageInput.value.toLowerCase()+".webm";
 
@@ -1027,7 +1188,7 @@ async function startRecording() {
 
   active.start(1000);
 
- }catch(e){
+ } catch(e) {
   console.error(e);
   await cleanupRecord();
   recorder=null;
@@ -1042,10 +1203,10 @@ function stopRecording() {
  stopRequested=true;
  setStatus("Video आणि synchronized Stereo Mix audio finalize होत आहेत...");
 
- try{recorder.requestData();}catch(e){}
+ try { recorder.requestData(); } catch(e) {}
 
  setTimeout(()=>{
-  if(recorder&&recorder.state==="recording"){
+  if(recorder&&recorder.state==="recording") {
    recorder.stop();
   }
  },350);
@@ -1053,10 +1214,7 @@ function stopRecording() {
 
 recordBtn.addEventListener("click",startRecording);
 
-// =====================================
-// INITIAL STATE
-// =====================================
-
+// Initial state
 refreshPacks();
 setControls();
 resize();
