@@ -6,69 +6,183 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Apna Creator AI Studio</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#eef2f8;color:#172033;font-family:Arial,sans-serif}.wrap{max-width:1120px;margin:auto;padding:16px}.hero{background:#172554;color:white;padding:23px;border-radius:16px;margin-bottom:16px}.hero h1{margin:0 0 7px;font-size:26px}.hero p{margin:0;color:#dbeafe;line-height:1.5}.card{background:#fff;border-radius:14px;padding:18px;margin-bottom:15px;box-shadow:0 4px 18px #14213d10}h2{font-size:19px;margin:0 0 13px}label{display:block;font-size:13px;font-weight:bold;margin:0 0 7px}textarea,select,input{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;color:#172033;font-size:14px}textarea{min-height:95px;resize:vertical;line-height:1.5}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:13px}.field{min-width:0}.controls{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}button{border:0;border-radius:8px;padding:12px 16px;background:#2563eb;color:#fff;font-weight:bold;cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}.green{background:#15803d}.dark{background:#475569}.red{background:#b91c1c}.outline{background:#e2e8f0;color:#172033}#status{margin-top:13px;padding:12px;border-radius:9px;background:#eff6ff;white-space:pre-wrap;font-size:14px;line-height:1.5}#status.success{background:#dcfce7;color:#166534}#status.error{background:#fee2e2;color:#991b1b}.small{font-size:12px;color:#64748b;line-height:1.5}.hidden{display:none!important}.packrow{display:grid;grid-template-columns:1fr auto;gap:9px;margin-top:12px}.packrow input{min-width:0}#studioResult{display:none}#stage{width:100%;height:490px;overflow:hidden;border-radius:12px;background:#b7def5}#stage canvas{display:block;width:100%;height:100%}.portrait #stage{height:620px;max-width:390px;margin:auto}.scene{padding:12px;border:1px solid #e2e8f0;border-radius:9px;margin-top:9px}.scene.active{border-color:#2563eb;background:#eff6ff}.scene h3{margin:0 0 8px;font-size:15px;color:#1d4ed8}.meta{font-size:11px;color:#64748b;font-weight:bold;margin:8px 0 4px}.scene p{font-size:13px;line-height:1.5;margin:0;white-space:pre-wrap}.bar{height:8px;border-radius:20px;background:#e2e8f0;overflow:hidden;margin-top:12px}.bar div{height:100%;width:0;background:#2563eb}.tag{display:inline-block;font-size:11px;padding:5px 8px;border-radius:20px;background:#e0ecff;color:#1d4ed8;margin-right:5px}.warning{padding:11px;border-radius:8px;background:#fff7ed;color:#9a3412;font-size:12px;line-height:1.5;margin-top:10px}@media(max-width:650px){.wrap{padding:9px}.hero{padding:18px}.hero h1{font-size:22px}.card{padding:14px}.grid{grid-template-columns:1fr}button{flex:1}.packrow{grid-template-columns:1fr}.portrait #stage{height:560px}}
+*{box-sizing:border-box}
+body{margin:0;background:#eef2f8;color:#172033;font-family:Arial,sans-serif}
+.wrap{max-width:1120px;margin:auto;padding:16px}
+.hero{background:#172554;color:white;padding:23px;border-radius:16px;margin-bottom:16px}
+.hero h1{margin:0 0 7px;font-size:26px}
+.hero p{margin:0;color:#dbeafe;line-height:1.5}
+.card{background:#fff;border-radius:14px;padding:18px;margin-bottom:15px;box-shadow:0 4px 18px #14213d10}
+h2{font-size:19px;margin:0 0 13px}
+label{display:block;font-size:13px;font-weight:bold;margin:0 0 7px}
+textarea,select,input{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;color:#172033;font-size:14px}
+textarea{min-height:95px;resize:vertical;line-height:1.5}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:13px}
+.field{min-width:0}
+.controls{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}
+button{border:0;border-radius:8px;padding:12px 16px;background:#2563eb;color:#fff;font-weight:bold;cursor:pointer}
+button:disabled{opacity:.5;cursor:not-allowed}
+.green{background:#15803d}
+.dark{background:#475569}
+.red{background:#b91c1c}
+.outline{background:#e2e8f0;color:#172033}
+#status{margin-top:13px;padding:12px;border-radius:9px;background:#eff6ff;white-space:pre-wrap;font-size:14px;line-height:1.5}
+#status.success{background:#dcfce7;color:#166534}
+#status.error{background:#fee2e2;color:#991b1b}
+.small{font-size:12px;color:#64748b;line-height:1.5}
+.hidden{display:none!important}
+.packrow{display:grid;grid-template-columns:1fr auto;gap:9px;margin-top:12px}
+.packrow input{min-width:0}
+#studioResult{display:none}
+#stage{width:100%;height:490px;overflow:hidden;border-radius:12px;background:#b7def5}
+#stage canvas{display:block;width:100%;height:100%}
+.portrait #stage{height:620px;max-width:390px;margin:auto}
+.scene{padding:12px;border:1px solid #e2e8f0;border-radius:9px;margin-top:9px}
+.scene.active{border-color:#2563eb;background:#eff6ff}
+.scene h3{margin:0 0 8px;font-size:15px;color:#1d4ed8}
+.meta{font-size:11px;color:#64748b;font-weight:bold;margin:8px 0 4px}
+.scene p{font-size:13px;line-height:1.5;margin:0;white-space:pre-wrap}
+.bar{height:8px;border-radius:20px;background:#e2e8f0;overflow:hidden;margin-top:12px}
+.bar div{height:100%;width:0;background:#2563eb}
+.tag{display:inline-block;font-size:11px;padding:5px 8px;border-radius:20px;background:#e0ecff;color:#1d4ed8;margin-right:5px}
+.warning{padding:11px;border-radius:8px;background:#fff7ed;color:#9a3412;font-size:12px;line-height:1.5;margin-top:10px}
+@media(max-width:650px){
+ .wrap{padding:9px}
+ .hero{padding:18px}
+ .hero h1{font-size:22px}
+ .card{padding:14px}
+ .grid{grid-template-columns:1fr}
+ button{flex:1}
+ .packrow{grid-template-columns:1fr}
+ .portrait #stage{height:560px}
+}
 </style>
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js"}}</script>
+
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js"}}
+</script>
 </head>
+
 <body>
 <div class="wrap" id="app">
- <div class="hero"><h1>🎬 Apna Creator AI Studio</h1><p>One story idea → AI script → 3D cartoon preview → narration → WEBM download.</p></div>
+
+ <div class="hero">
+  <h1>🎬 Apna Creator AI Studio</h1>
+  <p>One story idea → AI script → 3D cartoon preview → narration → WEBM download.</p>
+ </div>
 
  <section class="card">
   <h2>1. Create Your Cartoon</h2>
+
   <label for="idea">Your Story Idea</label>
   <textarea id="idea" maxlength="4000">A little rabbit gets lost in a jungle. A friendly elephant helps the rabbit find its mother. At the end, they become good friends.</textarea>
+
   <div class="grid">
-   <div><label for="language">Story Language</label><select id="language"><option value="Hindi">Hindi</option><option value="English">English</option></select></div>
-   <div><label for="ratio">Video Format</label><select id="ratio"><option value="16:9">16:9 - YouTube Long Video</option><option value="9:16">9:16 - YouTube Shorts</option></select></div>
-   <div><label for="style">Cartoon Style</label><select id="style"><option>3D Cartoon</option><option>2D Cartoon</option><option>Kids Cartoon</option></select></div>
-   <div><label for="characterMode">Character Mode</label><select id="characterMode"><option value="new">Create New Characters</option><option value="reuse">Reuse My Characters</option></select></div>
-   <div id="savedPackWrap" class="hidden"><label for="savedPack">Saved Character Pack</label><select id="savedPack"></select></div>
+   <div>
+    <label for="language">Story Language</label>
+    <select id="language">
+     <option value="Hindi">Hindi</option>
+     <option value="English">English</option>
+    </select>
+   </div>
+
+   <div>
+    <label for="ratio">Video Format</label>
+    <select id="ratio">
+     <option value="16:9">16:9 - YouTube Long Video</option>
+     <option value="9:16">9:16 - YouTube Shorts</option>
+    </select>
+   </div>
+
+   <div>
+    <label for="style">Cartoon Style</label>
+    <select id="style">
+     <option>3D Cartoon</option>
+     <option>2D Cartoon</option>
+     <option>Kids Cartoon</option>
+    </select>
+   </div>
+
+   <div>
+    <label for="characterMode">Character Mode</label>
+    <select id="characterMode">
+     <option value="new">Create New Characters</option>
+     <option value="reuse">Reuse My Characters</option>
+    </select>
+   </div>
+
+   <div id="savedPackWrap" class="hidden">
+    <label for="savedPack">Saved Character Pack</label>
+    <select id="savedPack"></select>
+   </div>
   </div>
+
   <p class="small">Current MVP: 1 minute, 8 scenes. The current 3D rig is designed for Rabbit + Elephant stories. Other character rigs are a later stage.</p>
-  <div class="controls"><button id="generateBtn">✨ Generate AI Story</button><button id="clearBtn" class="dark">Clear</button></div>
+
+  <div class="controls">
+   <button id="generateBtn">✨ Generate AI Story</button>
+   <button id="clearBtn" class="dark">Clear</button>
+  </div>
+
   <div id="status">Ready. Enter a story idea and generate your script.</div>
  </section>
 
  <section id="studioResult">
+
   <section class="card">
    <h2>2. Character Design</h2>
    <div id="characterLock" class="small"></div>
-   <div class="packrow"><input id="packName" placeholder="Name this character pack"><button id="savePackBtn" class="green">💾 Save Characters</button></div>
+
+   <div class="packrow">
+    <input id="packName" placeholder="Name this character pack">
+    <button id="savePackBtn" class="green">💾 Save Characters</button>
+   </div>
   </section>
 
   <section class="card">
    <h2>3. 3D Cartoon Preview</h2>
    <div id="stage"></div>
+
    <div class="controls">
     <button id="playBtn" class="green" disabled>▶ Play Story</button>
     <button id="pauseBtn" class="dark" disabled>⏸ Pause</button>
     <button id="stopBtn" class="red" disabled>⏹ Stop</button>
     <button id="recordBtn" disabled>🔴 Create & Download Video</button>
    </div>
+
    <div class="bar"><div id="progress"></div></div>
    <p class="small" id="playInfo">Generate a story first. Then preview or record it.</p>
-   <div class="warning">Audio recording uses Windows Stereo Mix only. Rabbit has a higher pitch and Elephant a lower pitch. Only the selected speaker's mouth moves. A physical microphone is not added.</div>
-   <a id="downloadLink" class="hidden" download="apna-creator-ai-cartoon.webm" style="display:block;margin-top:14px;background:#dcfce7;color:#166534;text-align:center;text-decoration:none;padding:14px;border-radius:9px;font-weight:bold">⬇ Download WEBM Cartoon</a>
+
+   <div class="warning">
+    Audio recording uses Windows Stereo Mix only, routed through a continuous Web Audio clock to keep voice and video synchronized. A physical microphone is not added. Keep laptop speakers on and allow audio-input permission if Chrome asks.
+   </div>
+
+   <a id="downloadLink" class="hidden" download="apna-creator-ai-cartoon.webm" style="display:block;margin-top:14px;background:#dcfce7;color:#166534;text-align:center;text-decoration:none;padding:14px;border-radius:9px;font-weight:bold">
+    ⬇ Download WEBM Cartoon
+   </a>
   </section>
 
   <section class="card">
    <h2>4. AI Storyboard - 8 Scenes</h2>
    <div id="sceneList"></div>
   </section>
+
  </section>
 
  <section class="card">
   <h2>Current MVP Limits</h2>
-  <p class="small">Each scene includes a speaker label. Rabbit and Elephant use different browser voice pitch settings and speaker-specific mouth movement. Recording uses Stereo Mix audio activity for approximate lip-sync. This is not phoneme-level lip-sync. Export is WEBM, not MP4.</p>
+  <p class="small">
+   This first integrated build uses the Rabbit and Elephant procedural 3D characters. It animates actions inferred from each scene's Visual description and speaks the AI dialogue with the browser voice. During recording, lip movement follows audio activity measured from the actual Stereo Mix recording input; it is not phoneme-synced. Export is WEBM, not MP4. Each scene includes a speaker label. Rabbit and Elephant use different pitch settings and speaker-specific lip movement. Scene images and arbitrary new 3D models are not generated yet.
+  </p>
  </section>
+
 </div>
 
 <script type="module">
 import * as THREE from "three";
 
 // =====================================
-// APNA CREATOR AI - SPEAKER VERSION
+// APNA CREATOR AI - INTEGRATED MVP
 // =====================================
 
 const API_URL = "https://apna-creator-ai.apnacreatorai.workers.dev/";
@@ -132,9 +246,15 @@ let speechActiveFrames = 0;
 
 let silentOscillator = null;
 let silentGain = null;
+
+// IMPORTANT: voices is declared only once in this file.
 let voices = [];
 
-function setStatus(message, type="") {
+// =====================================
+// GENERAL HELPERS
+// =====================================
+
+function setStatus(message, type = "") {
  statusBox.textContent = message;
  statusBox.className = type;
 }
@@ -174,7 +294,9 @@ function refreshPacks() {
   savedPackInput.appendChild(o);
  });
 
- if (packs.some(p => p.id === old)) savedPackInput.value = old;
+ if (packs.some(p => p.id === old)) {
+  savedPackInput.value = old;
+ }
 }
 
 modeInput.addEventListener("change", () => {
@@ -182,7 +304,7 @@ modeInput.addEventListener("change", () => {
 });
 
 // =====================================
-// TEXT NORMALIZATION
+// STORY NORMALIZATION
 // =====================================
 
 function cleanVoice(text, language) {
@@ -196,9 +318,11 @@ function cleanVoice(text, language) {
 
  if (chars.length > 180) {
   const first = (s.match(/^.*?[.!?।](?:\s|$)/u) || [])[0]?.trim() || s;
+
   s = Array.from(first).length <= 180
    ? first
-   : Array.from(s).slice(0,179).join("").replace(/\s+\S*$/u,"").trim()+"…";
+   : Array.from(s).slice(0, 179).join("")
+      .replace(/\s+\S*$/u, "").trim() + "…";
  }
 
  return s;
@@ -208,24 +332,23 @@ function cleanVisual(text) {
  let s = String(text || "").replace(/\s+/g, " ").trim();
 
  if (Array.from(s).length > 260) {
-  s = Array.from(s).slice(0,259).join("")
-   .replace(/\s+\S*$/u, "").trim()+"…";
+  s = Array.from(s).slice(0, 259).join("")
+   .replace(/\s+\S*$/u, "").trim() + "…";
  }
 
  return s;
 }
 
-// This list is used only when a Worker response has no Speaker field.
-function normalizeSpeaker(value,index) {
- const allowed = ["Rabbit","Elephant","Narrator"];
+function normalizeSpeaker(value, index) {
+ const allowed = ["Rabbit", "Elephant", "Narrator"];
 
  if (allowed.includes(String(value || "").trim())) {
   return String(value).trim();
  }
 
  const fallback = [
-  "Rabbit","Rabbit","Elephant","Rabbit",
-  "Elephant","Elephant","Rabbit","Elephant"
+  "Rabbit", "Rabbit", "Elephant", "Rabbit",
+  "Elephant", "Elephant", "Rabbit", "Elephant"
  ];
 
  return fallback[index] || "Narrator";
@@ -236,11 +359,11 @@ function normalizeStory(data) {
   throw new Error("AI response मध्ये अचूक 8 scenes नाहीत.");
  }
 
- const out = data.scenes.map((s,i) => ({
-  number: i+1,
-  speaker: normalizeSpeaker(s.speaker,i),
+ const out = data.scenes.map((s, i) => ({
+  number: i + 1,
+  speaker: normalizeSpeaker(s.speaker, i),
   visual: cleanVisual(s.visual),
-  voice: cleanVoice(s.voice,data.language || languageInput.value)
+  voice: cleanVoice(s.voice, data.language || languageInput.value)
  }));
 
  if (out.some(s => !s.visual || !s.voice)) {
@@ -257,47 +380,59 @@ function normalizeStory(data) {
 const stage = $("stage");
 
 const renderer = new THREE.WebGLRenderer({
- antialias:true,
- powerPreference:"low-power"
+ antialias: true,
+ powerPreference: "low-power"
 });
 
-renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1,1.5));
-renderer.setSize(stage.clientWidth,stage.clientHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+renderer.setSize(stage.clientWidth, stage.clientHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.shadowMap.enabled = true;
 stage.appendChild(renderer.domElement);
 
 const world = new THREE.Scene();
 world.background = new THREE.Color(0xb7def5);
-world.fog = new THREE.Fog(0xb7def5,18,42);
+world.fog = new THREE.Fog(0xb7def5, 18, 42);
 
 const camera = new THREE.PerspectiveCamera(
- 38,stage.clientWidth/stage.clientHeight,.1,100
+ 38, stage.clientWidth / stage.clientHeight, .1, 100
 );
-camera.position.set(0,3.4,10.7);
-camera.lookAt(0,1.4,0);
+camera.position.set(0, 3.4, 10.7);
+camera.lookAt(0, 1.4, 0);
 
-world.add(new THREE.HemisphereLight(0xffffff,0x64744d,2));
+world.add(new THREE.HemisphereLight(0xffffff, 0x64744d, 2));
 
-const sun = new THREE.DirectionalLight(0xffffff,2.2);
-sun.position.set(-4,9,6);
+const sun = new THREE.DirectionalLight(0xffffff, 2.2);
+sun.position.set(-4, 9, 6);
 sun.castShadow = true;
 world.add(sun);
 
-const mat = c => new THREE.MeshStandardMaterial({color:c,roughness:.82});
+const mat = c => new THREE.MeshStandardMaterial({
+ color: c,
+ roughness: .82
+});
 
 const C = {
- grass:mat(0x7eae64),trunk:mat(0x76502f),
- leaf:mat(0x38864c),leaf2:mat(0x4a9955),
- rabbit:mat(0xf2e5d2),cream:mat(0xffffff),
- pink:mat(0xe994a9),black:mat(0x201915),
- nose:mat(0xb96c70),elephant:mat(0x8999ad),
- elephantLight:mat(0xb5c0ce),innerEar:mat(0xc78d9d),
- tusk:mat(0xffe8b3)
+ grass: mat(0x7eae64),
+ trunk: mat(0x76502f),
+ leaf: mat(0x38864c),
+ leaf2: mat(0x4a9955),
+ rabbit: mat(0xf2e5d2),
+ cream: mat(0xffffff),
+ pink: mat(0xe994a9),
+ black: mat(0x201915),
+ nose: mat(0xb96c70),
+ elephant: mat(0x8999ad),
+ elephantLight: mat(0xb5c0ce),
+ innerEar: mat(0xc78d9d),
+ tusk: mat(0xffe8b3)
 };
 
-function sph(parent,pos,scale,material,name="part") {
- const m = new THREE.Mesh(new THREE.SphereGeometry(1,18,14),material);
+function sph(parent, pos, scale, material, name = "part") {
+ const m = new THREE.Mesh(
+  new THREE.SphereGeometry(1, 18, 14),
+  material
+ );
  m.position.set(...pos);
  m.scale.set(...scale);
  m.name = name;
@@ -307,8 +442,11 @@ function sph(parent,pos,scale,material,name="part") {
  return m;
 }
 
-function cyl(parent,pos,r1,r2,h,material,name="part") {
- const m = new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,14),material);
+function cyl(parent, pos, r1, r2, h, material, name = "part") {
+ const m = new THREE.Mesh(
+  new THREE.CylinderGeometry(r1, r2, h, 14),
+  material
+ );
  m.position.set(...pos);
  m.castShadow = true;
  m.receiveShadow = true;
@@ -317,35 +455,42 @@ function cyl(parent,pos,r1,r2,h,material,name="part") {
  return m;
 }
 
-function tube(parent,pts,r,material) {
+function tube(parent, pts, r, material) {
  const curve = new THREE.CatmullRomCurve3(
-  pts.map(p=>new THREE.Vector3(...p))
+  pts.map(p => new THREE.Vector3(...p))
  );
- const m = new THREE.Mesh(new THREE.TubeGeometry(curve,18,r,8,false),material);
+ const m = new THREE.Mesh(
+  new THREE.TubeGeometry(curve, 18, r, 8, false),
+  material
+ );
  m.castShadow = true;
  parent.add(m);
  return m;
 }
 
-const floor = new THREE.Mesh(new THREE.PlaneGeometry(60,60),C.grass);
-floor.rotation.x = -Math.PI/2;
+const floor = new THREE.Mesh(
+ new THREE.PlaneGeometry(60, 60),
+ C.grass
+);
+floor.rotation.x = -Math.PI / 2;
 floor.position.y = -.04;
 floor.receiveShadow = true;
 world.add(floor);
 
-function tree(x,z,h) {
+function tree(x, z, h) {
  const g = new THREE.Group();
- g.position.set(x,0,z);
+ g.position.set(x, 0, z);
  world.add(g);
- cyl(g,[0,h/2,0],.13,.18,h,C.trunk);
- sph(g,[0,h+.25,0],[.78,1,.75],C.leaf);
- sph(g,[.37,h+.07,.03],[.5,.62,.5],C.leaf2);
+
+ cyl(g, [0, h / 2, 0], .13, .18, h, C.trunk);
+ sph(g, [0, h + .25, 0], [.78, 1, .75], C.leaf);
+ sph(g, [.37, h + .07, .03], [.5, .62, .5], C.leaf2);
 }
 
-tree(-4,-2,2.1);
-tree(4,-3,2.5);
-tree(-4,-6,2.3);
-tree(4.3,-7,2.2);
+tree(-4, -2, 2.1);
+tree(4, -3, 2.5);
+tree(-4, -6, 2.3);
+tree(4.3, -7, 2.2);
 
 // =====================================
 // RABBIT CHARACTER
@@ -357,43 +502,46 @@ world.add(rabbit);
 const rb = new THREE.Group();
 rabbit.add(rb);
 
-sph(rb,[0,.91,0],[.43,.48,.62],C.rabbit,"rabbit-body");
-sph(rb,[0,.78,.43],[.30,.32,.20],C.cream);
+sph(rb, [0, .91, 0], [.43, .48, .62], C.rabbit, "rabbit-body");
+sph(rb, [0, .78, .43], [.30, .32, .20], C.cream);
 
 const rabbitHead = new THREE.Group();
-rabbitHead.position.set(0,1.45,.48);
+rabbitHead.position.set(0, 1.45, .48);
 rabbit.add(rabbitHead);
 
-sph(rabbitHead,[0,0,0],[.39,.37,.35],C.rabbit);
+sph(rabbitHead, [0, 0, 0], [.39, .37, .35], C.rabbit);
 
 const rabbitEars = new THREE.Group();
-rabbitEars.position.set(0,.25,-.02);
+rabbitEars.position.set(0, .25, -.02);
 rabbitHead.add(rabbitEars);
 
-for (const side of [-1,1]) {
- const ear = sph(rabbitEars,[side*.16,.32,0],[.105,.39,.09],C.rabbit);
- ear.rotation.z = side*-.12;
+for (const side of [-1, 1]) {
+ const ear = sph(rabbitEars, [side * .16, .32, 0], [.105, .39, .09], C.rabbit);
+ ear.rotation.z = side * -.12;
 
- sph(rabbitEars,[side*.16,.32,.075],[.063,.30,.025],C.pink);
- sph(rabbitHead,[side*.14,.06,.31],[.055,.07,.035],C.black);
+ sph(rabbitEars, [side * .16, .32, .075], [.063, .30, .025], C.pink);
+ sph(rabbitHead, [side * .14, .06, .31], [.055, .07, .035], C.black);
 }
 
-sph(rabbitHead,[0,-.13,.31],[.19,.12,.11],C.cream);
-sph(rabbitHead,[0,-.09,.42],[.06,.045,.035],C.nose);
+sph(rabbitHead, [0, -.13, .31], [.19, .12, .11], C.cream);
+sph(rabbitHead, [0, -.09, .42], [.06, .045, .035], C.nose);
 
-const rabbitMouth = sph(rabbitHead,[0,-.23,.40],[.07,.018,.018],C.black);
+const rabbitMouth = sph(
+ rabbitHead, [0, -.23, .40], [.07, .018, .018], C.black
+);
 
-sph(rb,[0,.88,-.62],[.16,.16,.16],C.cream);
+sph(rb, [0, .88, -.62], [.16, .16, .16], C.cream);
 
 const rabbitLegs = [];
 
-for (const x of [-.25,.25]) {
- for (const z of [-.36,.38]) {
+for (const x of [-.25, .25]) {
+ for (const z of [-.36, .38]) {
   const hip = new THREE.Group();
-  hip.position.set(x,.72,z);
+  hip.position.set(x, .72, z);
   rabbit.add(hip);
-  cyl(hip,[0,-.20,0],.095,.11,.40,C.rabbit);
-  sph(hip,[0,-.40,.07],[.13,.08,.19],C.cream);
+
+  cyl(hip, [0, -.20, 0], .095, .11, .40, C.rabbit);
+  sph(hip, [0, -.40, .07], [.13, .08, .19], C.cream);
   rabbitLegs.push(hip);
  }
 }
@@ -408,59 +556,72 @@ world.add(elephant);
 const eb = new THREE.Group();
 elephant.add(eb);
 
-sph(eb,[0,1.02,0],[.62,.68,.78],C.elephant);
-sph(eb,[0,.82,.48],[.40,.40,.17],C.elephantLight);
+sph(eb, [0, 1.02, 0], [.62, .68, .78], C.elephant);
+sph(eb, [0, .82, .48], [.40, .40, .17], C.elephantLight);
 
 const elephantHead = new THREE.Group();
-elephantHead.position.set(0,1.55,.58);
+elephantHead.position.set(0, 1.55, .58);
 elephant.add(elephantHead);
 
-sph(elephantHead,[0,0,0],[.49,.48,.43],C.elephant);
+sph(elephantHead, [0, 0, 0], [.49, .48, .43], C.elephant);
 
-for (const side of [-1,1]) {
- sph(elephantHead,[side*.48,.05,-.08],[.43,.40,.13],C.elephantLight);
- sph(elephantHead,[side*.49,.05,.035],[.32,.30,.035],C.innerEar);
- sph(elephantHead,[side*.20,.10,.39],[.06,.075,.04],C.black);
+for (const side of [-1, 1]) {
+ sph(elephantHead, [side * .48, .05, -.08], [.43, .40, .13], C.elephantLight);
+ sph(elephantHead, [side * .49, .05, .035], [.32, .30, .035], C.innerEar);
+ sph(elephantHead, [side * .20, .10, .39], [.06, .075, .04], C.black);
 
- const tusk = sph(elephantHead,[side*.16,-.30,.40],[.075,.19,.08],C.tusk);
- tusk.rotation.z = side*.2;
+ const tusk = sph(
+  elephantHead,
+  [side * .16, -.30, .40],
+  [.075, .19, .08],
+  C.tusk
+ );
+ tusk.rotation.z = side * .2;
 }
 
 const trunk = new THREE.Group();
-trunk.position.set(0,-.20,.38);
+trunk.position.set(0, -.20, .38);
 elephantHead.add(trunk);
 
-tube(trunk,[
- [0,.02,0],
- [0,-.20,.12],
- [0,-.44,.16],
- [0,-.60,.08],
- [0,-.58,-.02]
-],.105,C.elephant);
+tube(trunk, [
+ [0, .02, 0],
+ [0, -.20, .12],
+ [0, -.44, .16],
+ [0, -.60, .08],
+ [0, -.58, -.02]
+], .105, C.elephant);
 
-sph(trunk,[0,-.57,-.015],[.11,.08,.11],C.elephantLight);
+sph(trunk, [0, -.57, -.015], [.11, .08, .11], C.elephantLight);
 
-const elephantMouth = sph(elephantHead,[0,-.40,.40],[.12,.025,.025],C.black);
+const elephantMouth = sph(
+ elephantHead, [0, -.40, .40], [.12, .025, .025], C.black
+);
 
 const elephantLegs = [];
 
-for (const x of [-.37,.37]) {
- for (const z of [-.48,.48]) {
+for (const x of [-.37, .37]) {
+ for (const z of [-.48, .48]) {
   const hip = new THREE.Group();
-  hip.position.set(x,.68,z);
+  hip.position.set(x, .68, z);
   elephant.add(hip);
-  cyl(hip,[0,-.22,0],.16,.18,.44,C.elephant);
-  sph(hip,[0,-.44,.04],[.18,.08,.19],C.elephantLight);
+
+  cyl(hip, [0, -.22, 0], .16, .18, .44, C.elephant);
+  sph(hip, [0, -.44, .04], [.18, .08, .19], C.elephantLight);
   elephantLegs.push(hip);
  }
 }
 
 const elephantTail = new THREE.Group();
-elephantTail.position.set(0,1.30,-.72);
+elephantTail.position.set(0, 1.30, -.72);
 elephant.add(elephantTail);
 
-tube(elephantTail,[[0,0,0],[0,-.12,-.18],[0,-.32,-.28]],.035,C.elephant);
-sph(elephantTail,[0,-.32,-.28],[.07,.10,.07],C.elephant);
+tube(elephantTail, [
+ [0, 0, 0],
+ [0, -.12, -.18],
+ [0, -.32, -.28]
+], .035, C.elephant);
+
+sph(elephantTail, [0, -.32, -.28], [.07, .10, .07], C.elephant);
 
 // =====================================
 // ANIMATION
@@ -473,120 +634,132 @@ let elephantTalking = false;
 let currentSpeaker = "Narrator";
 
 function setDefaultPose() {
- rabbit.position.set(-1.65,0,0);
- elephant.position.set(1.75,0,0);
- rabbitHead.rotation.set(0,0,0);
- rabbitEars.rotation.set(0,0,0);
- elephantHead.rotation.set(0,0,0);
- trunk.rotation.set(0,0,0);
- rabbitLegs.forEach(l=>l.rotation.set(0,0,0));
- elephantLegs.forEach(l=>l.rotation.set(0,0,0));
+ rabbit.position.set(-1.65, 0, 0);
+ elephant.position.set(1.75, 0, 0);
+
+ rabbitHead.rotation.set(0, 0, 0);
+ rabbitEars.rotation.set(0, 0, 0);
+ elephantHead.rotation.set(0, 0, 0);
+ trunk.rotation.set(0, 0, 0);
+
+ rabbitLegs.forEach(l => l.rotation.set(0, 0, 0));
+ elephantLegs.forEach(l => l.rotation.set(0, 0, 0));
 }
 
-function inferAction(v,i) {
- const t=String(v||"").toLowerCase();
- if(/jump|hop|leap|कूद|उछल/.test(t))return "jump";
- if(/run|running|rush|दौड़|भाग/.test(t))return "run";
- if(/walk|walking|approach|moves toward|चल|आता है|आती है/.test(t))return "walk";
- if(/help|rescue|carry|मदद|बचाता|सहायता/.test(t))return "help";
- if(/hug|friend|together|smile|दोस्त|गले|मुस्कुर/.test(t))return "friends";
- if(/point|show|दिख|इशारा/.test(t))return "point";
- if(/sit|sits|बैठ/.test(t))return "sit";
- return ["search","sit","walk","talk","help","point","run","friends"][i]||"talk";
+function inferAction(v, i) {
+ const t = String(v || "").toLowerCase();
+
+ if (/jump|hop|leap|कूद|उछल/.test(t)) return "jump";
+ if (/run|running|rush|दौड़|भाग/.test(t)) return "run";
+ if (/walk|walking|approach|moves toward|चल|आता है|आती है/.test(t)) return "walk";
+ if (/help|rescue|carry|मदद|बचाता|सहायता/.test(t)) return "help";
+ if (/hug|friend|together|smile|दोस्त|गले|मुस्कुर/.test(t)) return "friends";
+ if (/point|show|दिख|इशारा/.test(t)) return "point";
+ if (/sit|sits|बैठ/.test(t)) return "sit";
+
+ return ["search", "sit", "walk", "talk", "help", "point", "run", "friends"][i] || "talk";
 }
 
 function updatePose(dt) {
- animTime+=dt;
- const t=animTime;
+ animTime += dt;
+ const t = animTime;
  setDefaultPose();
- const speed=currentAction==="run"?13:7;
 
- if(currentAction==="search") {
-  rabbit.position.x=-1.65+Math.sin(t*1.5)*.22;
-  rabbitHead.rotation.y=Math.sin(t*2)*.24;
-  rabbitLegs.forEach((l,i)=>l.rotation.x=Math.sin(t*speed+i*Math.PI)*.30);
+ const speed = currentAction === "run" ? 13 : 7;
+
+ if (currentAction === "search") {
+  rabbit.position.x = -1.65 + Math.sin(t * 1.5) * .22;
+  rabbitHead.rotation.y = Math.sin(t * 2) * .24;
+  rabbitLegs.forEach((l, i) => l.rotation.x = Math.sin(t * speed + i * Math.PI) * .30);
  }
 
- if(currentAction==="sit") {
-  rabbit.position.y=-.10;
-  rabbitLegs.forEach(l=>l.rotation.x=-.35);
-  rabbitHead.rotation.x=.12;
+ if (currentAction === "sit") {
+  rabbit.position.y = -.10;
+  rabbitLegs.forEach(l => l.rotation.x = -.35);
+  rabbitHead.rotation.x = .12;
  }
 
- if(currentAction==="walk"||currentAction==="run") {
-  rabbit.position.x=-1.65+Math.sin(t*1.1)*.30;
-  elephant.position.x=1.75-Math.sin(t*1.1)*.20;
-  rabbitLegs.forEach((l,i)=>l.rotation.x=Math.sin(t*speed+i*Math.PI)*.48);
-  elephantLegs.forEach((l,i)=>l.rotation.x=Math.sin(t*speed*.7+i*Math.PI)*.25);
+ if (currentAction === "walk" || currentAction === "run") {
+  rabbit.position.x = -1.65 + Math.sin(t * 1.1) * .30;
+  elephant.position.x = 1.75 - Math.sin(t * 1.1) * .20;
+
+  rabbitLegs.forEach((l, i) => l.rotation.x = Math.sin(t * speed + i * Math.PI) * .48);
+  elephantLegs.forEach((l, i) => l.rotation.x = Math.sin(t * speed * .7 + i * Math.PI) * .25);
  }
 
- if(currentAction==="jump") {
-  rabbit.position.y=Math.abs(Math.sin(t*4.5))*.65;
-  rabbitLegs.forEach(l=>l.rotation.x=-.4);
+ if (currentAction === "jump") {
+  rabbit.position.y = Math.abs(Math.sin(t * 4.5)) * .65;
+  rabbitLegs.forEach(l => l.rotation.x = -.4);
  }
 
- if(currentAction==="help") {
-  rabbit.position.x=-1.20;
-  elephant.position.x=1.2;
-  trunk.rotation.x=-.48+Math.sin(t*2)*.12;
-  elephantHead.rotation.x=-.08;
+ if (currentAction === "help") {
+  rabbit.position.x = -1.20;
+  elephant.position.x = 1.2;
+  trunk.rotation.x = -.48 + Math.sin(t * 2) * .12;
+  elephantHead.rotation.x = -.08;
  }
 
- if(currentAction==="friends") {
-  rabbit.position.x=-.85;
-  elephant.position.x=.85;
-  rabbitHead.rotation.y=.12;
-  elephantHead.rotation.y=-.12;
-  trunk.rotation.x=-.25+Math.sin(t*2)*.06;
+ if (currentAction === "friends") {
+  rabbit.position.x = -.85;
+  elephant.position.x = .85;
+  rabbitHead.rotation.y = .12;
+  elephantHead.rotation.y = -.12;
+  trunk.rotation.x = -.25 + Math.sin(t * 2) * .06;
  }
 
- if(currentAction==="point") {
-  elephant.position.x=1.4;
-  trunk.rotation.x=-.55+Math.sin(t*2)*.08;
-  rabbitHead.rotation.y=.22;
+ if (currentAction === "point") {
+  elephant.position.x = 1.4;
+  trunk.rotation.x = -.55 + Math.sin(t * 2) * .08;
+  rabbitHead.rotation.y = .22;
  }
 
- if(currentAction==="talk") {
-  rabbitHead.rotation.x=Math.sin(t*2.8)*.06;
-  elephantHead.rotation.x=Math.sin(t*2.2)*.05;
-  trunk.rotation.x=Math.sin(t*2)*.12;
+ if (currentAction === "talk") {
+  rabbitHead.rotation.x = Math.sin(t * 2.8) * .06;
+  elephantHead.rotation.x = Math.sin(t * 2.2) * .05;
+  trunk.rotation.x = Math.sin(t * 2) * .12;
  }
 
- rabbit.position.y+=Math.sin(t*2)*.018;
- elephant.position.y=Math.sin(t*1.6+1)*.018;
- rabbitEars.rotation.z=Math.sin(t*2.5)*.10;
- elephantTail.rotation.x=Math.sin(t*2)*.25;
+ rabbit.position.y += Math.sin(t * 2) * .018;
+ elephant.position.y = Math.sin(t * 1.6 + 1) * .018;
 
- rabbitMouth.scale.y=rabbitTalking
-  ? .018+Math.abs(Math.sin(t*12))*.07
+ rabbitEars.rotation.z = Math.sin(t * 2.5) * .10;
+ elephantTail.rotation.x = Math.sin(t * 2) * .25;
+
+ rabbitMouth.scale.y = rabbitTalking
+  ? .018 + Math.abs(Math.sin(t * 12)) * .07
   : .018;
 
- elephantMouth.scale.y=elephantTalking
-  ? .025+Math.abs(Math.sin(t*10))*.06
+ elephantMouth.scale.y = elephantTalking
+  ? .025 + Math.abs(Math.sin(t * 10)) * .06
   : .025;
 }
 
 function resize() {
- const w=stage.clientWidth,h=stage.clientHeight;
- if(!w||!h)return;
- camera.aspect=w/h;
- camera.updateProjectionMatrix();
- renderer.setSize(w,h);
-}
-window.addEventListener("resize",resize);
+ const w = stage.clientWidth;
+ const h = stage.clientHeight;
 
-const clock=new THREE.Clock();
+ if (!w || !h) return;
+
+ camera.aspect = w / h;
+ camera.updateProjectionMatrix();
+ renderer.setSize(w, h);
+}
+
+window.addEventListener("resize", resize);
+
+const clock = new THREE.Clock();
 
 function renderLoop() {
  requestAnimationFrame(renderLoop);
- const dt=Math.min(clock.getDelta(),.05);
 
- if(isPlaying) {
+ const dt = Math.min(clock.getDelta(), .05);
+
+ if (isPlaying) {
   updateLipSyncFromAudio();
   updatePose(dt);
  }
 
- renderer.render(world,camera);
+ renderer.render(world, camera);
 }
 
 setDefaultPose();
@@ -597,38 +770,38 @@ renderLoop();
 // =====================================
 
 function renderScenes() {
- sceneList.innerHTML="";
+ sceneList.innerHTML = "";
 
- scenes.forEach((s,i)=>{
-  const box=document.createElement("div");
-  box.className="scene";
-  box.id="scene-"+i;
+ scenes.forEach((s, i) => {
+  const box = document.createElement("div");
+  box.className = "scene";
+  box.id = "scene-" + i;
 
-  const h=document.createElement("h3");
-  h.textContent="🎬 Scene "+s.number;
+  const h = document.createElement("h3");
+  h.textContent = "🎬 Scene " + s.number;
   box.appendChild(h);
 
-  const sp=document.createElement("div");
-  sp.className="meta";
-  sp.textContent="SPEAKER: "+s.speaker.toUpperCase();
+  const sp = document.createElement("div");
+  sp.className = "meta";
+  sp.textContent = "SPEAKER: " + s.speaker.toUpperCase();
   box.appendChild(sp);
 
-  const a=document.createElement("div");
-  a.className="meta";
-  a.textContent="VISUAL ACTION";
+  const a = document.createElement("div");
+  a.className = "meta";
+  a.textContent = "VISUAL ACTION";
   box.appendChild(a);
 
-  const v=document.createElement("p");
-  v.textContent=s.visual;
+  const v = document.createElement("p");
+  v.textContent = s.visual;
   box.appendChild(v);
 
-  const b=document.createElement("div");
-  b.className="meta";
-  b.textContent="VOICE / DIALOGUE";
+  const b = document.createElement("div");
+  b.className = "meta";
+  b.textContent = "VOICE / DIALOGUE";
   box.appendChild(b);
 
-  const q=document.createElement("p");
-  q.textContent=s.voice;
+  const q = document.createElement("p");
+  q.textContent = s.voice;
   box.appendChild(q);
 
   sceneList.appendChild(box);
@@ -636,260 +809,254 @@ function renderScenes() {
 }
 
 function highlightScene(i) {
- currentIndex=i;
- scenes.forEach((s,n)=>$("scene-"+n)?.classList.toggle("active",n===i));
- progress.style.width=((i+1)/scenes.length*100)+"%";
+ currentIndex = i;
+ scenes.forEach((s, n) => {
+  $("scene-" + n)?.classList.toggle("active", n === i);
+ });
+ progress.style.width = ((i + 1) / scenes.length * 100) + "%";
+}
+
+function getSelectedVoice() {
+ const name = $("voiceSelect")?.value;
+ return voices.find(v => v.name === name) || null;
 }
 
 function loadVoices() {
- voices=speechSynthesis.getVoices();
+ voices = speechSynthesis.getVoices();
 }
-let voices=[];
-speechSynthesis.addEventListener("voiceschanged",loadVoices);
+
+speechSynthesis.addEventListener("voiceschanged", loadVoices);
 loadVoices();
 
-function normalizeSelectedSpeaker(speaker) {
- return ["Rabbit","Elephant","Narrator"].includes(speaker)
-  ? speaker
-  : "Narrator";
-}
-
 function setTalk(value) {
- rabbitTalking=!!value && currentSpeaker==="Rabbit";
- elephantTalking=!!value && currentSpeaker==="Elephant";
+ rabbitTalking = !!value && currentSpeaker === "Rabbit";
+ elephantTalking = !!value && currentSpeaker === "Elephant";
 }
 
 function setSpeaker(speaker) {
- currentSpeaker=normalizeSelectedSpeaker(speaker);
+ currentSpeaker = normalizeSpeaker(speaker, 0);
  setTalk(false);
 }
 
-// =====================================
-// AUDIO-REACTIVE LIP SYNC
-// =====================================
-
 function clearLipSyncTimer() {
- if(lipSyncTimer!==null) {
+ if (lipSyncTimer !== null) {
   clearTimeout(lipSyncTimer);
-  lipSyncTimer=null;
+  lipSyncTimer = null;
  }
 }
 
 function stopLipSync() {
  clearLipSyncTimer();
- speechGate=false;
- speechLastActivity=0;
- speechActiveFrames=0;
+ speechGate = false;
+ speechLastActivity = 0;
+ speechActiveFrames = 0;
  setTalk(false);
 }
 
 function startLipSync(token) {
  clearLipSyncTimer();
- speechLastActivity=0;
- speechActiveFrames=0;
+ speechLastActivity = 0;
+ speechActiveFrames = 0;
  setTalk(false);
 
- // During recording, use actual Stereo Mix audio.
- if(audioAnalyser&&audioAnalyserBuffer) {
-  speechGate=true;
+ // During recording, follow the actual Stereo Mix signal being captured.
+ if (audioAnalyser && audioAnalyserBuffer) {
+  speechGate = true;
   return;
  }
 
- // Preview fallback.
- lipSyncTimer=setTimeout(()=>{
-  lipSyncTimer=null;
-  if(token===speakToken&&isPlaying&&!speechSynthesis.paused) {
+ // Preview fallback: browser speech synthesis does not expose exact speaker-output timestamps.
+ lipSyncTimer = setTimeout(() => {
+  lipSyncTimer = null;
+
+  if (token === speakToken && isPlaying && !speechSynthesis.paused) {
    setTalk(true);
   }
- },450);
+ }, 450);
 }
 
 function updateLipSyncFromAudio() {
- if(!audioAnalyser||!audioAnalyserBuffer||!speechGate||!isPlaying||speechSynthesis.paused)return;
+ if (!audioAnalyser || !audioAnalyserBuffer || !speechGate || !isPlaying || speechSynthesis.paused) return;
 
  audioAnalyser.getByteTimeDomainData(audioAnalyserBuffer);
 
- let sum=0;
+ let sum = 0;
 
- for(let i=0;i<audioAnalyserBuffer.length;i++) {
-  const sample=(audioAnalyserBuffer[i]-128)/128;
-  sum+=sample*sample;
+ for (let i = 0; i < audioAnalyserBuffer.length; i++) {
+  const sample = (audioAnalyserBuffer[i] - 128) / 128;
+  sum += sample * sample;
  }
 
- const rms=Math.sqrt(sum/audioAnalyserBuffer.length);
- const now=performance.now();
+ const rms = Math.sqrt(sum / audioAnalyserBuffer.length);
+ const now = performance.now();
 
- if(rms>0.012) {
+ if (rms > 0.012) {
   speechActiveFrames++;
-  speechLastActivity=now;
+  speechLastActivity = now;
 
-  if(speechActiveFrames>=2)setTalk(true);
+  if (speechActiveFrames >= 2) {
+   setTalk(true);
+  }
  } else {
-  speechActiveFrames=0;
+  speechActiveFrames = 0;
 
-  if((rabbitTalking||elephantTalking)&&now-speechLastActivity>140) {
+  if ((rabbitTalking || elephantTalking) && now - speechLastActivity > 140) {
    setTalk(false);
   }
  }
 }
 
 // =====================================
-// PLAYBACK AND DIFFERENT CHARACTER VOICES
+// PLAYBACK
 // =====================================
 
-function getSelectedVoice() {
- const name=$("voiceSelect")?.value;
- return voices.find(v=>v.name===name)||null;
-}
-
 function setControls() {
- playBtn.disabled=!scenes.length||isPlaying;
- pauseBtn.disabled=!isPlaying;
- stopBtn.disabled=(!isPlaying&&!isPaused);
- recordBtn.disabled=!scenes.length||!!recorder;
+ playBtn.disabled = !scenes.length || isPlaying;
+ pauseBtn.disabled = !isPlaying;
+ stopBtn.disabled = (!isPlaying && !isPaused);
+ recordBtn.disabled = !scenes.length || !!recorder;
 }
 
 function finishPlayback() {
- isPlaying=false;
- isPaused=false;
- waitingNext=false;
+ isPlaying = false;
+ isPaused = false;
+ waitingNext = false;
  stopLipSync();
  setControls();
- playInfo.textContent="Story playback completed.";
+ playInfo.textContent = "Story playback completed.";
 
- if(recorder&&recorder.state==="recording") {
-  setTimeout(stopRecording,700);
+ if (recorder && recorder.state === "recording") {
+  setTimeout(stopRecording, 700);
  }
 }
 
-function speakScene(index,token) {
- if(token!==speakToken||!isPlaying)return;
+function speakScene(index, token) {
+ if (token !== speakToken || !isPlaying) return;
 
- if(index>=scenes.length) {
+ if (index >= scenes.length) {
   finishPlayback();
   return;
  }
 
- const item=scenes[index];
+ const item = scenes[index];
 
  highlightScene(index);
- animTime=0;
- currentAction=inferAction(item.visual,index);
+ animTime = 0;
+ currentAction = inferAction(item.visual, index);
  setSpeaker(item.speaker);
 
  stopLipSync();
 
- playInfo.textContent=
-  "Scene "+item.number+" / 8 — "+item.speaker+" speaks";
+ playInfo.textContent =
+  "Scene " + item.number + " / 8 — " + item.speaker + " speaks";
 
- const u=new SpeechSynthesisUtterance(item.voice);
+ const u = new SpeechSynthesisUtterance(item.voice);
+ u.lang = languageInput.value === "Hindi" ? "hi-IN" : "en-IN";
 
- u.lang=languageInput.value==="Hindi"?"hi-IN":"en-IN";
-
- // Rabbit: brighter/higher pitch. Elephant: lower/slower pitch.
- u.rate=item.speaker==="Elephant"
+ // Different pitch and speaking rate for each character.
+ u.rate = item.speaker === "Elephant"
   ? 0.86
-  : item.speaker==="Rabbit"
+  : item.speaker === "Rabbit"
    ? 1.02
    : 0.94;
 
- u.pitch=item.speaker==="Elephant"
+ u.pitch = item.speaker === "Elephant"
   ? 0.78
-  : item.speaker==="Rabbit"
+  : item.speaker === "Rabbit"
    ? 1.18
    : 1.0;
 
- const voice=getSelectedVoice();
- if(voice)u.voice=voice;
+ const voice = getSelectedVoice();
+ if (voice) u.voice = voice;
 
- activeUtterance=u;
+ activeUtterance = u;
 
- u.onstart=()=>{
-  if(token!==speakToken||!isPlaying)return;
+ u.onstart = () => {
+  if (token !== speakToken || !isPlaying) return;
   startLipSync(token);
  };
 
- u.onend=()=>{
-  if(token!==speakToken||!isPlaying)return;
+ u.onend = () => {
+  if (token !== speakToken || !isPlaying) return;
 
   stopLipSync();
-  waitingNext=true;
+  waitingNext = true;
 
-  nextTimer=setTimeout(()=>{
-   if(token===speakToken&&isPlaying) {
-    waitingNext=false;
-    speakScene(index+1,token);
+  nextTimer = setTimeout(() => {
+   if (token === speakToken && isPlaying) {
+    waitingNext = false;
+    speakScene(index + 1, token);
    }
-  },550);
+  }, 550);
  };
 
- u.onerror=e=>{
-  if(token!==speakToken)return;
-  if(e.error==="canceled"||e.error==="interrupted")return;
+ u.onerror = e => {
+  if (token !== speakToken) return;
+  if (e.error === "canceled" || e.error === "interrupted") return;
 
   stopLipSync();
-  playInfo.textContent="Voice error: "+e.error;
-  waitingNext=true;
+  playInfo.textContent = "Voice error: " + e.error;
+  waitingNext = true;
 
-  nextTimer=setTimeout(()=>{
-   if(token===speakToken&&isPlaying) {
-    waitingNext=false;
-    speakScene(index+1,token);
+  nextTimer = setTimeout(() => {
+   if (token === speakToken && isPlaying) {
+    waitingNext = false;
+    speakScene(index + 1, token);
    }
-  },700);
+  }, 700);
  };
 
  speechSynthesis.speak(u);
 }
 
-speechSynthesis.addEventListener("resume",()=>{
- if(isPlaying&&activeUtterance) {
+speechSynthesis.addEventListener("resume", () => {
+ if (isPlaying && activeUtterance) {
   startLipSync(speakToken);
  }
 });
 
 function playStory() {
- if(!scenes.length)return;
+ if (!scenes.length) return;
 
- if(isPaused) {
-  isPaused=false;
-  isPlaying=true;
+ if (isPaused) {
+  isPaused = false;
+  isPlaying = true;
   setControls();
 
-  if(waitingNext) {
+  if (waitingNext) {
    clearTimeout(nextTimer);
-   waitingNext=false;
-   speakScene(currentIndex+1,speakToken);
+   waitingNext = false;
+   speakScene(currentIndex + 1, speakToken);
   } else {
    speechSynthesis.resume();
    startLipSync(speakToken);
   }
+
   return;
  }
 
- if(currentIndex>=scenes.length-1) {
-  currentIndex=-1;
-  progress.style.width="0%";
+ if (currentIndex >= scenes.length - 1) {
+  currentIndex = -1;
+  progress.style.width = "0%";
   setDefaultPose();
  }
 
- isPlaying=true;
+ isPlaying = true;
  speakToken++;
  setControls();
-
- speakScene(currentIndex<0?0:currentIndex,speakToken);
+ speakScene(currentIndex < 0 ? 0 : currentIndex, speakToken);
 }
 
 function pauseStory() {
- if(!isPlaying)return;
+ if (!isPlaying) return;
 
- isPlaying=false;
- isPaused=true;
+ isPlaying = false;
+ isPaused = true;
  speechSynthesis.pause();
  clearTimeout(nextTimer);
  stopLipSync();
  setControls();
- playInfo.textContent="Playback paused.";
+ playInfo.textContent = "Playback paused.";
 }
 
 function resetPlayback() {
@@ -898,13 +1065,13 @@ function resetPlayback() {
  stopLipSync();
  speechSynthesis.cancel();
 
- isPlaying=false;
- isPaused=false;
- waitingNext=false;
- activeUtterance=null;
- currentIndex=-1;
- animTime=0;
- progress.style.width="0%";
+ isPlaying = false;
+ isPaused = false;
+ waitingNext = false;
+ activeUtterance = null;
+ currentIndex = -1;
+ animTime = 0;
+ progress.style.width = "0%";
 
  setDefaultPose();
  setControls();
@@ -912,159 +1079,166 @@ function resetPlayback() {
 
 function stopStory() {
  resetPlayback();
- playInfo.textContent="Story stopped.";
+ playInfo.textContent = "Story stopped.";
 
- if(recorder&&recorder.state==="recording") {
+ if (recorder && recorder.state === "recording") {
   stopRecording();
  }
 }
 
-playBtn.addEventListener("click",playStory);
-pauseBtn.addEventListener("click",pauseStory);
-stopBtn.addEventListener("click",stopStory);
+playBtn.addEventListener("click", playStory);
+pauseBtn.addEventListener("click", pauseStory);
+stopBtn.addEventListener("click", stopStory);
 
 // =====================================
-// GENERATE STORY
+// GENERATE STORY AND CHARACTER PACKS
 // =====================================
 
 async function generateStory() {
- const idea=ideaInput.value.trim();
+ const idea = ideaInput.value.trim();
 
- if(!idea) {
-  setStatus("Story Idea लिही.","error");
+ if (!idea) {
+  setStatus("Story Idea लिही.", "error");
   return;
  }
 
- if(idea.length>4000) {
-  setStatus("Story Idea 4,000 characters पेक्षा मोठी आहे.","error");
+ if (idea.length > 4000) {
+  setStatus("Story Idea 4,000 characters पेक्षा मोठी आहे.", "error");
   return;
  }
 
- let savedCharacterLock="";
+ let savedCharacterLock = "";
 
- if(modeInput.value==="reuse") {
-  const p=packs.find(x=>x.id===savedPackInput.value);
+ if (modeInput.value === "reuse") {
+  const p = packs.find(x => x.id === savedPackInput.value);
 
-  if(!p) {
-   setStatus("Saved Character Pack निवड.","error");
+  if (!p) {
+   setStatus("Saved Character Pack निवड.", "error");
    return;
   }
 
-  savedCharacterLock=p.characterLock;
+  savedCharacterLock = p.characterLock;
  }
 
- generateBtn.disabled=true;
- generateBtn.textContent="⏳ Generating...";
- studioResult.style.display="none";
+ generateBtn.disabled = true;
+ generateBtn.textContent = "⏳ Generating...";
+ studioResult.style.display = "none";
+
  resetPlayback();
  downloadLink.classList.add("hidden");
 
  setStatus("AI तुझी 8-scene story तयार करत आहे. पुन्हा क्लिक करू नकोस.");
 
  try {
-  const response=await fetch(API_URL,{
-   method:"POST",
-   headers:{
-    "Content-Type":"application/json",
-    "Accept":"application/json"
+  const response = await fetch(API_URL, {
+   method: "POST",
+   headers: {
+    "Content-Type": "application/json",
+    "Accept": "application/json"
    },
-   body:JSON.stringify({
-    action:"generate-story",
-    story:idea,
-    language:languageInput.value,
-    duration:"1 Minute",
-    style:styleInput.value,
-    aspectRatio:ratioInput.value,
-    characterMode:modeInput.value,
+   body: JSON.stringify({
+    action: "generate-story",
+    story: idea,
+    language: languageInput.value,
+    duration: "1 Minute",
+    style: styleInput.value,
+    aspectRatio: ratioInput.value,
+    characterMode: modeInput.value,
     savedCharacterLock
    })
   });
 
-  const raw=await response.text();
+  const raw = await response.text();
   let data;
 
   try {
-   data=JSON.parse(raw);
+   data = JSON.parse(raw);
   } catch(e) {
-   throw new Error("Worker ने valid JSON परत केला नाही. HTTP "+response.status);
+   throw new Error("Worker ने valid JSON परत केला नाही. HTTP " + response.status);
   }
 
-  if(!response.ok||!data.success) {
-   throw new Error(data.error||("HTTP "+response.status));
+  if (!response.ok || !data.success) {
+   throw new Error(data.error || ("HTTP " + response.status));
   }
 
-  scenes=normalizeStory(data);
-  storyData=data;
+  scenes = normalizeStory(data);
+  storyData = data;
 
-  characterLockBox.textContent=data.characterLock||"No character lock returned.";
+  characterLockBox.textContent = data.characterLock || "No character lock returned.";
+
   renderScenes();
 
-  app.classList.toggle("portrait",ratioInput.value==="9:16");
+  app.classList.toggle("portrait", ratioInput.value === "9:16");
   resize();
 
-  studioResult.style.display="block";
-  playBtn.disabled=false;
-  recordBtn.disabled=false;
+  studioResult.style.display = "block";
+  playBtn.disabled = false;
+  recordBtn.disabled = false;
   setControls();
 
-  playInfo.textContent="8 scenes ready. Preview the story or create the final video.";
-  setStatus("✅ AI Story तयार झाली! 8 scenes आणि Speaker labels तयार आहेत.","success");
+  playInfo.textContent = "8 scenes ready. Preview the story or create the final video.";
+
+  setStatus(
+   "✅ AI Story तयार झाली! 8 scenes आणि Speaker labels तयार आहेत.",
+   "success"
+  );
 
   studioResult.scrollIntoView({
-   behavior:"smooth",
-   block:"start"
+   behavior: "smooth",
+   block: "start"
   });
 
  } catch(e) {
   console.error(e);
-  setStatus("❌ "+(e.message||"Story generation failed."),"error");
+  setStatus("❌ " + (e.message || "Story generation failed."), "error");
+
  } finally {
-  generateBtn.disabled=false;
-  generateBtn.textContent="✨ Generate AI Story";
+  generateBtn.disabled = false;
+  generateBtn.textContent = "✨ Generate AI Story";
  }
 }
 
-generateBtn.addEventListener("click",generateStory);
+generateBtn.addEventListener("click", generateStory);
 
-$("clearBtn").addEventListener("click",()=>{
- if(generateBtn.disabled||recorder)return;
+$("clearBtn").addEventListener("click", () => {
+ if (generateBtn.disabled || recorder) return;
 
- ideaInput.value="";
- studioResult.style.display="none";
- scenes=[];
- storyData=null;
+ ideaInput.value = "";
+ studioResult.style.display = "none";
+ scenes = [];
+ storyData = null;
 
  resetPlayback();
  setStatus("Form cleared. Enter a new story idea.");
 });
 
-$("savePackBtn").addEventListener("click",()=>{
- if(!storyData?.characterLock) {
-  setStatus("आधी story generate कर.","error");
+$("savePackBtn").addEventListener("click", () => {
+ if (!storyData?.characterLock) {
+  setStatus("आधी story generate कर.", "error");
   return;
  }
 
- const name=$("packName").value.trim();
+ const name = $("packName").value.trim();
 
- if(!name) {
-  setStatus("Character Pack चे नाव लिही.","error");
+ if (!name) {
+  setStatus("Character Pack चे नाव लिही.", "error");
   return;
  }
 
  packs.push({
-  id:Date.now()+"",
+  id: Date.now() + "",
   name,
-  characterLock:storyData.characterLock
+  characterLock: storyData.characterLock
  });
 
- if(!savePacks()) {
+ if (!savePacks()) {
   packs.pop();
   return;
  }
 
  refreshPacks();
- $("packName").value="";
- setStatus("✅ Character Pack या browser मध्ये save झाला.","success");
+ $("packName").value = "";
+ setStatus("✅ Character Pack या browser मध्ये save झाला.", "success");
 });
 
 // =====================================
@@ -1072,42 +1246,42 @@ $("savePackBtn").addEventListener("click",()=>{
 // =====================================
 
 function normLabel(s) {
- return String(s||"").toLowerCase().replace(/[^a-z0-9]/g,"");
+ return String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 
 async function getStereoMix() {
- if(!navigator.mediaDevices?.getUserMedia||
-    !navigator.mediaDevices?.enumerateDevices) {
+ if (!navigator.mediaDevices?.getUserMedia ||
+     !navigator.mediaDevices?.enumerateDevices) {
   throw new Error("हा browser audio input capture support करत नाही.");
  }
 
- const devices=await navigator.mediaDevices.enumerateDevices();
- const inputs=devices.filter(d=>d.kind==="audioinput");
- const device=inputs.find(d=>normLabel(d.label).includes("stereomix"));
+ const devices = await navigator.mediaDevices.enumerateDevices();
+ const inputs = devices.filter(d => d.kind === "audioinput");
+ const device = inputs.find(d => normLabel(d.label).includes("stereomix"));
 
- if(!device?.deviceId) {
+ if (!device?.deviceId) {
   throw new Error("Chrome ला Stereo Mix दिसत नाही. Windows Sound > Recording मध्ये Stereo Mix enabled ठेव आणि Chrome ला audio-input permission दे.");
  }
 
- const stream=await navigator.mediaDevices.getUserMedia({
-  audio:{
-   deviceId:{exact:device.deviceId},
-   echoCancellation:false,
-   noiseSuppression:false,
-   autoGainControl:false
+ const stream = await navigator.mediaDevices.getUserMedia({
+  audio: {
+   deviceId: { exact: device.deviceId },
+   echoCancellation: false,
+   noiseSuppression: false,
+   autoGainControl: false
   },
-  video:false
+  video: false
  });
 
- if(!stream.getAudioTracks().length) {
-  stream.getTracks().forEach(t=>t.stop());
+ if (!stream.getAudioTracks().length) {
+  stream.getTracks().forEach(t => t.stop());
   throw new Error("Stereo Mix audio track मिळाला नाही.");
  }
 
- const actual=stream.getAudioTracks()[0].getSettings().deviceId;
+ const actual = stream.getAudioTracks()[0].getSettings().deviceId;
 
- if(actual&&actual!==device.deviceId) {
-  stream.getTracks().forEach(t=>t.stop());
+ if (actual && actual !== device.deviceId) {
+  stream.getTracks().forEach(t => t.stop());
   throw new Error("Browser ने Stereo Mix ऐवजी वेगळा input निवडला; recording थांबवली.");
  }
 
@@ -1116,205 +1290,205 @@ async function getStereoMix() {
 
 async function cleanupRecord() {
  try {
-  if(audioInputNode)audioInputNode.disconnect();
+  if (audioInputNode) audioInputNode.disconnect();
  } catch(e) {}
 
- audioInputNode=null;
- audioAnalyser=null;
- audioAnalyserBuffer=null;
- speechGate=false;
- speechLastActivity=0;
- speechActiveFrames=0;
+ audioInputNode = null;
+ audioAnalyser = null;
+ audioAnalyserBuffer = null;
+ speechGate = false;
+ speechLastActivity = 0;
+ speechActiveFrames = 0;
 
  try {
-  if(silentOscillator) {
+  if (silentOscillator) {
    silentOscillator.stop();
    silentOscillator.disconnect();
   }
  } catch(e) {}
 
- silentOscillator=null;
+ silentOscillator = null;
 
  try {
-  if(silentGain)silentGain.disconnect();
+  if (silentGain) silentGain.disconnect();
  } catch(e) {}
 
- silentGain=null;
+ silentGain = null;
 
- if(audioDestination) {
-  audioDestination.stream.getTracks().forEach(t=>t.stop());
-  audioDestination=null;
+ if (audioDestination) {
+  audioDestination.stream.getTracks().forEach(t => t.stop());
+  audioDestination = null;
  }
 
- if(audioContext) {
+ if (audioContext) {
   try { await audioContext.close(); } catch(e) {}
-  audioContext=null;
+  audioContext = null;
  }
 
- if(canvasStream) {
-  canvasStream.getTracks().forEach(t=>t.stop());
-  canvasStream=null;
+ if (canvasStream) {
+  canvasStream.getTracks().forEach(t => t.stop());
+  canvasStream = null;
  }
 
- if(stereoMixStream) {
-  stereoMixStream.getTracks().forEach(t=>t.stop());
-  stereoMixStream=null;
+ if (stereoMixStream) {
+  stereoMixStream.getTracks().forEach(t => t.stop());
+  stereoMixStream = null;
  }
 
- if(recordingStream) {
-  recordingStream.getTracks().forEach(t=>t.stop());
-  recordingStream=null;
+ if (recordingStream) {
+  recordingStream.getTracks().forEach(t => t.stop());
+  recordingStream = null;
  }
 
- recordBtn.disabled=!scenes.length;
+ recordBtn.disabled = !scenes.length;
 }
 
 async function startRecording() {
- if(!scenes.length||recorder||isPlaying||isPaused)return;
+ if (!scenes.length || recorder || isPlaying || isPaused) return;
 
- if(!renderer.domElement.captureStream||!window.MediaRecorder) {
-  setStatus("या browser मध्ये canvas video recording support नाही.","error");
+ if (!renderer.domElement.captureStream || !window.MediaRecorder) {
+  setStatus("या browser मध्ये canvas video recording support नाही.", "error");
   return;
  }
 
- recordBtn.disabled=true;
+ recordBtn.disabled = true;
  downloadLink.classList.add("hidden");
- recorderChunks=[];
- stopRequested=false;
+ recorderChunks = [];
+ stopRequested = false;
  resetPlayback();
 
  setStatus("Stereo Mix आणि continuous audio clock तयार करत आहे. Chrome permission विचारल्यास Allow कर.");
 
  try {
-  const AudioContextClass=window.AudioContext||window.webkitAudioContext;
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
 
-  if(!AudioContextClass) {
+  if (!AudioContextClass) {
    throw new Error("या browser मध्ये Web Audio API उपलब्ध नाही.");
   }
 
-  audioContext=new AudioContextClass({latencyHint:"interactive"});
-  const resumePromise=audioContext.resume();
-  audioDestination=audioContext.createMediaStreamDestination();
+  audioContext = new AudioContextClass({ latencyHint: "interactive" });
+  const resumePromise = audioContext.resume();
+  audioDestination = audioContext.createMediaStreamDestination();
 
-  // Continuous silent frames keep the WebM audio track timestamp aligned.
-  silentOscillator=audioContext.createOscillator();
-  silentGain=audioContext.createGain();
-  silentGain.gain.value=0;
-  silentOscillator.frequency.value=440;
+  // Produce silent audio frames from the start so WebM audio has no late timestamp.
+  silentOscillator = audioContext.createOscillator();
+  silentGain = audioContext.createGain();
+  silentGain.gain.value = 0;
+  silentOscillator.frequency.value = 440;
   silentOscillator.connect(silentGain);
   silentGain.connect(audioDestination);
   silentOscillator.start();
 
-  stereoMixStream=await getStereoMix();
+  stereoMixStream = await getStereoMix();
   await resumePromise;
 
-  if(audioContext.state!=="running") {
+  if (audioContext.state !== "running") {
    throw new Error("Audio clock सुरू होऊ शकला नाही. पुन्हा Record क्लिक कर.");
   }
 
-  // Only Stereo Mix is routed. Physical microphone is not selected.
-  audioInputNode=audioContext.createMediaStreamSource(stereoMixStream);
+  // Route only the selected Stereo Mix device into the continuous Web Audio output.
+  audioInputNode = audioContext.createMediaStreamSource(stereoMixStream);
 
-  const inputGain=audioContext.createGain();
-  inputGain.gain.value=1;
+  const inputGain = audioContext.createGain();
+  inputGain.gain.value = 1;
   audioInputNode.connect(inputGain);
   inputGain.connect(audioDestination);
 
-  // Analyse the Stereo Mix signal for speaker-specific mouth movement.
-  audioAnalyser=audioContext.createAnalyser();
-  audioAnalyser.fftSize=1024;
-  audioAnalyser.smoothingTimeConstant=0;
-  audioAnalyserBuffer=new Uint8Array(audioAnalyser.fftSize);
+  // Analyse the exact Stereo Mix signal sent to the WEBM audio track.
+  audioAnalyser = audioContext.createAnalyser();
+  audioAnalyser.fftSize = 1024;
+  audioAnalyser.smoothingTimeConstant = 0;
+  audioAnalyserBuffer = new Uint8Array(audioAnalyser.fftSize);
   inputGain.connect(audioAnalyser);
 
-  await new Promise(resolve=>setTimeout(resolve,300));
+  await new Promise(resolve => setTimeout(resolve, 300));
 
-  renderer.render(world,camera);
-  canvasStream=renderer.domElement.captureStream(30);
+  renderer.render(world, camera);
+  canvasStream = renderer.domElement.captureStream(30);
 
-  const videoTracks=canvasStream.getVideoTracks();
-  const audioTracks=audioDestination.stream.getAudioTracks();
+  const videoTracks = canvasStream.getVideoTracks();
+  const audioTracks = audioDestination.stream.getAudioTracks();
 
-  if(!videoTracks.length||!audioTracks.length) {
+  if (!videoTracks.length || !audioTracks.length) {
    throw new Error("Video किंवा continuous Stereo Mix audio track तयार झाला नाही.");
   }
 
-  recordingStream=new MediaStream([videoTracks[0],audioTracks[0]]);
+  recordingStream = new MediaStream([videoTracks[0], audioTracks[0]]);
 
-  const types=[
+  const types = [
    "video/webm;codecs=vp8,opus",
    "video/webm;codecs=vp9,opus",
    "video/webm"
   ];
 
-  const mime=types.find(t=>MediaRecorder.isTypeSupported(t))||"";
+  const mime = types.find(t => MediaRecorder.isTypeSupported(t)) || "";
 
-  recorder=new MediaRecorder(
+  recorder = new MediaRecorder(
    recordingStream,
    mime
     ? {
-       mimeType:mime,
-       videoBitsPerSecond:2500000,
-       audioBitsPerSecond:128000
+       mimeType: mime,
+       videoBitsPerSecond: 2500000,
+       audioBitsPerSecond: 128000
       }
     : {
-       videoBitsPerSecond:2500000,
-       audioBitsPerSecond:128000
+       videoBitsPerSecond: 2500000,
+       audioBitsPerSecond: 128000
       }
   );
 
-  const active=recorder;
+  const active = recorder;
 
-  active.ondataavailable=e=>{
-   if(e.data?.size)recorderChunks.push(e.data);
+  active.ondataavailable = e => {
+   if (e.data?.size) recorderChunks.push(e.data);
   };
 
-  active.onerror=e=>{
+  active.onerror = e => {
    console.error(e);
-   setStatus("MediaRecorder error आला.","error");
+   setStatus("MediaRecorder error आला.", "error");
   };
 
-  active.onstart=()=>{
-   setStatus("🔴 Recording सुरू आहे. Speaker-specific lip movement आणि Stereo Mix audio record होत आहेत.");
+  active.onstart = () => {
+   setStatus("🔴 Recording सुरू आहे. Video आणि continuous Stereo Mix audio एकाच timeline वर record होत आहेत.");
 
-   requestAnimationFrame(()=>{
-    if(recorder===active&&active.state==="recording") {
+   requestAnimationFrame(() => {
+    if (recorder === active && active.state === "recording") {
      playStory();
     }
    });
   };
 
-  active.onstop=async()=>{
-   const blob=new Blob(recorderChunks,{
-    type:active.mimeType||"video/webm"
+  active.onstop = async () => {
+   const blob = new Blob(recorderChunks, {
+    type: active.mimeType || "video/webm"
    });
 
    await cleanupRecord();
-   recorder=null;
+   recorder = null;
    setControls();
 
-   if(blob.size<1024) {
-    setStatus("Recording file रिकामी आहे. Stereo Mix आणि playback तपास.","error");
+   if (blob.size < 1024) {
+    setStatus("Recording file रिकामी आहे. Stereo Mix आणि playback तपास.", "error");
     return;
    }
 
-   if(downloadURL)URL.revokeObjectURL(downloadURL);
+   if (downloadURL) URL.revokeObjectURL(downloadURL);
 
-   downloadURL=URL.createObjectURL(blob);
-   downloadLink.href=downloadURL;
-   downloadLink.download=
-    "apna-creator-ai-cartoon-"+languageInput.value.toLowerCase()+".webm";
+   downloadURL = URL.createObjectURL(blob);
+   downloadLink.href = downloadURL;
+   downloadLink.download =
+    "apna-creator-ai-cartoon-" + languageInput.value.toLowerCase() + ".webm";
 
    downloadLink.classList.remove("hidden");
 
    setStatus(
-    "✅ Cartoon video तयार झाला! File size: "+
-    (blob.size/1024/1024).toFixed(2)+
+    "✅ Cartoon video तयार झाला! File size: " +
+    (blob.size / 1024 / 1024).toFixed(2) +
     " MB. Download WEBM क्लिक कर.",
     "success"
    );
 
-   playInfo.textContent="Recording completed. Your WEBM video is ready.";
+   playInfo.textContent = "Recording completed. Your WEBM video is ready.";
   };
 
   active.start(1000);
@@ -1322,30 +1496,36 @@ async function startRecording() {
  } catch(e) {
   console.error(e);
   await cleanupRecord();
-  recorder=null;
-  recordBtn.disabled=!scenes.length;
-  setStatus("❌ "+(e.message||"Recording सुरू होऊ शकली नाही."),"error");
+  recorder = null;
+  recordBtn.disabled = !scenes.length;
+
+  setStatus("❌ " + (e.message || "Recording सुरू होऊ शकली नाही."), "error");
  }
 }
 
 function stopRecording() {
- if(!recorder||recorder.state!=="recording"||stopRequested)return;
+ if (!recorder || recorder.state !== "recording" || stopRequested) return;
 
- stopRequested=true;
+ stopRequested = true;
  setStatus("Video आणि synchronized Stereo Mix audio finalize होत आहेत...");
 
- try { recorder.requestData(); } catch(e) {}
+ try {
+  recorder.requestData();
+ } catch(e) {}
 
- setTimeout(()=>{
-  if(recorder&&recorder.state==="recording") {
+ setTimeout(() => {
+  if (recorder && recorder.state === "recording") {
    recorder.stop();
   }
- },350);
+ }, 350);
 }
 
-recordBtn.addEventListener("click",startRecording);
+recordBtn.addEventListener("click", startRecording);
 
-// Initial state
+// =====================================
+// INITIAL STATE
+// =====================================
+
 refreshPacks();
 setControls();
 resize();
