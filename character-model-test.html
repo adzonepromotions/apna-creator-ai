@@ -1,0 +1,789 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Apna Creator AI - 3D Character Test</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;
+ background:#eef2f8;
+ color:#172033;
+ font-family:Arial,sans-serif
+}
+.wrap{max-width:1100px;margin:auto;padding:16px}
+.hero{
+ background:#172554;color:white;
+ padding:22px;border-radius:15px;margin-bottom:16px
+}
+.hero h1{margin:0 0 8px;font-size:25px}
+.hero p{margin:0;color:#dbeafe;line-height:1.5}
+.card{
+ background:white;padding:18px;border-radius:13px;
+ margin-bottom:15px;box-shadow:0 4px 15px #14213d12
+}
+h2{font-size:19px;margin:0 0 12px}
+#stage{
+ width:100%;height:520px;background:#b7def5;
+ border-radius:12px;overflow:hidden
+}
+#stage canvas{display:block;width:100%;height:100%}
+.controls{
+ display:flex;flex-wrap:wrap;gap:9px;margin-top:14px
+}
+button,select{
+ border:0;border-radius:8px;padding:12px 16px;
+ font-weight:bold;font-size:13px
+}
+button{background:#2563eb;color:white;cursor:pointer}
+button:disabled{opacity:.45;cursor:not-allowed}
+.green{background:#15803d}
+.dark{background:#475569}
+.orange{background:#c2410c}
+select{
+ background:white;border:1px solid #cbd5e1;
+ color:#172033
+}
+#status{
+ padding:12px;border-radius:8px;background:#eff6ff;
+ margin-top:12px;font-size:13px;line-height:1.5;
+ white-space:pre-wrap
+}
+.success{background:#dcfce7!important;color:#166534}
+.error{background:#fee2e2!important;color:#991b1b}
+.small{font-size:12px;color:#64748b;line-height:1.6}
+.grid{
+ display:grid;grid-template-columns:1fr 1fr;gap:12px
+}
+.model-info{
+ padding:12px;border:1px solid #e2e8f0;
+ border-radius:9px;line-height:1.6;font-size:13px
+}
+.model-info strong{color:#1d4ed8}
+.tag{
+ display:inline-block;padding:5px 8px;margin:3px;
+ border-radius:20px;background:#e0ecff;
+ color:#1d4ed8;font-size:11px
+}
+@media(max-width:650px){
+ .wrap{padding:9px}
+ .hero{padding:17px}
+ .hero h1{font-size:21px}
+ .card{padding:13px}
+ #stage{height:420px}
+ .grid{grid-template-columns:1fr}
+ button{flex:1}
+}
+</style>
+
+<script type="importmap">
+{
+ "imports":{
+  "three":"https://cdn.jsdelivr.net/npm/three@0.187.0/build/three.module.js",
+  "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.187.0/examples/jsm/"
+ }
+}
+</script>
+</head>
+
+<body>
+<div class="wrap">
+
+<div class="hero">
+<h1>🎬 Apna Creator AI - Character Lab</h1>
+<p>Testing real 3D Rabbit and Elephant models with movable body parts.</p>
+</div>
+
+<div class="card">
+<h2>1. 3D Character Preview</h2>
+
+<div id="stage"></div>
+
+<div class="controls">
+<button id="idleBtn" class="green" disabled>Idle</button>
+<button id="walkBtn" disabled>🚶 Walk</button>
+<button id="runBtn" disabled>🏃 Run</button>
+<button id="happyBtn" class="orange" disabled>😊 Happy</button>
+<button id="resetBtn" class="dark" disabled>Reset</button>
+</div>
+
+<div id="status">Loading 3D Rabbit and Elephant models. Please wait...</div>
+
+<p class="small">
+Drag to rotate the camera. Scroll to zoom. The buttons animate the characters' named body parts.
+</p>
+</div>
+
+<div class="card">
+<h2>2. Character Details</h2>
+
+<div class="grid">
+<div class="model-info">
+<strong>🐰 Rabbit Model</strong>
+<p id="rabbitInfo">Waiting for model...</p>
+</div>
+<div class="model-info">
+<strong>🐘 Elephant Model</strong>
+<p id="elephantInfo">Waiting for model...</p>
+</div>
+</div>
+</div>
+
+<div class="card">
+<h2>3. Animation Features</h2>
+<span class="tag">Head movement</span>
+<span class="tag">Ear movement</span>
+<span class="tag">Leg movement</span>
+<span class="tag">Trunk movement</span>
+<span class="tag">Tail movement</span>
+<span class="tag">Body animation</span>
+
+<p class="small">
+These models use named movable parts rather than a full skeletal animation clip. The prototype creates simple reusable motion by rotating those parts.
+</p>
+</div>
+
+<div class="card">
+<h2>4. Next Development Step</h2>
+<p class="small">
+After checking these models, we will decide whether to replace the basic Rabbit and Elephant in the main Creator Studio. The old video exporter will remain unchanged until the new character system is tested.
+</p>
+</div>
+
+</div>
+
+<script type="module">
+import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+// =====================================
+// MODEL URLS
+// =====================================
+
+const RABBIT_URL =
+ "https://polyfork.dev/cdn/rabbit-base.glb";
+
+const ELEPHANT_URL =
+ "https://polyfork.dev/cdn/elephant-base.glb";
+
+// =====================================
+// THREE.JS SCENE
+// =====================================
+
+const stage = document.getElementById("stage");
+const statusBox = document.getElementById("status");
+
+const renderer = new THREE.WebGLRenderer({
+ antialias:true,
+ powerPreference:"low-power"
+});
+
+renderer.setPixelRatio(
+ Math.min(window.devicePixelRatio || 1, 1.4)
+);
+
+renderer.setSize(stage.clientWidth,stage.clientHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.shadowMap.enabled = true;
+stage.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xb7def5);
+scene.fog = new THREE.Fog(0xb7def5,18,45);
+
+const camera = new THREE.PerspectiveCamera(
+ 38,
+ stage.clientWidth/stage.clientHeight,
+ 0.1,
+ 100
+);
+
+camera.position.set(0,3.3,10.5);
+camera.lookAt(0,1.1,0);
+
+const controls = new OrbitControls(
+ camera,
+ renderer.domElement
+);
+
+controls.target.set(0,1.1,0);
+controls.enableDamping = true;
+controls.dampingFactor = 0.06;
+controls.minDistance = 4;
+controls.maxDistance = 18;
+controls.update();
+
+// =====================================
+// LIGHTING
+// =====================================
+
+scene.add(
+ new THREE.HemisphereLight(
+  0xffffff,
+  0x637650,
+  2
+ )
+);
+
+const sunlight = new THREE.DirectionalLight(
+  0xffffff,
+  2.5
+);
+
+sunlight.position.set(-4,9,6);
+sunlight.castShadow = true;
+sunlight.shadow.mapSize.set(1024,1024);
+scene.add(sunlight);
+
+// =====================================
+// ENVIRONMENT
+// =====================================
+
+const grassMaterial = new THREE.MeshStandardMaterial({
+ color:0x80b66d,
+ roughness:1
+});
+
+const ground = new THREE.Mesh(
+ new THREE.PlaneGeometry(100,100),
+ grassMaterial
+);
+
+ground.rotation.x = -Math.PI/2;
+ground.position.y = -0.02;
+ground.receiveShadow = true;
+scene.add(ground);
+
+function createTree(x,z,height){
+ const tree = new THREE.Group();
+ tree.position.set(x,0,z);
+ scene.add(tree);
+
+ const trunk = new THREE.Mesh(
+  new THREE.CylinderGeometry(
+   .12,.18,height,9
+  ),
+  new THREE.MeshStandardMaterial({color:0x79502f})
+ );
+
+ trunk.position.y = height/2;
+ trunk.castShadow = true;
+ tree.add(trunk);
+
+ const leaves = new THREE.Mesh(
+  new THREE.DodecahedronGeometry(.75,1),
+  new THREE.MeshStandardMaterial({color:0x39834c})
+ );
+
+ leaves.position.y = height+.48;
+ leaves.scale.set(1,1.15,1);
+ leaves.castShadow = true;
+ tree.add(leaves);
+}
+
+createTree(-4,-2,1.9);
+createTree(4,-3,2.2);
+createTree(-4,-6,2.1);
+createTree(4,-7,2.0);
+
+// =====================================
+// LOADER AND MODEL STATE
+// =====================================
+
+const loader = new GLTFLoader();
+
+let rabbit = null;
+let elephant = null;
+
+let rabbitParts = {};
+let elephantParts = {};
+
+let rabbitBase = new Map();
+let elephantBase = new Map();
+
+let action = "idle";
+let elapsed = 0;
+
+let loadedCount = 0;
+
+function setStatus(message,type=""){
+ statusBox.textContent = message;
+ statusBox.className = type;
+}
+
+function getObject(root,names){
+ for(const name of names){
+  const object = root.getObjectByName(name);
+  if(object) return object;
+ }
+ return null;
+}
+
+function saveBaseRotations(parts,map){
+ Object.values(parts).forEach(object=>{
+  if(object && !map.has(object)){
+   map.set(object,{
+    x:object.rotation.x,
+    y:object.rotation.y,
+    z:object.rotation.z
+   });
+  }
+ });
+}
+
+function restoreRotations(parts,map){
+ Object.values(parts).forEach(object=>{
+  if(!object)return;
+
+  const base = map.get(object);
+  if(!base)return;
+
+  object.rotation.set(
+   base.x,
+   base.y,
+   base.z
+  );
+ });
+}
+
+// =====================================
+// NORMALIZE MODEL SIZE
+// =====================================
+
+function prepareModel(model,targetHeight,xPosition){
+ model.updateMatrixWorld(true);
+
+ const originalBox = new THREE.Box3().setFromObject(model);
+ const originalSize = new THREE.Vector3();
+ originalBox.getSize(originalSize);
+
+ if(originalSize.y <= 0){
+  throw new Error("Model bounding box invalid आहे.");
+ }
+
+ const scale = targetHeight/originalSize.y;
+
+ model.scale.setScalar(scale);
+ model.updateMatrixWorld(true);
+
+ const newBox = new THREE.Box3().setFromObject(model);
+ const center = new THREE.Vector3();
+
+ newBox.getCenter(center);
+
+ model.position.x -= center.x;
+ model.position.z -= center.z;
+ model.position.y -= newBox.min.y;
+
+ const holder = new THREE.Group();
+ holder.position.x = xPosition;
+ holder.add(model);
+
+ scene.add(holder);
+
+ model.traverse(node=>{
+  if(node.isMesh){
+   node.castShadow = true;
+   node.receiveShadow = true;
+  }
+ });
+
+ return {
+  holder,
+  width:originalSize.x,
+  height:originalSize.y,
+  depth:originalSize.z
+ };
+}
+
+// =====================================
+// RABBIT PARTS
+// =====================================
+
+function findRabbitParts(root){
+ return {
+  head:getObject(root,["Head"]),
+  neck:getObject(root,["Neck"]),
+  jaw:getObject(root,["Jaw"]),
+
+  leftEar:getObject(root,["LeftEar"]),
+  rightEar:getObject(root,["RightEar"]),
+
+  tail:getObject(root,["Tail"]),
+  tailTip:getObject(root,["TailTip"]),
+
+  leftFront:getObject(root,["LeftFrontUpLeg"]),
+  rightFront:getObject(root,["RightFrontUpLeg"]),
+
+  leftFrontLower:getObject(root,["LeftFrontLeg"]),
+  rightFrontLower:getObject(root,["RightFrontLeg"]),
+
+  leftHind:getObject(root,["LeftHindUpLeg"]),
+  rightHind:getObject(root,["RightHindUpLeg"]),
+
+  leftHindLower:getObject(root,["LeftHindLeg"]),
+  rightHindLower:getObject(root,["RightHindLeg"])
+ };
+}
+
+// =====================================
+// ELEPHANT PARTS
+// =====================================
+
+function findElephantParts(root){
+ return {
+  head:getObject(root,["Head"]),
+  neck:getObject(root,["Neck"]),
+  jaw:getObject(root,["Jaw"]),
+
+  leftEar:getObject(root,["LeftEar"]),
+  rightEar:getObject(root,["RightEar"]),
+
+  trunk:getObject(root,["Trunk"]),
+  trunkMid:getObject(root,["TrunkMid"]),
+  trunkTip:getObject(root,["TrunkTip"]),
+
+  tail:getObject(root,["Tail"]),
+  tailTip:getObject(root,["TailTip"]),
+
+  leftFront:getObject(root,["LeftFrontUpLeg"]),
+  rightFront:getObject(root,["RightFrontUpLeg"]),
+
+  leftFrontLower:getObject(root,["LeftFrontLeg"]),
+  rightFrontLower:getObject(root,["RightFrontLeg"]),
+
+  leftHind:getObject(root,["LeftHindUpLeg"]),
+  rightHind:getObject(root,["RightHindUpLeg"]),
+
+  leftHindLower:getObject(root,["LeftHindLeg"]),
+  rightHindLower:getObject(root,["RightHindLeg"])
+ };
+}
+
+function countFound(parts){
+ return Object.values(parts).filter(Boolean).length;
+}
+
+// =====================================
+// LOAD RABBIT
+// =====================================
+
+function loadRabbit(){
+ return new Promise((resolve,reject)=>{
+  loader.load(
+   RABBIT_URL,
+
+   gltf=>{
+    try{
+     rabbit = gltf.scene;
+
+     const result = prepareModel(
+      rabbit,
+      1.85,
+      -1.35
+     );
+
+     rabbitParts = findRabbitParts(rabbit);
+     saveBaseRotations(rabbitParts,rabbitBase);
+
+     $("rabbitInfo").textContent =
+      "Loaded successfully. " +
+      countFound(rabbitParts) +
+      " movable body parts found. " +
+      "Model size: " +
+      result.width.toFixed(2)+" × "+
+      result.height.toFixed(2)+" × "+
+      result.depth.toFixed(2)+" m.";
+
+     resolve();
+
+    }catch(error){
+     reject(error);
+    }
+   },
+
+   undefined,
+
+   error=>{
+    reject(
+     new Error("Rabbit GLB load failed: "+error.message)
+    );
+   }
+  );
+ });
+}
+
+// =====================================
+// LOAD ELEPHANT
+// =====================================
+
+function loadElephant(){
+ return new Promise((resolve,reject)=>{
+  loader.load(
+   ELEPHANT_URL,
+
+   gltf=>{
+    try{
+     elephant = gltf.scene;
+
+     const result = prepareModel(
+      elephant,
+      2.25,
+      1.35
+     );
+
+     elephantParts = findElephantParts(elephant);
+     saveBaseRotations(elephantParts,elephantBase);
+
+     $("elephantInfo").textContent =
+      "Loaded successfully. " +
+      countFound(elephantParts) +
+      " movable body parts found. " +
+      "Model size: "+
+      result.width.toFixed(2)+" × "+
+      result.height.toFixed(2)+" × "+
+      result.depth.toFixed(2)+" m.";
+
+     resolve();
+
+    }catch(error){
+     reject(error);
+    }
+   },
+
+   undefined,
+
+   error=>{
+    reject(
+     new Error("Elephant GLB load failed: "+error.message)
+    );
+   }
+  );
+ });
+}
+
+// =====================================
+// ANIMATION HELPERS
+// =====================================
+
+function movePart(object,baseMap,axis,amount){
+ if(!object)return;
+
+ const base = baseMap.get(object);
+ if(!base)return;
+
+ object.rotation[axis] = base[axis]+amount;
+}
+
+function animateRabbit(t,mode){
+ const frequency = mode==="run"?13:mode==="walk"?7:3;
+
+ const legAmount = mode==="run"?.8:
+  mode==="walk"?.52:
+  mode==="happy"?.18:
+  0;
+
+ const swing = Math.sin(t*frequency)*legAmount;
+
+ movePart(rabbitParts.head,rabbitBase,"y",Math.sin(t*2)*.06);
+
+ movePart(rabbitParts.leftEar,rabbitBase,"z",Math.sin(t*3)*.08);
+ movePart(rabbitParts.rightEar,rabbitBase,"z",-Math.sin(t*3)*.08);
+
+ movePart(rabbitParts.leftFront,rabbitBase,"x",swing);
+ movePart(rabbitParts.rightFront,rabbitBase,"x",-swing);
+
+ movePart(rabbitParts.leftFrontLower,rabbitBase,"x",-Math.max(0,swing)*.35);
+ movePart(rabbitParts.rightFrontLower,rabbitBase,"x",Math.max(0,swing)*.35);
+
+ movePart(rabbitParts.leftHind,rabbitBase,"x",-swing);
+ movePart(rabbitParts.rightHind,rabbitBase,"x",swing);
+
+ movePart(rabbitParts.leftHindLower,rabbitBase,"x",Math.max(0,swing)*.35);
+ movePart(rabbitParts.rightHindLower,rabbitBase,"x",-Math.max(0,swing)*.35);
+
+ movePart(rabbitParts.tail,rabbitBase,"z",Math.sin(t*4)*.12);
+ movePart(rabbitParts.tailTip,rabbitBase,"z",Math.sin(t*4+1)*.2);
+
+ if(mode==="happy"){
+  movePart(rabbitParts.head,rabbitBase,"x",Math.sin(t*5)*.12);
+  movePart(rabbitParts.leftEar,rabbitBase,"z",Math.sin(t*6)*.16);
+  movePart(rabbitParts.rightEar,rabbitBase,"z",-Math.sin(t*6)*.16);
+ }
+}
+
+function animateElephant(t,mode){
+ const frequency = mode==="run"?10:mode==="walk"?6:3;
+
+ const legAmount = mode==="run"?.45:
+  mode==="walk"?.27:
+  mode==="happy"?.10:
+  0;
+
+ const swing = Math.sin(t*frequency)*legAmount;
+
+ movePart(elephantParts.head,elephantBase,"y",Math.sin(t*2)*.045);
+ movePart(elephantParts.neck,elephantBase,"x",Math.sin(t*1.5)*.025);
+
+ movePart(elephantParts.leftEar,elephantBase,"z",Math.sin(t*2.5)*.12);
+ movePart(elephantParts.rightEar,elephantBase,"z",-Math.sin(t*2.5)*.12);
+
+ movePart(elephantParts.trunk,elephantBase,"x",Math.sin(t*2)*.13);
+ movePart(elephantParts.trunkMid,elephantBase,"x",Math.sin(t*2.2+1)*.12);
+ movePart(elephantParts.trunkTip,elephantBase,"x",Math.sin(t*2.4+2)*.10);
+
+ movePart(elephantParts.leftFront,elephantBase,"x",swing);
+ movePart(elephantParts.rightFront,elephantBase,"x",-swing);
+
+ movePart(elephantParts.leftFrontLower,elephantBase,"x",-Math.max(0,swing)*.35);
+ movePart(elephantParts.rightFrontLower,elephantBase,"x",Math.max(0,swing)*.35);
+
+ movePart(elephantParts.leftHind,elephantBase,"x",-swing);
+ movePart(elephantParts.rightHind,elephantBase,"x",swing);
+
+ movePart(elephantParts.leftHindLower,elephantBase,"x",Math.max(0,swing)*.35);
+ movePart(elephantParts.rightHindLower,elephantBase,"x",-Math.max(0,swing)*.35);
+
+ movePart(elephantParts.tail,elephantBase,"z",Math.sin(t*2.2)*.12);
+
+ if(mode==="happy"){
+  movePart(elephantParts.trunk,elephantBase,"x",-.45+Math.sin(t*4)*.13);
+  movePart(elephantParts.trunkTip,elephantBase,"x",Math.sin(t*5)*.2);
+  movePart(elephantParts.head,elephantBase,"y",Math.sin(t*4)*.14);
+ }
+}
+
+// =====================================
+// MOTION BUTTONS
+// =====================================
+
+function setAction(value){
+ action = value;
+ elapsed = 0;
+
+ setStatus(
+  "✅ Animation selected: "+value.toUpperCase(),
+  "success"
+ );
+}
+
+$("idleBtn").addEventListener("click",()=>setAction("idle"));
+$("walkBtn").addEventListener("click",()=>setAction("walk"));
+$("runBtn").addEventListener("click",()=>setAction("run"));
+$("happyBtn").addEventListener("click",()=>setAction("happy"));
+
+$("resetBtn").addEventListener("click",()=>{
+ action="idle";
+ elapsed=0;
+
+ restoreRotations(rabbitParts,rabbitBase);
+ restoreRotations(elephantParts,elephantBase);
+
+ setStatus("Characters reset to their original poses.");
+});
+
+// =====================================
+// ENABLE CONTROLS
+// =====================================
+
+function enableButtons(){
+ [
+  "idleBtn",
+  "walkBtn",
+  "runBtn",
+  "happyBtn",
+  "resetBtn"
+ ].forEach(id=>{
+  $(id).disabled=false;
+ });
+}
+
+// =====================================
+// RENDER LOOP
+// =====================================
+
+const clock = new THREE.Clock();
+
+function animate(){
+ requestAnimationFrame(animate);
+
+ const dt = Math.min(clock.getDelta(),.05);
+ elapsed += dt;
+
+ controls.update();
+
+ if(rabbit){
+  animateRabbit(elapsed,action);
+ }
+
+ if(elephant){
+  animateElephant(elapsed,action);
+ }
+
+ renderer.render(scene,camera);
+}
+
+animate();
+
+// =====================================
+// RESIZE
+// =====================================
+
+function resize(){
+ const w=stage.clientWidth;
+ const h=stage.clientHeight;
+
+ if(!w||!h)return;
+
+ camera.aspect=w/h;
+ camera.updateProjectionMatrix();
+ renderer.setSize(w,h);
+}
+
+window.addEventListener("resize",resize);
+
+// =====================================
+// LOAD BOTH MODELS
+// =====================================
+
+async function start(){
+ setStatus("Loading Rabbit and Elephant GLB models...");
+
+ try{
+  await Promise.all([
+   loadRabbit(),
+   loadElephant()
+  ]);
+
+  loadedCount=2;
+
+  enableButtons();
+
+  setStatus(
+   "✅ Both 3D characters loaded successfully!\n" +
+   "Rabbit movable parts: "+countFound(rabbitParts)+"\n"+
+   "Elephant movable parts: "+countFound(elephantParts)+"\n"+
+   "Choose Walk, Run or Happy to test movement.",
+   "success"
+  );
+
+ }catch(error){
+  console.error(error);
+
+  setStatus(
+   "❌ Model loading error:\n"+
+   error.message+
+   "\n\nInternet connection आणि model source availability तपासा.",
+   "error"
+  );
+ }
+}
+
+start();
+</script>
+</body>
+</html>
